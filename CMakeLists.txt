@@ -3,6 +3,7 @@ project(skeleton VERSION 1.0.0 LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(CPPLint)
+include(Dependencies)
 
 add_subdirectory(libskeleton)
 add_subdirectory(skeleton)

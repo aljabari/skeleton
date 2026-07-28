@@ -7,7 +7,8 @@ This project follows the
 
 - **Naming:**
   - Types (classes, structs, enums): `PascalCase`
-  - Functions and variables: `snake_case`
+  - Functions: `PascalCase`
+  - Variables: `snake_case`
   - Constants (constexpr / enum values): `kPascalCase`
   - Namespaces: `snake_case`
 - **Copyright:** Every source file must start with a copyright line:

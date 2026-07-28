@@ -3,6 +3,7 @@
 - **Build tool:** CMake (minimum 3.16)
 - **Generator:** Visual Studio (preferred on Windows), Ninja (alternative)
 - **C++ standard:** C++20 (required, not optional)
+- **Dependencies:** GLFW (fetched automatically via `FetchContent`)
 
 ## Targets
 
@@ -43,6 +44,14 @@ This configures the project (if needed) and opens `skeleton.slnx`.
 Once inside Visual Studio, build and run via `F5` or `Ctrl+F5`. The executable
 will be at `build\skeleton\Release\skeleton.exe` (or `Debug` depending on
 configuration).
+
+## Dependencies
+
+The project uses **CMake FetchContent** to download and build dependencies:
+
+| Dependency | Source                                     | Tag |
+|------------|--------------------------------------------|-----|
+| GLFW       | https://github.com/glfw/glfw.git           | 3.4 |
 
 ## Adding a new library target
 

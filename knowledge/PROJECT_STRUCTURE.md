@@ -2,7 +2,7 @@
 
 ```
 skeleton/
-├── CMakeLists.txt            # Root — C++20, common output dir, subdirectories
+├── CMakeLists.txt            # Root — C++20, FetchContent deps, subdirectories
 ├── AGENTS.md                 # Entry point for future agents
 ├── cmake/                    # CMake modules
 │   └── CPPLint.cmake         # cpplint integration
@@ -16,13 +16,11 @@ skeleton/
 ├── libskeleton/              # Static library target
 │   ├── CMakeLists.txt
 │   ├── include/libskeleton/  # Public headers
-│   │   └── skeleton.h
+│   │   └── window.h
 │   └── src/                  # Implementation files
-│       └── skeleton.cpp
+│       └── window.cpp
 ├── skeleton/                 # Executable target
 │   ├── CMakeLists.txt
-│   ├── include/skeleton/     # Private headers
-│   │   └── main.h
 │   └── src/
 │       └── main.cpp
 └── build/                    # Build output (gitignored)
