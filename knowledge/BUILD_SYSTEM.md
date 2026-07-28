@@ -18,6 +18,20 @@ cmake -B build -G "Visual Studio 18"
 cmake --build build --config Release
 ```
 
+**cpplint** runs automatically before each target is built. If linting finds
+any issues, the build fails. You can also run linting standalone:
+
+```sh
+cmake --build build --target libskeleton_cpplint
+cmake --build build --target skeleton_cpplint
+```
+
+or all at once:
+
+```sh
+cmake --build build --target skeleton  # triggers both targets
+```
+
 ## How to open in Visual Studio
 
 ```sh

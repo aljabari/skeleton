@@ -4,6 +4,8 @@
 skeleton/
 ├── CMakeLists.txt            # Root — C++20, common output dir, subdirectories
 ├── AGENTS.md                 # Entry point for future agents
+├── cmake/                    # CMake modules
+│   └── CPPLint.cmake         # cpplint integration
 ├── knowledge/                # Detailed project documentation
 │   ├── README.md
 │   ├── BUILD_SYSTEM.md

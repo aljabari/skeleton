@@ -10,9 +10,13 @@ This project follows the
   - Functions and variables: `snake_case`
   - Constants (constexpr / enum values): `kPascalCase`
   - Namespaces: `snake_case`
+- **Copyright:** Every source file must start with a copyright line:
+  `// Copyright <YEAR> aljabari`
 - **Headers:** Always use traditional `#ifndef` include guards (never `#pragma
   once`). The guard macro must follow the pattern
-  `<PROJECT>_<PATH>_<FILE>_H`, e.g. `SKELETON_LIBSKELETON_SKELETON_H`.
+  `<PATH>_<FILE>_H_` with a trailing underscore. The path is the target-relative
+  location of the file, e.g. `LIBSKELETON_SKELETON_H_` for a file at
+  `libskeleton/include/libskeleton/skeleton.h`.
 - **Includes:** Project headers use quoted paths rooted at the owning target's
   `include/` directory, e.g. `#include "libskeleton/skeleton.h"`.
 - **Formatting:** 2-space indentation, 80-column line limit.

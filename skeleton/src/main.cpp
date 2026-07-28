@@ -1,3 +1,5 @@
+// Copyright 2026 aljabari
+
 #include <iostream>
 #include "libskeleton/skeleton.h"
 #include "skeleton/main.h"

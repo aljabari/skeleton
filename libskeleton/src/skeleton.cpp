@@ -1,3 +1,5 @@
+// Copyright 2026 aljabari
+
 #include "libskeleton/skeleton.h"
 
 namespace skeleton {
