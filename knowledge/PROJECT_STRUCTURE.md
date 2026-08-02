@@ -21,14 +21,18 @@ skeleton/
 │   ├── include/libskeleton/  # Public headers
 │   │   ├── window.h
 │   │   ├── renderer.h
-│   │   └── opengl/
-│   │       └── openglrenderer.h
+│   │   ├── opengl/
+│   │   │   └── openglrenderer.h
+│   │   └── vulkan/
+│   │       └── vulkanrenderer.h
 │   └── src/                  # Implementation files
 │       ├── window.cc
 │       ├── renderer/
 │       │   ├── renderer.cc
-│       │   └── opengl/
-│       │       └── openglrenderer.cc
+│       │   ├── opengl/
+│       │   │   └── openglrenderer.cc
+│       │   └── vulkan/
+│       │       └── vulkanrenderer.cc
 ├── skeleton/                 # Executable target
 │   ├── CMakeLists.txt
 │   └── src/

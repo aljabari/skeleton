@@ -21,15 +21,20 @@ target platform:
 | Flag                                       | Meaning                          |
 |--------------------------------------------|----------------------------------|
 | `SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL` | Target platform supports OpenGL  |
+| `SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN` | Target platform supports Vulkan  |
 
-The OpenGL renderer sources in `libskeleton` are only added to the build when
-`SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL` is defined. In that case
-`libskeleton` also exports the same name as a `PUBLIC` compile definition, so
-client code can guard against the API with:
+The renderer sources in `libskeleton` are only added to the build when the
+corresponding `SKELETON_TARGET_SUPPORTS_RENDERER_*` flag is defined. In that
+case `libskeleton` also exports the same name as a `PUBLIC` compile definition,
+so client code can guard against the API with:
 
 ```cpp
 #ifdef SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL
 #include "libskeleton/opengl/openglrenderer.h"
+#endif
+
+#ifdef SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN
+#include "libskeleton/vulkan/vulkanrenderer.h"
 #endif
 ```
 
