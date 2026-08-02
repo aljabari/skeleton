@@ -55,6 +55,10 @@ skeleton/
 │   ├── CMakeLists.txt
 │   └── src/
 │       └── main.cc
+├── skeledit/                 # Editor executable target (duplicate of skeleton)
+│   ├── CMakeLists.txt
+│   └── src/
+│       └── main.cc
 └── build/                    # Build output (gitignored)
 ```
 
@@ -63,6 +67,7 @@ skeleton/
 ```
 libskeleton_tests ──links──► libskeleton
 skeleton          ──links──► libskeleton
+skeledit          ──links──► libskeleton
 ```
 
 ## Key conventions

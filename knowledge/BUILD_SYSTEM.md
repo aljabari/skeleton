@@ -11,12 +11,15 @@
 |---------------------|------------|-------------------------------------|
 | `libskeleton`       | STATIC     | Core library — all logic lives here |
 | `skeleton`          | EXECUTABLE | Main entry point, links `libskeleton` |
+| `skeledit`          | EXECUTABLE | Editor entry point, links `libskeleton` |
 | `libskeleton_tests` | EXECUTABLE | Unit tests, built only when `SKELETON_BUILD_TESTS` is `ON` |
 
 Each target's `CMakeLists.txt` also calls
 [`source_group(TREE ...)`](https://cmake.org/cmake/help/latest/command/source_group.html)
 with a `Source Files` prefix, so the directory layout of the sources is
-mirrored in the Visual Studio solution explorer.
+mirrored in the Visual Studio solution explorer. Executable targets (`skeleton`,
+`skeledit`) are near-identical duplicates that only set up `main.cc` and link
+`libskeleton`.
 
 ## Platform support
 

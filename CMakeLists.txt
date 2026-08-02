@@ -13,6 +13,7 @@ include(dependencies)
 
 add_subdirectory(libskeleton)
 add_subdirectory(skeleton)
+add_subdirectory(skeledit)
 
 if (SKELETON_BUILD_TESTS)
     add_subdirectory(tests)
