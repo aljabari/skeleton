@@ -1,11 +1,13 @@
 // Copyright 2026 aljabari
 
+#include "libskeleton/opengl/openglrenderer.h"
 #include "libskeleton/window.h"
 
 namespace skeleton {
 
 int Run(int argc, char* argv[]) {
-  Window window(800, 600, "Skeleton");
+  OpenGlRenderer renderer;
+  Window window(800, 600, "Skeleton", renderer);
   while (window.IsOpen()) {
     window.PollEvents();
   }

@@ -8,12 +8,14 @@
 
 namespace skeleton {
 
-Window::Window(int width, int height, const char* title)
-    : window_(nullptr) {
+Window::Window(int width, int height, const char* title, Renderer& renderer)
+    : renderer_(renderer), window_(nullptr) {
   if (!glfwInit()) {
     std::cerr << "Failed to initialize GLFW\n";
     return;
   }
+
+  renderer_.SetWindowHints();
 
   window_ = glfwCreateWindow(width, height, title, nullptr, nullptr);
   if (!window_) {

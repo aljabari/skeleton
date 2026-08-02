@@ -12,6 +12,7 @@ class VulkanRenderer : public Renderer {
   VulkanRenderer();
   ~VulkanRenderer() override;
 
+  void SetWindowHints() override;
   void Render() override;
 };
 

@@ -12,6 +12,7 @@ class OpenGlRenderer : public Renderer {
   OpenGlRenderer();
   ~OpenGlRenderer() override;
 
+  void SetWindowHints() override;
   void Render() override;
 };
 

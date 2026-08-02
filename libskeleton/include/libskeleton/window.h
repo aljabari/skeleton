@@ -3,13 +3,15 @@
 #ifndef LIBSKELETON_WINDOW_H_
 #define LIBSKELETON_WINDOW_H_
 
+#include "libskeleton/renderer.h"
+
 struct GLFWwindow;
 
 namespace skeleton {
 
 class Window {
  public:
-  Window(int width, int height, const char* title);
+  Window(int width, int height, const char* title, Renderer& renderer);
   ~Window();
 
   Window(const Window&) = delete;
@@ -20,6 +22,7 @@ class Window {
   static void PollEvents();
 
  private:
+  Renderer& renderer_;
   GLFWwindow* window_;
 };
 

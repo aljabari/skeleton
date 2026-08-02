@@ -9,6 +9,7 @@ class Renderer {
  public:
   virtual ~Renderer();
 
+  virtual void SetWindowHints() = 0;
   virtual void Render() = 0;
 
  protected:
