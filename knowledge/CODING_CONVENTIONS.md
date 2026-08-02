@@ -27,3 +27,6 @@ This project follows the
 - **No raw loops** where `std::ranges` or `std::algorithm` can be used instead.
 - **Ownership:** Prefer `std::unique_ptr` over raw ownership. Never use
   `new`/`delete` directly.
+- **Testing:** All production code must be accompanied by unit tests written
+  with **Google Test** (and **Google Mock** where a mock is needed). Tests live
+  in the `tests/` directory. See [TESTING.md](TESTING.md).

@@ -7,10 +7,11 @@
 
 ## Targets
 
-| Target       | Type   | Description                         |
-|--------------|--------|-------------------------------------|
-| `libskeleton`| STATIC | Core library — all logic lives here |
-| `skeleton`   | EXECUTABLE | Main entry point, links `libskeleton` |
+| Target              | Type       | Description                         |
+|---------------------|------------|-------------------------------------|
+| `libskeleton`       | STATIC     | Core library — all logic lives here |
+| `skeleton`          | EXECUTABLE | Main entry point, links `libskeleton` |
+| `libskeleton_tests` | EXECUTABLE | Unit tests, built only when `SKELETON_BUILD_TESTS` is `ON` |
 
 ## Platform support
 
@@ -64,6 +65,16 @@ or all at once:
 cmake --build build --target skeleton  # triggers both targets
 ```
 
+## How to test
+
+Unit tests use **Google Test** and are built when `SKELETON_BUILD_TESTS` is
+`ON` (the default). See [TESTING.md](TESTING.md) for details.
+
+```sh
+cmake --build build --config Release --target libskeleton_tests
+ctest --test-dir build -C Release --output-on-failure
+```
+
 ## How to open in Visual Studio
 
 ```sh
@@ -84,9 +95,11 @@ The project uses **CMake FetchContent** to download and build dependencies:
 |------------|--------------------------------------------|-----|
 | GLFW       | https://github.com/glfw/glfw.git           | 3.4 |
 | glad       | https://github.com/Dav1dde/glad.git        | v2.0.6 |
+| googletest | https://github.com/google/googletest.git   | v1.17.0 |
 
 `glad` requires a Python interpreter with `jinja2` installed; it is only
-declared when OpenGL is supported on the target platform.
+declared when OpenGL is supported on the target platform. `googletest` is only
+declared when `SKELETON_BUILD_TESTS` is `ON`.
 
 ## Adding a new library target
 

@@ -9,6 +9,7 @@ repository. Each file covers a specific aspect of the project.
 - [CODING_CONVENTIONS.md](CODING_CONVENTIONS.md) — C++ style, naming, formatting
 - [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) — directory layout and target
   organisation
+- [TESTING.md](TESTING.md) — unit tests with Google Test
 
 ---
 

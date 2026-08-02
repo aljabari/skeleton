@@ -13,7 +13,8 @@ skeleton/
 │   ├── README.md
 │   ├── BUILD_SYSTEM.md
 │   ├── CODING_CONVENTIONS.md
-│   └── PROJECT_STRUCTURE.md
+│   ├── PROJECT_STRUCTURE.md
+│   └── TESTING.md
 ├── scripts/                  # Build & run scripts
 │   └── build_and_run.bat
 ├── libskeleton/              # Static library target
@@ -33,6 +34,15 @@ skeleton/
 │       │   │   └── openglrenderer.cc
 │       │   └── vulkan/
 │       │       └── vulkanrenderer.cc
+├── tests/                    # Unit tests (Google Test), mirrors libskeleton/src
+│   ├── CMakeLists.txt
+│   └── src/
+│       ├── window_test.cc
+│       └── renderer/
+│           ├── opengl/
+│           │   └── openglrenderer_test.cc
+│           └── vulkan/
+│               └── vulkanrenderer_test.cc
 ├── skeleton/                 # Executable target
 │   ├── CMakeLists.txt
 │   └── src/
@@ -43,7 +53,8 @@ skeleton/
 ## Target dependency graph
 
 ```
-skeleton ──links──► libskeleton
+libskeleton_tests ──links──► libskeleton
+skeleton          ──links──► libskeleton
 ```
 
 ## Key conventions
