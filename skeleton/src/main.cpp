@@ -5,15 +5,15 @@
 namespace skeleton {
 
 int Run(int argc, char* argv[]) {
-    Window window(800, 600, "Skeleton");
-    while (window.IsOpen()) {
-        window.PollEvents();
-    }
-    return 0;
+  Window window(800, 600, "Skeleton");
+  while (window.IsOpen()) {
+    window.PollEvents();
+  }
+  return 0;
 }
 
 }  // namespace skeleton
 
 int main(int argc, char* argv[]) {
-    return skeleton::Run(argc, argv);
+  return skeleton::Run(argc, argv);
 }
