@@ -18,11 +18,11 @@ skeleton/
 │   ├── include/libskeleton/  # Public headers
 │   │   └── window.h
 │   └── src/                  # Implementation files
-│       └── window.cpp
+│       └── window.cc
 ├── skeleton/                 # Executable target
 │   ├── CMakeLists.txt
 │   └── src/
-│       └── main.cpp
+│       └── main.cc
 └── build/                    # Build output (gitignored)
 ```
 

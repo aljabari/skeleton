@@ -1,5 +1,5 @@
 add_library(libskeleton STATIC
-    src/window.cpp
+    src/window.cc
     include/libskeleton/window.h
 )
 

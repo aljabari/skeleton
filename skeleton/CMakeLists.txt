@@ -1,5 +1,5 @@
 add_executable(skeleton
-    src/main.cpp
+    src/main.cc
 )
 
 target_compile_features(skeleton PRIVATE cxx_std_20)
