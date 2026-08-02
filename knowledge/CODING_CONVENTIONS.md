@@ -11,6 +11,8 @@ This project follows the
   - Variables: `snake_case`
   - Constants (constexpr / enum values): `kPascalCase`
   - Namespaces: `snake_case`
+- **File extensions:** All C++ source files must use the `.cc` extension, and
+  headers the `.h` extension.
 - **Copyright:** Every source file must start with a copyright line:
   `// Copyright <YEAR> aljabari`
 - **Headers:** Always use traditional `#ifndef` include guards (never `#pragma
