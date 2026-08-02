@@ -11,13 +11,41 @@ set(_imgui_sources
     imgui_widgets.cpp
 )
 
-add_library(imgui STATIC ${_imgui_sources})
+set(_imgui_backend_sources
+    backends/imgui_impl_glfw.cpp
+    backends/imgui_impl_glfw.h
+)
 
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${_imgui_sources})
+if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
+    list(APPEND _imgui_backend_sources
+        backends/imgui_impl_opengl3.cpp
+        backends/imgui_impl_opengl3.h
+    )
+endif()
+
+if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
+    list(APPEND _imgui_backend_sources
+        backends/imgui_impl_vulkan.cpp
+        backends/imgui_impl_vulkan.h
+    )
+    find_package(Vulkan)
+    set(_imgui_private_include_dirs ${Vulkan_INCLUDE_DIRS})
+endif()
+
+set(_imgui_all_sources ${_imgui_sources} ${_imgui_backend_sources})
+
+add_library(imgui STATIC ${_imgui_all_sources})
+
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${_imgui_all_sources})
 
 target_compile_features(imgui PUBLIC cxx_std_20)
 
 target_include_directories(imgui
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/backends
+    PRIVATE
+        ${_imgui_private_include_dirs}
 )
+
+target_link_libraries(imgui PRIVATE glfw)

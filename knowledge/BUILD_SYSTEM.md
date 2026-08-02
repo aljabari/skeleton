@@ -131,9 +131,19 @@ at `cmake/third_party/imgui/CMakeLists.txt`. `skeledit/CMakeLists.txt` populates
 (the single-argument form is deprecated since CMake 3.30), copies the provided
 `CMakeLists.txt` into the fetched source tree, and then adds it as an
 `EXCLUDE_FROM_ALL` subdirectory. The `imgui` static library target defines the
-core sources only (`imgui.cpp`, `imgui_demo.cpp`, `imgui_draw.cpp`,
-`imgui_tables.cpp`, `imgui_widgets.cpp`) and exposes the fetched root as a
-`PUBLIC` include directory, so backends can be added later.
+core sources (`imgui.cpp`, `imgui_demo.cpp`, `imgui_draw.cpp`,
+`imgui_tables.cpp`, `imgui_widgets.cpp`) plus the GLFW backend
+(`backends/imgui_impl_glfw.cpp`), which is always built. The OpenGL3 backend
+(`backends/imgui_impl_opengl3.cpp`) is added when the
+`SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL` platform flag is set, and the Vulkan
+backend (`backends/imgui_impl_vulkan.cpp`) when
+`SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN` is set. The OpenGL3 backend uses
+imgui's bundled runtime loader, so it needs no link-time GL dependency. The
+Vulkan backend is compiled against the Vulkan headers located via
+`find_package(Vulkan)`; no Vulkan library is linked yet, since function loading
+will be handled by **volk** later. The target exposes the fetched root and
+`backends/` as `PUBLIC` include directories and links `glfw` for the GLFW
+backend.
 
 ## Adding a new library target
 
