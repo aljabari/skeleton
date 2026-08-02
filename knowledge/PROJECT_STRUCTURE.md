@@ -5,7 +5,10 @@ skeleton/
 ├── CMakeLists.txt            # Root — C++20, FetchContent deps, subdirectories
 ├── AGENTS.md                 # Entry point for future agents
 ├── cmake/                    # CMake modules
-│   └── CPPLint.cmake         # cpplint integration
+│   ├── CPPLint.cmake         # cpplint integration
+│   ├── dependencies.cmake    # FetchContent dependencies
+│   └── platform/             # Per-platform capability flags
+│       └── windows.cmake     # Defines SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL
 ├── knowledge/                # Detailed project documentation
 │   ├── README.md
 │   ├── BUILD_SYSTEM.md
@@ -16,9 +19,16 @@ skeleton/
 ├── libskeleton/              # Static library target
 │   ├── CMakeLists.txt
 │   ├── include/libskeleton/  # Public headers
-│   │   └── window.h
+│   │   ├── window.h
+│   │   ├── renderer.h
+│   │   └── opengl/
+│   │       └── openglrenderer.h
 │   └── src/                  # Implementation files
-│       └── window.cc
+│       ├── window.cc
+│       ├── renderer/
+│       │   ├── renderer.cc
+│       │   └── opengl/
+│       │       └── openglrenderer.cc
 ├── skeleton/                 # Executable target
 │   ├── CMakeLists.txt
 │   └── src/

@@ -12,6 +12,27 @@
 | `libskeleton`| STATIC | Core library — all logic lives here |
 | `skeleton`   | EXECUTABLE | Main entry point, links `libskeleton` |
 
+## Platform support
+
+`cmake/platform/windows.cmake` is included at the top of the root
+`CMakeLists.txt` when `WIN32` is true and defines capability flags for the
+target platform:
+
+| Flag                                       | Meaning                          |
+|--------------------------------------------|----------------------------------|
+| `SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL` | Target platform supports OpenGL  |
+
+The OpenGL renderer sources in `libskeleton` are only added to the build when
+`SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL` is defined. In that case
+`libskeleton` also exports the same name as a `PUBLIC` compile definition, so
+client code can guard against the API with:
+
+```cpp
+#ifdef SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL
+#include "libskeleton/opengl/openglrenderer.h"
+#endif
+```
+
 ## How to build
 
 ```sh

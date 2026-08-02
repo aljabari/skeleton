@@ -1,0 +1,20 @@
+// Copyright 2026 aljabari
+
+#ifndef LIBSKELETON_RENDERER_H_
+#define LIBSKELETON_RENDERER_H_
+
+namespace skeleton {
+
+class Renderer {
+ public:
+  virtual ~Renderer();
+
+  virtual void Render() = 0;
+
+ protected:
+  Renderer() = default;
+};
+
+}  // namespace skeleton
+
+#endif  // LIBSKELETON_RENDERER_H_
