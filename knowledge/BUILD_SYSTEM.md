@@ -13,6 +13,11 @@
 | `skeleton`          | EXECUTABLE | Main entry point, links `libskeleton` |
 | `libskeleton_tests` | EXECUTABLE | Unit tests, built only when `SKELETON_BUILD_TESTS` is `ON` |
 
+Each target's `CMakeLists.txt` also calls
+[`source_group(TREE ...)`](https://cmake.org/cmake/help/latest/command/source_group.html)
+with a `Source Files` prefix, so the directory layout of the sources is
+mirrored in the Visual Studio solution explorer.
+
 ## Platform support
 
 `cmake/platform/windows.cmake` is included at the top of the root

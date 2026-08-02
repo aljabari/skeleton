@@ -2,6 +2,8 @@ add_executable(skeleton
     src/main.cc
 )
 
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES src/main.cc)
+
 target_compile_features(skeleton PRIVATE cxx_std_20)
 
 target_include_directories(skeleton

@@ -12,7 +12,7 @@ if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
     )
 endif()
 
-add_library(libskeleton STATIC
+set(_libskeleton_sources
     src/window.cc
     src/renderer/renderer.cc
     include/libskeleton/window.h
@@ -20,6 +20,10 @@ add_library(libskeleton STATIC
     ${_renderer_opengl_sources}
     ${_renderer_vulkan_sources}
 )
+
+add_library(libskeleton STATIC ${_libskeleton_sources})
+
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${_libskeleton_sources})
 
 target_compile_features(libskeleton PUBLIC cxx_std_20)
 
