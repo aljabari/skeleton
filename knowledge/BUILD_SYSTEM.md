@@ -3,7 +3,7 @@
 - **Build tool:** CMake (minimum 3.16)
 - **Generator:** Visual Studio (preferred on Windows), Ninja (alternative)
 - **C++ standard:** C++20 (required, not optional)
-- **Dependencies:** GLFW (fetched automatically via `FetchContent`)
+- **Dependencies:** GLFW, Dear ImGui (fetched automatically via `FetchContent`)
 
 ## Targets
 
@@ -11,7 +11,7 @@
 |---------------------|------------|-------------------------------------|
 | `libskeleton`       | STATIC     | Core library — all logic lives here |
 | `skeleton`          | EXECUTABLE | Main entry point, links `libskeleton` |
-| `skeledit`          | EXECUTABLE | Editor entry point, links `libskeleton` |
+| `skeledit`          | EXECUTABLE | Editor entry point, links `libskeleton` and `imgui` |
 | `libskeleton_tests` | EXECUTABLE | Unit tests, built only when `SKELETON_BUILD_TESTS` is `ON` |
 
 Each target's `CMakeLists.txt` also calls
@@ -117,10 +117,23 @@ The project uses **CMake FetchContent** to download and build dependencies:
 | GLFW       | https://github.com/glfw/glfw.git           | 3.4 |
 | glad       | https://github.com/Dav1dde/glad.git        | v2.0.6 |
 | googletest | https://github.com/google/googletest.git   | v1.17.0 |
+| imgui      | https://github.com/ocornut/imgui.git       | v1.92.7 |
 
 `glad` requires a Python interpreter with `jinja2` installed; it is only
 declared when OpenGL is supported on the target platform. `googletest` is only
 declared when `SKELETON_BUILD_TESTS` is `ON`.
+
+`imgui` is only a dependency of `skeledit`; it is fetched and added from
+`skeledit/CMakeLists.txt`, not from `cmake/dependencies.cmake`. The upstream
+repository intentionally ships no `CMakeLists.txt`, so the project provides one
+at `cmake/third_party/imgui/CMakeLists.txt`. `skeledit/CMakeLists.txt` populates
+`imgui` with the fully-specified details form of `FetchContent_Populate()`
+(the single-argument form is deprecated since CMake 3.30), copies the provided
+`CMakeLists.txt` into the fetched source tree, and then adds it as an
+`EXCLUDE_FROM_ALL` subdirectory. The `imgui` static library target defines the
+core sources only (`imgui.cpp`, `imgui_demo.cpp`, `imgui_draw.cpp`,
+`imgui_tables.cpp`, `imgui_widgets.cpp`) and exposes the fetched root as a
+`PUBLIC` include directory, so backends can be added later.
 
 ## Adding a new library target
 

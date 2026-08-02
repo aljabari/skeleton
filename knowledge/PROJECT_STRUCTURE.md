@@ -7,6 +7,8 @@ skeleton/
 ├── cmake/                    # CMake modules
 │   ├── CPPLint.cmake         # cpplint integration
 │   ├── dependencies.cmake    # FetchContent dependencies
+│   ├── third_party/          # Build recipes for dependencies without their own CMake
+│   │   └── imgui/CMakeLists.txt  # Dear ImGui build script, copied into the fetched source
 │   └── platform/             # Per-platform capability flags
 │       └── windows.cmake     # Defines SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL
 ├── knowledge/                # Detailed project documentation
@@ -55,8 +57,8 @@ skeleton/
 │   ├── CMakeLists.txt
 │   └── src/
 │       └── main.cc
-├── skeledit/                 # Editor executable target (duplicate of skeleton)
-│   ├── CMakeLists.txt
+├── skeledit/                 # Editor executable target, links libskeleton and imgui
+│   ├── CMakeLists.txt        # Fetches imgui (skeledit-only dependency)
 │   └── src/
 │       └── main.cc
 └── build/                    # Build output (gitignored)
@@ -67,7 +69,7 @@ skeleton/
 ```
 libskeleton_tests ──links──► libskeleton
 skeleton          ──links──► libskeleton
-skeledit          ──links──► libskeleton
+skeledit          ──links──► libskeleton, imgui
 ```
 
 ## Key conventions

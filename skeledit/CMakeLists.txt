@@ -1,3 +1,18 @@
+include(FetchContent)
+
+FetchContent_GetProperties(imgui)
+if(NOT imgui_POPULATED)
+    FetchContent_Populate(
+        imgui
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG v1.92.7
+        GIT_SHALLOW ON
+    )
+    file(COPY "${CMAKE_SOURCE_DIR}/cmake/third_party/imgui/CMakeLists.txt"
+         DESTINATION "${imgui_SOURCE_DIR}")
+    add_subdirectory(${imgui_SOURCE_DIR} ${imgui_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+
 add_executable(skeledit
     src/main.cc
 )
@@ -12,6 +27,6 @@ target_include_directories(skeledit
         $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(skeledit PRIVATE libskeleton)
+target_link_libraries(skeledit PRIVATE libskeleton imgui)
 
 cpplint_add_target(skeledit ROOT skeledit/include)
