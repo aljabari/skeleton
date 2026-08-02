@@ -1,16 +1,25 @@
 add_executable(libskeleton_tests
     src/window_test.cc
+    src/renderer/opengl/openglmesh_test.cc
     src/renderer/opengl/openglrenderer_test.cc
+    src/renderer/opengl/openglshader_test.cc
     src/renderer/vulkan/vulkanrenderer_test.cc
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES
     src/window_test.cc
+    src/renderer/opengl/openglmesh_test.cc
     src/renderer/opengl/openglrenderer_test.cc
+    src/renderer/opengl/openglshader_test.cc
     src/renderer/vulkan/vulkanrenderer_test.cc
 )
 
 target_compile_features(libskeleton_tests PRIVATE cxx_std_20)
+
+target_include_directories(libskeleton_tests
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../libskeleton/src
+)
 
 target_link_libraries(libskeleton_tests
     PRIVATE

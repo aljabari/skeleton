@@ -26,12 +26,18 @@ skeleton/
 │   │   │   └── openglrenderer.h
 │   │   └── vulkan/
 │   │       └── vulkanrenderer.h
-│   └── src/                  # Implementation files
+│   ├── res/                  # Runtime resources (shaders)
+│   │   └── shaders/
+│   │       ├── triangle.frag
+│   │       └── triangle.vert
+│   └── src/                  # Implementation files (private headers live here too)
 │       ├── window.cc
 │       ├── renderer/
 │       │   ├── renderer.cc
 │       │   ├── opengl/
-│       │   │   └── openglrenderer.cc
+│       │   │   ├── openglmesh.cc/.h       # Private: VAO/VBO wrapper
+│       │   │   ├── openglrenderer.cc
+│       │   │   └── openglshader.cc/.h     # Private: shader program wrapper
 │       │   └── vulkan/
 │       │       └── vulkanrenderer.cc
 ├── tests/                    # Unit tests (Google Test), mirrors libskeleton/src
@@ -40,7 +46,9 @@ skeleton/
 │       ├── window_test.cc
 │       └── renderer/
 │           ├── opengl/
-│           │   └── openglrenderer_test.cc
+│           │   ├── openglmesh_test.cc
+│           │   ├── openglrenderer_test.cc
+│           │   └── openglshader_test.cc
 │           └── vulkan/
 │               └── vulkanrenderer_test.cc
 ├── skeleton/                 # Executable target
@@ -62,5 +70,10 @@ skeleton          ──links──► libskeleton
 - Each target lives in its own subdirectory.
 - Each target has `src/` and `include/<target>/` directories.
 - Public headers live under `include/<target>/`.
+- Implementation-local headers (classes not exposed to clients) live next to
+  their `.cc` files under `src/` and are not part of the public include path.
+  Example: `OpenGlShader`/`OpenGlMesh` are declared in
+  `libskeleton/src/renderer/opengl/` and only reachable from inside
+  `libskeleton` (or tests).
 - Target-level `CMakeLists.txt` handles only that target's sources and
   dependencies.

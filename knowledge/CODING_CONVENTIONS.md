@@ -19,7 +19,9 @@ This project follows the
   once`). The guard macro must follow the pattern
   `<PATH>_<FILE>_H_` with a trailing underscore. The path is the target-relative
   location of the file, e.g. `LIBSKELETON_SKELETON_H_` for a file at
-  `libskeleton/include/libskeleton/skeleton.h`.
+  `libskeleton/include/libskeleton/skeleton.h`, and
+  `LIBSKELETON_SRC_RENDERER_OPENGL_OPENGLSHADER_H_` for a private header at
+  `libskeleton/src/renderer/opengl/openglshader.h`.
 - **Includes:** Project headers use quoted paths rooted at the owning target's
   `include/` directory, e.g. `#include "libskeleton/skeleton.h"`.
 - **Formatting:** 2-space indentation, 80-column line limit.

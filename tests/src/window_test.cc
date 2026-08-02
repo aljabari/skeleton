@@ -37,7 +37,8 @@ TEST(WindowTest, CallsSetWindowHintsBeforeWindowCreation) {
 TEST(WindowTest, PassesCreatedWindowToRenderer) {
   NiceMock<MockRenderer> renderer;
   GLFWwindow* created_window = nullptr;
-  EXPECT_CALL(renderer, InitialiseForWindow(_)).WillOnce(SaveArg<0>(&created_window));
+  EXPECT_CALL(renderer, InitialiseForWindow(_))
+      .WillOnce(SaveArg<0>(&created_window));
 
   Window window(800, 600, "Skeleton Test Window", renderer);
 
@@ -54,7 +55,8 @@ TEST(WindowTest, IsOpenReturnsTrueAfterCreation) {
 TEST(WindowTest, IsOpenReturnsFalseWhenCloseRequested) {
   NiceMock<MockRenderer> renderer;
   GLFWwindow* created_window = nullptr;
-  EXPECT_CALL(renderer, InitialiseForWindow(_)).WillOnce(SaveArg<0>(&created_window));
+  EXPECT_CALL(renderer, InitialiseForWindow(_))
+      .WillOnce(SaveArg<0>(&created_window));
 
   Window window(800, 600, "Skeleton Test Window", renderer);
   ASSERT_NE(created_window, nullptr);

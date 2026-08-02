@@ -49,6 +49,19 @@ so client code can guard against the API with:
 the generated `glad` target (OpenGL 3.3 core) to load GL function pointers via
 `gladLoadGL`.
 
+## Resources
+
+Runtime resources live under `libskeleton/res/` (e.g. GLSL shaders in
+`libskeleton/res/shaders/`). `libskeleton` exports the compile definition
+
+```cmake
+SKELETON_RES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/res"
+```
+
+(where `CMAKE_CURRENT_SOURCE_DIR` is `libskeleton/`) so both the library and
+its consumers can locate resources at run time. `SKELETON_RES_DIR` is defined
+only when OpenGL is supported.
+
 ## How to build
 
 ```sh

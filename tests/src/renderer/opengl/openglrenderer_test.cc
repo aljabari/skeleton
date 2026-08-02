@@ -70,5 +70,14 @@ TEST(OpenGlContextTest, GladLoadsOpenGlFunctions) {
   }
 }
 
+TEST(OpenGlRendererTest, RenderDrawsTriangleWithoutErrors) {
+  OpenGlRenderer renderer;
+  Window window(640, 480, "Skeleton Render Triangle Test", renderer);
+
+  renderer.Render();
+
+  EXPECT_EQ(glGetError(), GL_NO_ERROR);
+}
+
 }  // namespace
 }  // namespace skeleton
