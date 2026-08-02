@@ -10,6 +10,8 @@ int Run(int argc, char* argv[]) {
   Window window(800, 600, "Skeleton", renderer);
   while (window.IsOpen()) {
     window.PollEvents();
+    renderer.Render();
+    window.SwapBuffers();
   }
   return 0;
 }

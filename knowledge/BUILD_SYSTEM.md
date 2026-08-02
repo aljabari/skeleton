@@ -38,6 +38,11 @@ so client code can guard against the API with:
 #endif
 ```
 
+`glad` is fetched and generated only when
+`SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL` is set. The OpenGL renderer links
+the generated `glad` target (OpenGL 3.3 core) to load GL function pointers via
+`gladLoadGL`.
+
 ## How to build
 
 ```sh
@@ -78,6 +83,10 @@ The project uses **CMake FetchContent** to download and build dependencies:
 | Dependency | Source                                     | Tag |
 |------------|--------------------------------------------|-----|
 | GLFW       | https://github.com/glfw/glfw.git           | 3.4 |
+| glad       | https://github.com/Dav1dde/glad.git        | v2.0.6 |
+
+`glad` requires a Python interpreter with `jinja2` installed; it is only
+declared when OpenGL is supported on the target platform.
 
 ## Adding a new library target
 

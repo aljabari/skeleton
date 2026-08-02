@@ -21,7 +21,10 @@ Window::Window(int width, int height, const char* title, Renderer& renderer)
   if (!window_) {
     std::cerr << "Failed to create GLFW window\n";
     glfwTerminate();
+    return;
   }
+
+  renderer_.InitialiseForWindow(window_);
 }
 
 Window::~Window() {

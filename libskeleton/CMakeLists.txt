@@ -41,4 +41,12 @@ target_include_directories(libskeleton
 
 target_link_libraries(libskeleton PUBLIC glfw)
 
+if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
+    glad_add_library(glad STATIC API gl:core=3.3 LOCATION ${CMAKE_CURRENT_BINARY_DIR}/glad)
+    if (MSVC)
+        target_compile_options(glad PRIVATE $<$<CONFIG:Debug>:/MDd>$<$<NOT:$<CONFIG:Debug>>:/MD>)
+    endif()
+    target_link_libraries(libskeleton PUBLIC glad)
+endif()
+
 cpplint_add_target(libskeleton ROOT libskeleton/include)

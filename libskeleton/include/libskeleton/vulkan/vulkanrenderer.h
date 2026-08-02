@@ -5,6 +5,8 @@
 
 #include "libskeleton/renderer.h"
 
+struct GLFWwindow;
+
 namespace skeleton {
 
 class VulkanRenderer : public Renderer {
@@ -13,6 +15,7 @@ class VulkanRenderer : public Renderer {
   ~VulkanRenderer() override;
 
   void SetWindowHints() override;
+  void InitialiseForWindow(GLFWwindow* window) override;
   void Render() override;
 };
 

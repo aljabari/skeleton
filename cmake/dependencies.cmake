@@ -10,3 +10,13 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(glfw)
+
+if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
+    FetchContent_Declare(
+        glad
+        GIT_REPOSITORY https://github.com/Dav1dde/glad.git
+        GIT_TAG v2.0.6
+        SOURCE_SUBDIR cmake
+    )
+    FetchContent_MakeAvailable(glad)
+endif()
