@@ -10,7 +10,7 @@
 namespace skeleton {
 
 int Run(int argc, char* argv[]) {
-  OpenGlRenderer renderer;
+  OpenGlRenderer renderer(true);
   Window window(800, 600, "SkelEdit", renderer);
 
   ImGui::CreateContext();
@@ -26,6 +26,10 @@ int Run(int argc, char* argv[]) {
     ImGui::NewFrame();
 
     ImGui::ShowDemoWindow(&show_demo_window);
+
+    ImGui::Begin("Viewport");
+    ImGui::Image(renderer.GetTextureId(), ImVec2(800.0f, 600.0f));
+    ImGui::End();
 
     ImGui::Render();
     renderer.Render();

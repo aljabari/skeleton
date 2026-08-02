@@ -25,9 +25,17 @@ const std::vector<float> kTriangleVertices = {
 
 }  // namespace
 
-OpenGlRenderer::OpenGlRenderer() = default;
+OpenGlRenderer::OpenGlRenderer(bool render_to_texture)
+    : Renderer(render_to_texture) {}
 
-OpenGlRenderer::~OpenGlRenderer() = default;
+OpenGlRenderer::~OpenGlRenderer() {
+  if (framebuffer_ != 0) {
+    glDeleteFramebuffers(1, &framebuffer_);
+  }
+  if (texture_ != 0) {
+    glDeleteTextures(1, &texture_);
+  }
+}
 
 void OpenGlRenderer::SetWindowHints() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -43,9 +51,47 @@ void OpenGlRenderer::InitialiseForWindow(GLFWwindow* window) {
   shader_ = std::make_unique<OpenGlShader>(
       shader_directory + "/triangle.vert", shader_directory + "/triangle.frag");
   mesh_ = std::make_unique<OpenGlMesh>(kTriangleVertices);
+
+  if (render_to_texture_) {
+    int width = 0;
+    int height = 0;
+    glfwGetFramebufferSize(window, &width, &height);
+    CreateRenderTarget(width, height);
+  }
+}
+
+void OpenGlRenderer::CreateRenderTarget(int width, int height) {
+  glGenTextures(1, &texture_);
+  glBindTexture(GL_TEXTURE_2D, texture_);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+               GL_UNSIGNED_BYTE, nullptr);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  glGenFramebuffers(1, &framebuffer_);
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                         texture_, 0);
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  render_target_width_ = width;
+  render_target_height_ = height;
+}
+
+unsigned int OpenGlRenderer::GetTextureId() const {
+  return texture_;
 }
 
 void OpenGlRenderer::Render() {
+  glBindFramebuffer(GL_FRAMEBUFFER, render_to_texture_ ? framebuffer_ : 0);
+  if (render_to_texture_) {
+    glViewport(0, 0, render_target_width_, render_target_height_);
+  }
+
   glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -53,6 +99,8 @@ void OpenGlRenderer::Render() {
     shader_->Use();
     mesh_->Draw();
   }
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 }  // namespace skeleton

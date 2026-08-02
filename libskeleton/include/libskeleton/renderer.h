@@ -16,7 +16,9 @@ class Renderer {
   virtual void Render() = 0;
 
  protected:
-  Renderer() = default;
+  explicit Renderer(bool render_to_texture = false);
+
+  const bool render_to_texture_;
 };
 
 }  // namespace skeleton
