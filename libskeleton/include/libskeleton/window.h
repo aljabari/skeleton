@@ -18,6 +18,7 @@ class Window {
   Window& operator=(const Window&) = delete;
 
   bool IsOpen() const;
+  GLFWwindow* GetNativeWindow();
   void SwapBuffers();
   static void PollEvents();
 

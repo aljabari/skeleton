@@ -38,6 +38,10 @@ bool Window::IsOpen() const {
   return window_ ? glfwWindowShouldClose(window_) == 0 : false;
 }
 
+GLFWwindow* Window::GetNativeWindow() {
+  return window_;
+}
+
 void Window::SwapBuffers() {
   if (window_) {
     glfwSwapBuffers(window_);

@@ -45,6 +45,17 @@ TEST(WindowTest, PassesCreatedWindowToRenderer) {
   EXPECT_NE(created_window, nullptr);
 }
 
+TEST(WindowTest, GetNativeWindowReturnsCreatedWindow) {
+  NiceMock<MockRenderer> renderer;
+  GLFWwindow* created_window = nullptr;
+  EXPECT_CALL(renderer, InitialiseForWindow(_))
+      .WillOnce(SaveArg<0>(&created_window));
+
+  Window window(800, 600, "Skeleton Test Window", renderer);
+
+  EXPECT_EQ(window.GetNativeWindow(), created_window);
+}
+
 TEST(WindowTest, IsOpenReturnsTrueAfterCreation) {
   NiceMock<MockRenderer> renderer;
   Window window(800, 600, "Skeleton Test Window", renderer);
