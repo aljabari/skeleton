@@ -13,3 +13,5 @@ target_include_directories(skeleton
 )
 
 target_link_libraries(skeleton PRIVATE libskeleton)
+
+cpplint_add_target(skeleton ROOT skeleton/include)
