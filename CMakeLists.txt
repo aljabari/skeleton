@@ -7,3 +7,7 @@ include(Dependencies)
 
 add_subdirectory(libskeleton)
 add_subdirectory(skeleton)
+
+if (WIN32)
+    set_directory_properties(PROPERTIES VS_STARTUP_PROJECT skeleton)
+endif()
