@@ -19,6 +19,7 @@ class Window {
 
   bool IsOpen() const;
   GLFWwindow* GetNativeWindow();
+  void Maximize();
   void SwapBuffers();
   static void PollEvents();
 

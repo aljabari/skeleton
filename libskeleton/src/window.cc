@@ -42,6 +42,12 @@ GLFWwindow* Window::GetNativeWindow() {
   return window_;
 }
 
+void Window::Maximize() {
+  if (window_) {
+    glfwMaximizeWindow(window_);
+  }
+}
+
 void Window::SwapBuffers() {
   if (window_) {
     glfwSwapBuffers(window_);

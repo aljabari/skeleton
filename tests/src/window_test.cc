@@ -77,6 +77,16 @@ TEST(WindowTest, IsOpenReturnsFalseWhenCloseRequested) {
   EXPECT_FALSE(window.IsOpen());
 }
 
+TEST(WindowTest, MaximizeMaximisesWindow) {
+  NiceMock<MockRenderer> renderer;
+  Window window(800, 600, "Skeleton Test Window", renderer);
+
+  window.Maximize();
+
+  EXPECT_EQ(glfwGetWindowAttrib(window.GetNativeWindow(), GLFW_MAXIMIZED),
+            GLFW_TRUE);
+}
+
 TEST(WindowTest, MultipleWindowsCanCoexist) {
   NiceMock<MockRenderer> renderer_one;
   NiceMock<MockRenderer> renderer_two;
