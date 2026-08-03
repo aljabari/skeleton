@@ -1,5 +1,7 @@
 // Copyright 2026 aljabari
 
+#include <spdlog/spdlog.h>
+
 #include <memory>
 
 #include "skeledit/imguieditor.h"
@@ -13,8 +15,10 @@ namespace skeleton {
 int Run(int argc, char* argv[]) {
   auto renderer = CreateRenderer(RenderTarget::kRenderTargetTexture);
   if (renderer == nullptr) {
+    spdlog::error("No renderer available; exiting.");
     return 1;
   }
+  spdlog::info("SkelEdit started.");
   Renderer* renderer_ptr = renderer.get();
   Window window(1280, 720, "SkelEdit", *renderer);
   ImGuiEditor editor(window.GetNativeWindow(), renderer_ptr->GetTextureId(),

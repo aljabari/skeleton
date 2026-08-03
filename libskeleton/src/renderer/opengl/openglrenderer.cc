@@ -4,6 +4,8 @@
 
 #include <glad/gl.h>
 
+#include <spdlog/spdlog.h>
+
 #include <GLFW/glfw3.h>
 
 #include <memory>
@@ -44,6 +46,7 @@ void OpenGlRenderer::InitialiseForWindow(GLFWwindow* window) {
   window_ = window;
   glfwMakeContextCurrent(window);
   gladLoadGL(glfwGetProcAddress);
+  spdlog::info("Initialised OpenGL renderer.");
 
   const std::string shader_directory =
       std::string(SKELETON_RES_DIR) + "/shaders";
@@ -101,6 +104,8 @@ void OpenGlRenderer::Render() {
   if (shader_ != nullptr && mesh_ != nullptr) {
     shader_->Use();
     mesh_->Draw();
+  } else {
+    spdlog::warn("OpenGL renderer has no shader or mesh; skipping draw.");
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);

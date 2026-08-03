@@ -4,8 +4,9 @@
 
 #include <glad/gl.h>
 
+#include <spdlog/spdlog.h>
+
 #include <fstream>
-#include <iostream>
 #include <sstream>
 #include <string>
 
@@ -31,7 +32,7 @@ GLuint CompileShader(GLenum type, const std::string& source) {
   if (success == 0) {
     char info_log[512] = {};
     glGetShaderInfoLog(shader, sizeof(info_log), nullptr, info_log);
-    std::cerr << "Shader compilation failed:\n" << info_log << '\n';
+    spdlog::error("Shader compilation failed:\n{}", info_log);
     return 0;
   }
   return shader;
@@ -64,7 +65,7 @@ OpenGlShader::OpenGlShader(const std::string& vertex_path,
   if (success == 0) {
     char info_log[512] = {};
     glGetProgramInfoLog(program_, sizeof(info_log), nullptr, info_log);
-    std::cerr << "Shader program link failed:\n" << info_log << '\n';
+    spdlog::error("Shader program link failed:\n{}", info_log);
     glDeleteProgram(program_);
     program_ = 0;
   }

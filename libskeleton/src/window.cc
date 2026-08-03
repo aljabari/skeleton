@@ -4,14 +4,14 @@
 
 #include <GLFW/glfw3.h>
 
-#include <iostream>
+#include <spdlog/spdlog.h>
 
 namespace skeleton {
 
 Window::Window(int width, int height, const char* title, Renderer& renderer)
     : renderer_(renderer), window_(nullptr) {
   if (!glfwInit()) {
-    std::cerr << "Failed to initialize GLFW\n";
+    spdlog::error("Failed to initialize GLFW");
     return;
   }
 
@@ -19,12 +19,13 @@ Window::Window(int width, int height, const char* title, Renderer& renderer)
 
   window_ = glfwCreateWindow(width, height, title, nullptr, nullptr);
   if (!window_) {
-    std::cerr << "Failed to create GLFW window\n";
+    spdlog::error("Failed to create GLFW window");
     glfwTerminate();
     return;
   }
 
   renderer_.InitialiseForWindow(window_);
+  spdlog::info("Created GLFW window \"{}\" ({}x{}).", title, width, height);
 }
 
 Window::~Window() {

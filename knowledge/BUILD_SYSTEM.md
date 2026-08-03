@@ -172,7 +172,10 @@ to locate the headers themselves. `googletest` is only declared when
 
 `spdlog` is a logging dependency of `libskeleton`, linked `PUBLIC` so consumers
 (executables and tests) can use it transitively. Its bundled fmt is used, and
-its own examples and tests are disabled.
+its own examples and tests are disabled. All project logging goes through the
+spdlog default logger (`spdlog::debug`/`info`/`warn`/`error`); the renderer
+factory logs backend creation, fallback, and failure reasons, and errors are
+logged before every thrown `RendererCreationException`.
 
 `imgui` is only a dependency of `skeledit`; it is fetched and added from
 `skeledit/CMakeLists.txt`, not from `cmake/dependencies.cmake`. The upstream
