@@ -29,7 +29,8 @@ int Run(int argc, char* argv[]) {
     ImGui::ShowDemoWindow(&show_demo_window);
 
     ImGui::Begin("Viewport");
-    ImGui::Image(renderer.GetTextureId(), ImVec2(800.0f, 600.0f));
+    ImGui::Image(renderer.GetTextureId(), ImVec2(800.0f, 600.0f),
+                 ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
     ImGui::End();
 
     ImGui::Render();
