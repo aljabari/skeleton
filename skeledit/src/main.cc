@@ -9,9 +9,9 @@ namespace skeleton {
 
 int Run(int argc, char* argv[]) {
   OpenGlRenderer renderer(true);
-  Window window(800, 600, "SkelEdit", renderer);
-  ImGuiEditor editor(window.GetNativeWindow(), renderer.GetTextureId(), 800,
-                     600);
+  Window window(1280, 720, "SkelEdit", renderer);
+  ImGuiEditor editor(window.GetNativeWindow(), renderer.GetTextureId(), 1280,
+                     720);
 
   while (window.IsOpen()) {
     window.PollEvents();

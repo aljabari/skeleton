@@ -7,7 +7,7 @@ namespace skeleton {
 
 int Run(int argc, char* argv[]) {
   OpenGlRenderer renderer;
-  Window window(800, 600, "Skeleton", renderer);
+  Window window(1280, 720, "Skeleton", renderer);
   while (window.IsOpen()) {
     window.PollEvents();
     renderer.Render();
