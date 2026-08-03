@@ -47,6 +47,8 @@ skeleton/
 │   ├── CMakeLists.txt
 │   └── src/
 │       ├── window_test.cc
+│       ├── skeledit/
+│       │   └── imguieditor_test.cc   # ImGuiEditor dock-layout tests (skeledit_tests)
 │       └── renderer/
 │           ├── opengl/
 │           │   ├── openglmesh_test.cc
@@ -60,9 +62,12 @@ skeleton/
 │   └── src/
 │       └── main.cc
 ├── skeledit/                 # Editor executable target, links libskeleton and imgui
-│   ├── CMakeLists.txt        # Fetches imgui (skeledit-only dependency)
+│   ├── CMakeLists.txt        # Fetches imgui docking branch (skeledit-only dependency)
+│   ├── include/skeledit/
+│   │   └── imguieditor.h     # Public header for the ImGui editor wrapper
 │   └── src/
-│       └── main.cc
+│       ├── main.cc
+│       └── imguieditor.cc    # ImGui context/backends, dockable viewport, dock layout
 └── build/                    # Build output (gitignored)
 ```
 
@@ -70,6 +75,7 @@ skeleton/
 
 ```
 libskeleton_tests ──links──► libskeleton
+skeledit_tests    ──links──► imgui, glfw
 skeleton          ──links──► libskeleton
 skeledit          ──links──► libskeleton, imgui
 ```

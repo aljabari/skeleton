@@ -5,7 +5,7 @@ if(NOT imgui_POPULATED)
     FetchContent_Populate(
         imgui
         GIT_REPOSITORY https://github.com/ocornut/imgui.git
-        GIT_TAG v1.92.7
+        GIT_TAG docking
         GIT_SHALLOW ON
     )
     file(COPY "${CMAKE_SOURCE_DIR}/cmake/third_party/imgui/CMakeLists.txt"
@@ -15,9 +15,13 @@ endif()
 
 add_executable(skeledit
     src/main.cc
+    src/imguieditor.cc
 )
 
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES src/main.cc)
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES
+    src/main.cc
+    src/imguieditor.cc
+)
 
 target_compile_features(skeledit PRIVATE cxx_std_20)
 

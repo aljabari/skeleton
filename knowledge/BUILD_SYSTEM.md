@@ -12,7 +12,8 @@
 | `libskeleton`       | STATIC     | Core library — all logic lives here |
 | `skeleton`          | EXECUTABLE | Main entry point, links `libskeleton` |
 | `skeledit`          | EXECUTABLE | Editor entry point, links `libskeleton` and `imgui` |
-| `libskeleton_tests` | EXECUTABLE | Unit tests, built only when `SKELETON_BUILD_TESTS` is `ON` |
+| `libskeleton_tests` | EXECUTABLE | Unit tests for `libskeleton`, built only when `SKELETON_BUILD_TESTS` is `ON` |
+| `skeledit_tests`    | EXECUTABLE | Unit tests for `skeledit`'s `ImGuiEditor`, built only when `SKELETON_BUILD_TESTS` is `ON` |
 
 Each target's `CMakeLists.txt` also calls
 [`source_group(TREE ...)`](https://cmake.org/cmake/help/latest/command/source_group.html)
@@ -117,7 +118,7 @@ The project uses **CMake FetchContent** to download and build dependencies:
 | GLFW       | https://github.com/glfw/glfw.git           | 3.4 |
 | glad       | https://github.com/Dav1dde/glad.git        | v2.0.6 |
 | googletest | https://github.com/google/googletest.git   | v1.17.0 |
-| imgui      | https://github.com/ocornut/imgui.git       | v1.92.7 |
+| imgui      | https://github.com/ocornut/imgui.git       | docking |
 
 `glad` requires a Python interpreter with `jinja2` installed; it is only
 declared when OpenGL is supported on the target platform. `googletest` is only
@@ -144,6 +145,22 @@ Vulkan backend is compiled against the Vulkan headers located via
 will be handled by **volk** later. The target exposes the fetched root and
 `backends/` as `PUBLIC` include directories and links `glfw` for the GLFW
 backend.
+
+The `imgui` dependency tracks the `docking` branch (a moving target, currently
+`1.92.9b`), which is required for the window-docking functionality in
+`skeledit`. That branch exposes the dock builder API (`DockBuilder*` functions
+and `ImGuiDockNode` types) through `imgui_internal.h`, which the editor code
+includes alongside the public `<imgui.h>`.
+
+All Dear ImGui usage is contained in the `ImGuiEditor` class
+(`skeledit/include/skeledit/imguieditor.h`,
+`skeledit/src/imguieditor.cc`): context creation, GLFW/OpenGL3 backend
+init/shutdown, the per-frame lifecycle (`NewFrame`/`Render`), and drawing the
+dockable viewport. `skeledit/src/main.cc` only wires `ImGuiEditor` up to the
+`Window` and `OpenGlRenderer`. `skeledit_tests` (see [TESTING.md](TESTING.md))
+compiles `skeledit/src/imguieditor.cc` alongside its test source so the
+headless-testable static dock-layout logic can be exercised without a GL
+context.
 
 ## Adding a new library target
 
