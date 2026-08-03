@@ -34,7 +34,6 @@ class ImGuiEditor {
   int viewport_width_;
   int viewport_height_;
   bool dock_layout_initialised_ = false;
-  bool show_demo_window_ = true;
 };
 
 }  // namespace skeleton

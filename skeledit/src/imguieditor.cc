@@ -42,7 +42,6 @@ void ImGuiEditor::Draw() {
   }
   DrawDockSpace();
   DrawViewport();
-  ImGui::ShowDemoWindow(&show_demo_window_);
 }
 
 void ImGuiEditor::Render() {
