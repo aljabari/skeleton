@@ -78,9 +78,9 @@ void ImGuiEditor::SetViewportTextureId(unsigned int viewport_texture_id) {
 void ImGuiEditor::DrawViewport() {
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
   ImGui::Begin("Viewport");
-  const ImVec2 window_size = ImGui::GetWindowSize();
-  const int width = static_cast<int>(window_size.x);
-  const int height = static_cast<int>(window_size.y);
+  const ImVec2 content_region = ImGui::GetContentRegionAvail();
+  const int width = static_cast<int>(content_region.x);
+  const int height = static_cast<int>(content_region.y);
   if (width != viewport_width_ || height != viewport_height_) {
     if (viewport_resize_callback_) {
       viewport_resize_callback_(width, height);
