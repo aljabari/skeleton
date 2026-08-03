@@ -61,7 +61,7 @@ target_include_directories(libskeleton
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-target_link_libraries(libskeleton PUBLIC glfw)
+target_link_libraries(libskeleton PUBLIC glfw spdlog)
 
 if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
     target_link_libraries(libskeleton PUBLIC volk)

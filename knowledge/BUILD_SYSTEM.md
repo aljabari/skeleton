@@ -3,7 +3,7 @@
 - **Build tool:** CMake (minimum 3.16)
 - **Generator:** Visual Studio (preferred on Windows), Ninja (alternative)
 - **C++ standard:** C++20 (required, not optional)
-- **Dependencies:** GLFW, Dear ImGui (fetched automatically via `FetchContent`)
+- **Dependencies:** GLFW, Dear ImGui, spdlog (fetched automatically via `FetchContent`)
 
 ## Targets
 
@@ -156,6 +156,7 @@ The project uses **CMake FetchContent** to download and build dependencies:
 | GLFW       | https://github.com/glfw/glfw.git           | 3.4 |
 | glad       | https://github.com/Dav1dde/glad.git        | v2.0.6 |
 | volk       | https://github.com/zeux/volk.git           | 1.4.350 |
+| spdlog     | https://github.com/gabime/spdlog.git       | v1.17.0 |
 | googletest | https://github.com/google/googletest.git   | v1.17.0 |
 | imgui      | https://github.com/ocornut/imgui.git       | docking |
 
@@ -168,6 +169,10 @@ pointers are loaded at run time via `volkInitialize()`. volk's
 PUBLIC include directories via `find_package(Vulkan)`, so consumers do not need
 to locate the headers themselves. `googletest` is only declared when
 `SKELETON_BUILD_TESTS` is `ON`.
+
+`spdlog` is a logging dependency of `libskeleton`, linked `PUBLIC` so consumers
+(executables and tests) can use it transitively. Its bundled fmt is used, and
+its own examples and tests are disabled.
 
 `imgui` is only a dependency of `skeledit`; it is fetched and added from
 `skeledit/CMakeLists.txt`, not from `cmake/dependencies.cmake`. The upstream

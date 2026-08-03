@@ -33,6 +33,15 @@ if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
     FetchContent_MakeAvailable(volk)
 endif()
 
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.17.0
+)
+set(SPDLOG_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(SPDLOG_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(spdlog)
+
 if (SKELETON_BUILD_TESTS)
     FetchContent_Declare(
         googletest
