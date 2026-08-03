@@ -68,11 +68,13 @@ void ImGuiEditor::DrawDockSpace() {
 }
 
 void ImGuiEditor::DrawViewport() {
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
   ImGui::Begin("Viewport");
   ImGui::Image(static_cast<ImTextureID>(viewport_texture_id_),
                ImVec2(viewport_width_, viewport_height_), ImVec2(0.0f, 1.0f),
                ImVec2(1.0f, 0.0f));
   ImGui::End();
+  ImGui::PopStyleVar();
 }
 
 }  // namespace skeleton
