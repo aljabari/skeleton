@@ -53,6 +53,31 @@ so client code can guard against the API with:
 the generated `glad` target (OpenGL 3.3 core) to load GL function pointers via
 `gladLoadGL`.
 
+## Renderer factory and fallback priority
+
+`RendererBackend` (in `renderer.h`) lists the renderer backends
+(`kVulkan`, `kOpenGl`). Renderers are created through the factory in
+`libskeleton/include/libskeleton/rendererfactory.h`:
+
+- `RendererPriorityOrder()` returns the platform's fallback priority order.
+  New backends are added there (for example, a future DirectX backend on
+  Windows would be listed before Vulkan).
+- `CreateRendererWithFallback(preferred, render_to_texture)` creates the
+  preferred backend first and falls back through the platform priority order
+  when a backend cannot be created. The core algorithm takes an explicit
+  priority list and creator map so it can be unit tested with fake creators.
+- The Vulkan renderer is not implemented yet, so the Vulkan creator always
+  fails and the factory falls back to the next backend. The OpenGL creator
+  always succeeds on supported platforms.
+
+Both executables build their renderer through the factory. `skeleton` prefers
+`RendererBackend::kVulkan` and, until Vulkan is implemented, falls back to
+OpenGL. `skeledit` prefers `RendererBackend::kOpenGl` (with `render_to_texture`)
+because it needs the texture APIs. Those APIs live on the base `Renderer`
+interface (`GetTextureId()`, `ResizeRenderTarget()`) with default no-op
+implementations, so both executables use the renderer polymorphically through
+`Renderer&` without downcasting.
+
 ## Resources
 
 Runtime resources live under `libskeleton/res/` (e.g. GLSL shaders in
@@ -157,7 +182,7 @@ All Dear ImGui usage is contained in the `ImGuiEditor` class
 `skeledit/src/imguieditor.cc`): context creation, GLFW/OpenGL3 backend
 init/shutdown, the per-frame lifecycle (`NewFrame`/`Render`), and drawing the
 dockable viewport. `skeledit/src/main.cc` only wires `ImGuiEditor` up to the
-`Window` and `OpenGlRenderer`. `skeledit_tests` (see [TESTING.md](TESTING.md))
+`Window` and the renderer (via the factory). `skeledit_tests` (see [TESTING.md](TESTING.md))
 compiles `skeledit/src/imguieditor.cc` alongside its test source so the
 headless-testable static dock-layout logic can be exercised without a GL
 context.

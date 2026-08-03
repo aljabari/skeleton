@@ -31,6 +31,10 @@ OpenGlRenderer::OpenGlRenderer(bool render_to_texture)
 
 OpenGlRenderer::~OpenGlRenderer() = default;
 
+RendererBackend OpenGlRenderer::GetBackend() const {
+  return RendererBackend::kOpenGl;
+}
+
 void OpenGlRenderer::SetWindowHints() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);

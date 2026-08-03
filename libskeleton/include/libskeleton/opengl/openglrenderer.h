@@ -20,12 +20,13 @@ class OpenGlRenderer : public Renderer {
   explicit OpenGlRenderer(bool render_to_texture = false);
   ~OpenGlRenderer() override;
 
+  RendererBackend GetBackend() const override;
   void SetWindowHints() override;
   void InitialiseForWindow(GLFWwindow* window) override;
   void Render() override;
-  void ResizeRenderTarget(int width, int height);
+  void ResizeRenderTarget(int width, int height) override;
 
-  unsigned int GetTextureId() const;
+  unsigned int GetTextureId() const override;
 
  private:
   void CreateRenderTarget(int width, int height);

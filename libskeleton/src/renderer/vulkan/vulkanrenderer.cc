@@ -10,6 +10,10 @@ VulkanRenderer::VulkanRenderer() = default;
 
 VulkanRenderer::~VulkanRenderer() = default;
 
+RendererBackend VulkanRenderer::GetBackend() const {
+  return RendererBackend::kVulkan;
+}
+
 void VulkanRenderer::SetWindowHints() {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 }

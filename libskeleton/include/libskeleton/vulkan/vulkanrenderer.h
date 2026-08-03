@@ -14,6 +14,7 @@ class VulkanRenderer : public Renderer {
   VulkanRenderer();
   ~VulkanRenderer() override;
 
+  RendererBackend GetBackend() const override;
   void SetWindowHints() override;
   void InitialiseForWindow(GLFWwindow* window) override;
   void Render() override;

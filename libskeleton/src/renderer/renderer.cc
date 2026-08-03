@@ -9,4 +9,10 @@ Renderer::Renderer(bool render_to_texture)
 
 Renderer::~Renderer() = default;
 
+unsigned int Renderer::GetTextureId() const {
+  return 0;
+}
+
+void Renderer::ResizeRenderTarget(int width, int height) {}
+
 }  // namespace skeleton

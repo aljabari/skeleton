@@ -18,6 +18,7 @@ using ::testing::SaveArg;
 
 class MockRenderer : public Renderer {
  public:
+  MOCK_METHOD(RendererBackend, GetBackend, (), (const, override));
   MOCK_METHOD(void, SetWindowHints, (), (override));
   MOCK_METHOD(void, InitialiseForWindow, (GLFWwindow* window), (override));
   MOCK_METHOD(void, Render, (), (override));

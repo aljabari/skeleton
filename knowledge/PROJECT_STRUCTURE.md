@@ -24,6 +24,7 @@ skeleton/
 │   ├── include/libskeleton/  # Public headers
 │   │   ├── window.h
 │   │   ├── renderer.h
+│   │   ├── rendererfactory.h
 │   │   ├── opengl/
 │   │   │   └── openglrenderer.h
 │   │   └── vulkan/
@@ -36,6 +37,7 @@ skeleton/
 │       ├── window.cc
 │       ├── renderer/
 │       │   ├── renderer.cc
+│       │   ├── rendererfactory.cc
 │       │   ├── opengl/
 │       │   │   ├── openglframebuffer.cc/.h    # Private: framebuffer + colour texture wrapper
 │       │   │   ├── openglmesh.cc/.h           # Private: VAO/VBO wrapper
@@ -56,6 +58,7 @@ skeleton/
 │           │   ├── openglrenderer_test.cc
 │           │   ├── openglshader_test.cc
 │           │   └── opengltexture_test.cc
+│           ├── rendererfactory_test.cc
 │           └── vulkan/
 │               └── vulkanrenderer_test.cc
 ├── skeleton/                 # Executable target
