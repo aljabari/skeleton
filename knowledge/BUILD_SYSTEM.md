@@ -151,12 +151,19 @@ The project uses **CMake FetchContent** to download and build dependencies:
 |------------|--------------------------------------------|-----|
 | GLFW       | https://github.com/glfw/glfw.git           | 3.4 |
 | glad       | https://github.com/Dav1dde/glad.git        | v2.0.6 |
+| volk       | https://github.com/zeux/volk.git           | 1.4.350 |
 | googletest | https://github.com/google/googletest.git   | v1.17.0 |
 | imgui      | https://github.com/ocornut/imgui.git       | docking |
 
 `glad` requires a Python interpreter with `jinja2` installed; it is only
-declared when OpenGL is supported on the target platform. `googletest` is only
-declared when `SKELETON_BUILD_TESTS` is `ON`.
+declared when OpenGL is supported on the target platform. `volk` is only
+declared when `SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN` is set; it is the
+runtime meta-loader for Vulkan and links no Vulkan library, since function
+pointers are loaded at run time via `volkInitialize()`. volk's
+`VOLK_PULL_IN_VULKAN` option (ON by default) pulls the Vulkan headers into its
+PUBLIC include directories via `find_package(Vulkan)`, so consumers do not need
+to locate the headers themselves. `googletest` is only declared when
+`SKELETON_BUILD_TESTS` is `ON`.
 
 `imgui` is only a dependency of `skeledit`; it is fetched and added from
 `skeledit/CMakeLists.txt`, not from `cmake/dependencies.cmake`. The upstream
@@ -174,11 +181,10 @@ core sources (`imgui.cpp`, `imgui_demo.cpp`, `imgui_draw.cpp`,
 backend (`backends/imgui_impl_vulkan.cpp`) when
 `SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN` is set. The OpenGL3 backend uses
 imgui's bundled runtime loader, so it needs no link-time GL dependency. The
-Vulkan backend is compiled against the Vulkan headers located via
-`find_package(Vulkan)`; no Vulkan library is linked yet, since function loading
-will be handled by **volk** later. The target exposes the fetched root and
-`backends/` as `PUBLIC` include directories and links `glfw` for the GLFW
-backend.
+Vulkan backend is compiled with `IMGUI_IMPL_VULKAN_USE_VOLK` and links the
+`volk` target, so it loads Vulkan function pointers through volk instead of a
+Vulkan library. The target exposes the fetched root and `backends/` as `PUBLIC`
+include directories and links `glfw` for the GLFW backend.
 
 The `imgui` dependency tracks the `docking` branch (a moving target, currently
 `1.92.9b`), which is required for the window-docking functionality in

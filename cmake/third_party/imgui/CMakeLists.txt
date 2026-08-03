@@ -28,8 +28,6 @@ if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
         backends/imgui_impl_vulkan.cpp
         backends/imgui_impl_vulkan.h
     )
-    find_package(Vulkan)
-    set(_imgui_private_include_dirs ${Vulkan_INCLUDE_DIRS})
 endif()
 
 set(_imgui_all_sources ${_imgui_sources} ${_imgui_backend_sources})
@@ -44,8 +42,11 @@ target_include_directories(imgui
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/backends
-    PRIVATE
-        ${_imgui_private_include_dirs}
 )
 
 target_link_libraries(imgui PRIVATE glfw)
+
+if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
+    target_compile_definitions(imgui PRIVATE IMGUI_IMPL_VULKAN_USE_VOLK)
+    target_link_libraries(imgui PRIVATE volk)
+endif()

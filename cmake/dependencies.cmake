@@ -21,6 +21,18 @@ if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
     FetchContent_MakeAvailable(glad)
 endif()
 
+if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
+    # Vulkan headers are needed to compile volk; volk also pulls them into its
+    # own PUBLIC include directories (VOLK_PULL_IN_VULKAN is ON by default).
+    find_package(Vulkan)
+    FetchContent_Declare(
+        volk
+        GIT_REPOSITORY https://github.com/zeux/volk.git
+        GIT_TAG 1.4.350
+    )
+    FetchContent_MakeAvailable(volk)
+endif()
+
 if (SKELETON_BUILD_TESTS)
     FetchContent_Declare(
         googletest
