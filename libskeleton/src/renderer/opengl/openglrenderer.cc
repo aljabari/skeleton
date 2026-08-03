@@ -59,6 +59,11 @@ void OpenGlRenderer::InitialiseForWindow(GLFWwindow* window) {
 }
 
 void OpenGlRenderer::CreateRenderTarget(int width, int height) {
+  if (framebuffer_ != 0) {
+    glDeleteFramebuffers(1, &framebuffer_);
+    framebuffer_ = 0;
+  }
+
   texture_ = std::make_unique<OpenGlTexture>(width, height);
 
   glGenFramebuffers(1, &framebuffer_);
@@ -70,6 +75,16 @@ void OpenGlRenderer::CreateRenderTarget(int width, int height) {
 
   render_target_width_ = width;
   render_target_height_ = height;
+}
+
+void OpenGlRenderer::ResizeRenderTarget(int width, int height) {
+  if (!render_to_texture_ || width <= 0 || height <= 0) {
+    return;
+  }
+  if (width == render_target_width_ && height == render_target_height_) {
+    return;
+  }
+  CreateRenderTarget(width, height);
 }
 
 unsigned int OpenGlRenderer::GetTextureId() const {

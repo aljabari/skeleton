@@ -79,5 +79,34 @@ TEST(OpenGlRendererTest, RenderDrawsTriangleWithoutErrors) {
   EXPECT_EQ(glGetError(), GL_NO_ERROR);
 }
 
+TEST(OpenGlRendererTest, ResizeRenderTargetRecreatesRenderTarget) {
+  OpenGlRenderer renderer(true);
+  Window window(640, 480, "Skeleton Render Target Resize Test", renderer);
+
+  const unsigned int initial_texture_id = renderer.GetTextureId();
+  EXPECT_NE(initial_texture_id, 0u);
+
+  renderer.ResizeRenderTarget(320, 200);
+
+  EXPECT_NE(renderer.GetTextureId(), 0u);
+  EXPECT_NE(renderer.GetTextureId(), initial_texture_id);
+
+  renderer.Render();
+
+  EXPECT_EQ(glGetError(), GL_NO_ERROR);
+}
+
+TEST(OpenGlRendererTest, ResizeRenderTargetToSameSizeKeepsTexture) {
+  OpenGlRenderer renderer(true);
+  Window window(640, 480, "Skeleton Render Target No-Op Test", renderer);
+
+  renderer.ResizeRenderTarget(320, 200);
+  const unsigned int resized_texture_id = renderer.GetTextureId();
+
+  renderer.ResizeRenderTarget(320, 200);
+
+  EXPECT_EQ(renderer.GetTextureId(), resized_texture_id);
+}
+
 }  // namespace
 }  // namespace skeleton

@@ -7,14 +7,18 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include <utility>
+
 namespace skeleton {
 
 ImGuiEditor::ImGuiEditor(GLFWwindow* window, unsigned int viewport_texture_id,
-                         int viewport_width, int viewport_height)
+                         int viewport_width, int viewport_height,
+                         std::function<void(int, int)> viewport_resize_callback)
     : window_(window),
       viewport_texture_id_(viewport_texture_id),
       viewport_width_(viewport_width),
-      viewport_height_(viewport_height) {
+      viewport_height_(viewport_height),
+      viewport_resize_callback_(std::move(viewport_resize_callback)) {
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
   io.IniFilename = nullptr;
@@ -67,9 +71,23 @@ void ImGuiEditor::DrawDockSpace() {
   ImGui::DockSpaceOverViewport(DockspaceId(), ImGui::GetMainViewport());
 }
 
+void ImGuiEditor::SetViewportTextureId(unsigned int viewport_texture_id) {
+  viewport_texture_id_ = viewport_texture_id;
+}
+
 void ImGuiEditor::DrawViewport() {
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
   ImGui::Begin("Viewport");
+  const ImVec2 window_size = ImGui::GetWindowSize();
+  const int width = static_cast<int>(window_size.x);
+  const int height = static_cast<int>(window_size.y);
+  if (width != viewport_width_ || height != viewport_height_) {
+    if (viewport_resize_callback_) {
+      viewport_resize_callback_(width, height);
+    }
+    viewport_width_ = width;
+    viewport_height_ = height;
+  }
   ImGui::Image(static_cast<ImTextureID>(viewport_texture_id_),
                ImVec2(viewport_width_, viewport_height_), ImVec2(0.0f, 1.0f),
                ImVec2(1.0f, 0.0f));

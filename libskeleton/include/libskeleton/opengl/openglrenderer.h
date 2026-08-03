@@ -23,6 +23,7 @@ class OpenGlRenderer : public Renderer {
   void SetWindowHints() override;
   void InitialiseForWindow(GLFWwindow* window) override;
   void Render() override;
+  void ResizeRenderTarget(int width, int height);
 
   unsigned int GetTextureId() const;
 

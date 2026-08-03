@@ -30,7 +30,7 @@ location. Currently:
 | Target              | Sources                                        | Covers                                           |
 |---------------------|------------------------------------------------|--------------------------------------------------|
 | `libskeleton_tests` | `tests/src/window_test.cc`                     | `Window` behaviour, verified with a mock renderer |
-|                     | `tests/src/renderer/opengl/openglrenderer_test.cc` | OpenGL renderer window hints, GL context initialisation, and triangle rendering |
+|                     | `tests/src/renderer/opengl/openglrenderer_test.cc` | OpenGL renderer window hints, GL context initialisation, triangle rendering, and render-target resizing |
 |                     | `tests/src/renderer/opengl/openglshader_test.cc` | `OpenGlShader` compilation/linking and program binding |
 |                     | `tests/src/renderer/opengl/openglmesh_test.cc` | `OpenGlMesh` VAO binding and error-free drawing |
 |                     | `tests/src/renderer/opengl/opengltexture_test.cc` | `OpenGlTexture` allocation, binding, and cleanup |
