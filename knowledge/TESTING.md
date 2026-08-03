@@ -35,8 +35,8 @@ location. Currently:
 |                     | `tests/src/renderer/opengl/openglshader_test.cc` | `OpenGlShader` compilation/linking and program binding |
 |                     | `tests/src/renderer/opengl/openglmesh_test.cc` | `OpenGlMesh` VAO binding and error-free drawing |
 |                     | `tests/src/renderer/opengl/opengltexture_test.cc` | `OpenGlTexture` allocation, binding, and cleanup |
-|                     | `tests/src/renderer/rendererfactory_test.cc` | `RendererBackend` enum, platform priority order, and fallback creation (`CreateRendererWithFallback`) with injectable fake creators |
-|                     | `tests/src/renderer/vulkan/vulkanrenderer_test.cc` | Vulkan renderer window hints |
+|                     | `tests/src/renderer/rendererfactory_test.cc` | `RendererBackend` enum, platform priority order, and fallback creation (`CreateRendererWithFallback`) with injectable fake creators, including creators that return `nullptr` or throw `RendererCreationException` |
+|                     | `tests/src/renderer/vulkan/vulkanrenderer_test.cc` | `VulkanRenderer` construction throws `RendererCreationException` while unimplemented |
 | `skeledit_tests`    | `tests/src/skeledit/imguieditor_test.cc`       | `ImGuiEditor` dock-layout construction (headless, no GL context) |
 
 Tests for the private OpenGL classes (`OpenGlShader`, `OpenGlMesh`,

@@ -6,7 +6,10 @@
 
 namespace skeleton {
 
-VulkanRenderer::VulkanRenderer() = default;
+VulkanRenderer::VulkanRenderer() {
+  throw RendererCreationException(
+      "The Vulkan renderer is not implemented yet.");
+}
 
 VulkanRenderer::~VulkanRenderer() = default;
 

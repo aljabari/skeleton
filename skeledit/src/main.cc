@@ -11,7 +11,7 @@
 namespace skeleton {
 
 int Run(int argc, char* argv[]) {
-  auto renderer = CreateRendererWithFallback(RendererBackend::kOpenGl, true);
+  auto renderer = CreateRenderer(true);
   if (renderer == nullptr) {
     return 1;
   }

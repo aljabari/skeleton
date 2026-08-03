@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <memory>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "libskeleton/renderer.h"
@@ -216,6 +218,56 @@ TEST(RendererFactoryTest, ForwardsRenderToTextureToCreator) {
   EXPECT_TRUE(forwarded);
 }
 
+TEST(RendererFactoryTest, FallsBackWhenCreatorThrows) {
+  RendererCreatorMap creators;
+  creators.emplace(RendererBackend::kVulkan,
+                   [](bool render_to_texture) -> std::unique_ptr<Renderer> {
+                     throw RendererCreationException("no Vulkan");
+                   });
+  creators.emplace(RendererBackend::kOpenGl,
+                   [](bool render_to_texture) {
+                     return std::make_unique<TestRenderer>(
+                         RendererBackend::kOpenGl);
+                   });
+
+  std::unique_ptr<Renderer> renderer = CreateRendererWithFallback(
+      RendererBackend::kVulkan, kVulkanThenOpenGl, creators);
+
+  ASSERT_NE(renderer, nullptr);
+  EXPECT_EQ(renderer->GetBackend(), RendererBackend::kOpenGl);
+}
+
+TEST(RendererFactoryTest, ReturnsNullptrWhenEveryCreatorThrows) {
+  RendererCreatorMap creators;
+  creators.emplace(RendererBackend::kVulkan,
+                   [](bool render_to_texture) -> std::unique_ptr<Renderer> {
+                     throw RendererCreationException("no Vulkan");
+                   });
+  creators.emplace(RendererBackend::kOpenGl,
+                   [](bool render_to_texture) -> std::unique_ptr<Renderer> {
+                     throw RendererCreationException("no OpenGL");
+                   });
+
+  std::unique_ptr<Renderer> renderer = CreateRendererWithFallback(
+      RendererBackend::kVulkan, kVulkanThenOpenGl, creators);
+
+  EXPECT_EQ(renderer, nullptr);
+}
+
+// Only RendererCreationException triggers fallback; other exceptions must
+// propagate to the caller.
+TEST(RendererFactoryTest, PropagatesNonCreationExceptions) {
+  RendererCreatorMap creators;
+  creators.emplace(RendererBackend::kVulkan,
+                   [](bool render_to_texture) -> std::unique_ptr<Renderer> {
+                     throw std::runtime_error("unexpected");
+                   });
+
+  EXPECT_THROW(CreateRendererWithFallback(RendererBackend::kVulkan,
+                                          kVulkanThenOpenGl, creators),
+               std::runtime_error);
+}
+
 // The Vulkan renderer is not implemented yet, so preferring it must fall back
 // to another backend instead of returning a Vulkan renderer.
 TEST(RendererFactoryTest, PlatformFallbackNeverReturnsVulkan) {
@@ -224,6 +276,17 @@ TEST(RendererFactoryTest, PlatformFallbackNeverReturnsVulkan) {
 
   ASSERT_NE(renderer, nullptr);
   EXPECT_NE(renderer->GetBackend(), RendererBackend::kVulkan);
+}
+
+// With no preferred backend, the platform factory returns the first backend
+// in the priority order that can be created.
+TEST(RendererFactoryTest, CreateRendererReturnsPlatformBackend) {
+  std::unique_ptr<Renderer> renderer = CreateRenderer();
+
+  ASSERT_NE(renderer, nullptr);
+  const RendererPriorityList& order = RendererPriorityOrder();
+  EXPECT_NE(std::find(order.begin(), order.end(), renderer->GetBackend()),
+            order.end());
 }
 
 }  // namespace

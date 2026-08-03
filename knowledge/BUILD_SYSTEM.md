@@ -64,19 +64,25 @@ the generated `glad` target (OpenGL 3.3 core) to load GL function pointers via
   Windows would be listed before Vulkan).
 - `CreateRendererWithFallback(preferred, render_to_texture)` creates the
   preferred backend first and falls back through the platform priority order
-  when a backend cannot be created. The core algorithm takes an explicit
-  priority list and creator map so it can be unit tested with fake creators.
-- The Vulkan renderer is not implemented yet, so the Vulkan creator always
-  fails and the factory falls back to the next backend. The OpenGL creator
-  always succeeds on supported platforms.
+  when a backend cannot be created. A backend is skipped when it has no
+  creator, its creator returns `nullptr`, or it throws
+  `RendererCreationException`. The core algorithm takes an explicit priority
+  list and creator map so it can be unit tested with fake creators.
+- `CreateRenderer(render_to_texture)` is the same but has no preferred
+  backend: it returns the first backend in the platform priority order that
+  can be created.
+- The Vulkan renderer is not implemented yet: constructing a `VulkanRenderer`
+  throws `RendererCreationException`, so the factory catches it and falls back
+  to the next backend. The OpenGL creator always succeeds on supported
+  platforms.
 
-Both executables build their renderer through the factory. `skeleton` prefers
-`RendererBackend::kVulkan` and, until Vulkan is implemented, falls back to
-OpenGL. `skeledit` prefers `RendererBackend::kOpenGl` (with `render_to_texture`)
-because it needs the texture APIs. Those APIs live on the base `Renderer`
-interface (`GetTextureId()`, `ResizeRenderTarget()`) with default no-op
-implementations, so both executables use the renderer polymorphically through
-`Renderer&` without downcasting.
+Both executables build their renderer through `CreateRenderer()` with no
+preferred backend, so they get the first backend in the platform priority
+order that can be created (OpenGL until Vulkan is implemented). `skeledit`
+passes `render_to_texture = true` because it needs the texture APIs. Those
+APIs live on the base `Renderer` interface (`GetTextureId()`,
+`ResizeRenderTarget()`) with default no-op implementations, so both executables
+use the renderer polymorphically through `Renderer&` without downcasting.
 
 ## Resources
 

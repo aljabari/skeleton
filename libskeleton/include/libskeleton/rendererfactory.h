@@ -13,7 +13,8 @@
 namespace skeleton {
 
 // Creates a renderer for a backend, or nullptr when the backend is unavailable
-// on the current platform.
+// on the current platform. A creator may throw RendererCreationException to
+// report that the backend failed to initialise.
 using RendererCreator = std::function<std::unique_ptr<Renderer>(bool)>;
 
 // Maps each backend to the function that creates its renderer.
@@ -29,8 +30,9 @@ const RendererPriorityList& RendererPriorityOrder();
 
 // Creates a renderer, trying |preferred| first and falling back through
 // |priority_order| when a backend cannot be created. A backend is skipped when
-// it has no entry in |creators| or its creator returns nullptr. Returns
-// nullptr when every candidate backend fails.
+// it has no entry in |creators|, its creator returns nullptr, or its creator
+// throws RendererCreationException. Returns nullptr when every candidate
+// backend fails.
 std::unique_ptr<Renderer> CreateRendererWithFallback(
     RendererBackend preferred, const RendererPriorityList& priority_order,
     const RendererCreatorMap& creators, bool render_to_texture = false);
@@ -39,6 +41,11 @@ std::unique_ptr<Renderer> CreateRendererWithFallback(
 // backend creators.
 std::unique_ptr<Renderer> CreateRendererWithFallback(
     RendererBackend preferred, bool render_to_texture = false);
+
+// Creates a renderer using the platform's priority order and real backend
+// creators, without a preferred backend. The first backend in priority order
+// that can be created wins. Returns nullptr when every backend fails.
+std::unique_ptr<Renderer> CreateRenderer(bool render_to_texture = false);
 
 }  // namespace skeleton
 

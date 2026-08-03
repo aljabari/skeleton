@@ -6,7 +6,7 @@
 namespace skeleton {
 
 int Run(int argc, char* argv[]) {
-  auto renderer = CreateRendererWithFallback(RendererBackend::kVulkan);
+  auto renderer = CreateRenderer();
   if (renderer == nullptr) {
     return 1;
   }

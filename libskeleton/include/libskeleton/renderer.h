@@ -3,6 +3,9 @@
 #ifndef LIBSKELETON_RENDERER_H_
 #define LIBSKELETON_RENDERER_H_
 
+#include <exception>
+#include <string>
+
 struct GLFWwindow;
 
 namespace skeleton {
@@ -13,6 +16,19 @@ namespace skeleton {
 enum class RendererBackend {
   kVulkan,
   kOpenGl,
+};
+
+// Thrown when a renderer backend cannot be created. The renderer factory
+// catches this exception to trigger fallback to the next backend.
+class RendererCreationException : public std::exception {
+ public:
+  explicit RendererCreationException(const std::string& message)
+      : message_(message) {}
+
+  const char* what() const noexcept override { return message_.c_str(); }
+
+ private:
+  std::string message_;
 };
 
 class Renderer {
