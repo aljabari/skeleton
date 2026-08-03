@@ -15,6 +15,10 @@ endif()
 
 if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
     set(_renderer_vulkan_sources
+        src/renderer/vulkan/vulkandevice.cc
+        src/renderer/vulkan/vulkandevice.h
+        src/renderer/vulkan/vulkaninstance.cc
+        src/renderer/vulkan/vulkaninstance.h
         src/renderer/vulkan/vulkanrenderer.cc
         include/libskeleton/vulkan/vulkanrenderer.h
     )

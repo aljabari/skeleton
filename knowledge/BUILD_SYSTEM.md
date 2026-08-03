@@ -74,12 +74,14 @@ the generated `glad` target (OpenGL 3.3 core) to load GL function pointers via
 - The `render_target` argument is a `RenderTarget` enum
   (`RenderTarget::kRenderTargetWindow` — the default — or
   `RenderTarget::kRenderTargetTexture`).
-- `VulkanRenderer` initialises itself in its constructor via **volk**: it
-  creates a Vulkan instance, selects a physical device with a graphics queue
-  family, and creates a logical device. If any step fails (loader, instance,
-  physical device, or logical device) it throws `RendererCreationException`, so
-  the factory catches it and falls back to the next backend. The OpenGL
-  creator always succeeds on supported platforms.
+- `VulkanRenderer` initialises itself in its constructor: it creates a
+  `VulkanInstance` (volk loader + Vulkan instance) and a `VulkanDevice`
+  (physical device with a graphics queue family + logical device). If any step
+  fails (loader, instance, physical device, or logical device) it throws
+  `RendererCreationException`, so the factory catches it and falls back to the
+  next backend. The OpenGL creator always succeeds on supported platforms.
+  The private `VulkanInstance`/`VulkanDevice` RAII helpers live under
+  `libskeleton/src/renderer/vulkan/`.
 
 Both executables build their renderer through `CreateRenderer()` with no
 preferred backend, so they get the first backend in the platform priority

@@ -45,6 +45,8 @@ skeleton/
 │       │   │   ├── openglshader.cc/.h         # Private: shader program wrapper
 │       │   │   └── opengltexture.cc/.h        # Private: texture wrapper
 │       │   └── vulkan/
+│       │       ├── vulkandevice.cc/.h    # Private: RAII logical device + graphics queue
+│       │       ├── vulkaninstance.cc/.h  # Private: RAII instance + physical-device enumeration
 │       │       └── vulkanrenderer.cc
 ├── tests/                    # Unit tests (Google Test), mirrors libskeleton/src
 │   ├── CMakeLists.txt
@@ -60,6 +62,8 @@ skeleton/
 │           │   └── opengltexture_test.cc
 │           ├── rendererfactory_test.cc
 │           └── vulkan/
+│               ├── vulkandevice_test.cc
+│               ├── vulkaninstance_test.cc
 │               └── vulkanrenderer_test.cc
 ├── skeleton/                 # Executable target
 │   ├── CMakeLists.txt

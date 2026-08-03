@@ -5,13 +5,16 @@
 
 #include <volk.h>
 
-#include <cstdint>
+#include <memory>
 
 #include "libskeleton/renderer.h"
 
 struct GLFWwindow;
 
 namespace skeleton {
+
+class VulkanDevice;
+class VulkanInstance;
 
 class VulkanRenderer : public Renderer {
  public:
@@ -31,17 +34,8 @@ class VulkanRenderer : public Renderer {
   VkQueue GraphicsQueue() const;
 
  private:
-  void CreateInstance();
-  void SelectPhysicalDevice();
-  void CreateLogicalDevice();
-  bool HasGraphicsQueueFamily(VkPhysicalDevice device);
-  void Cleanup();
-
-  VkInstance instance_ = VK_NULL_HANDLE;
-  VkPhysicalDevice physical_device_ = VK_NULL_HANDLE;
-  VkDevice device_ = VK_NULL_HANDLE;
-  uint32_t graphics_queue_family_ = 0;
-  VkQueue graphics_queue_ = VK_NULL_HANDLE;
+  std::unique_ptr<VulkanInstance> instance_;
+  std::unique_ptr<VulkanDevice> device_;
 };
 
 }  // namespace skeleton
