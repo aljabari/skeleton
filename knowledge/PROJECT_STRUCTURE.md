@@ -39,7 +39,8 @@ skeleton/
 │       │   ├── opengl/
 │       │   │   ├── openglmesh.cc/.h       # Private: VAO/VBO wrapper
 │       │   │   ├── openglrenderer.cc
-│       │   │   └── openglshader.cc/.h     # Private: shader program wrapper
+│       │   │   ├── openglshader.cc/.h     # Private: shader program wrapper
+│       │   │   └── opengltexture.cc/.h    # Private: texture wrapper
 │       │   └── vulkan/
 │       │       └── vulkanrenderer.cc
 ├── tests/                    # Unit tests (Google Test), mirrors libskeleton/src
@@ -50,7 +51,8 @@ skeleton/
 │           ├── opengl/
 │           │   ├── openglmesh_test.cc
 │           │   ├── openglrenderer_test.cc
-│           │   └── openglshader_test.cc
+│           │   ├── openglshader_test.cc
+│           │   └── opengltexture_test.cc
 │           └── vulkan/
 │               └── vulkanrenderer_test.cc
 ├── skeleton/                 # Executable target

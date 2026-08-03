@@ -33,12 +33,14 @@ location. Currently:
 |                     | `tests/src/renderer/opengl/openglrenderer_test.cc` | OpenGL renderer window hints, GL context initialisation, and triangle rendering |
 |                     | `tests/src/renderer/opengl/openglshader_test.cc` | `OpenGlShader` compilation/linking and program binding |
 |                     | `tests/src/renderer/opengl/openglmesh_test.cc` | `OpenGlMesh` VAO binding and error-free drawing |
+|                     | `tests/src/renderer/opengl/opengltexture_test.cc` | `OpenGlTexture` allocation, binding, and cleanup |
 |                     | `tests/src/renderer/vulkan/vulkanrenderer_test.cc` | Vulkan renderer window hints |
 
-Tests for the private OpenGL classes (`OpenGlShader`, `OpenGlMesh`) include
-their headers via the `libskeleton/src` include directory, which the tests
-target adds privately. `SKELETON_RES_DIR` (exported publicly by `libskeleton`)
-points tests at the real shader files under `libskeleton/res/shaders`.
+Tests for the private OpenGL classes (`OpenGlShader`, `OpenGlMesh`,
+`OpenGlTexture`) include their headers via the `libskeleton/src` include
+directory, which the tests target adds privately. `SKELETON_RES_DIR` (exported
+publicly by `libskeleton`) points tests at the real shader files under
+`libskeleton/res/shaders`.
 
 ## Running tests
 

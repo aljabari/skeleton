@@ -13,6 +13,7 @@ namespace skeleton {
 
 class OpenGlMesh;
 class OpenGlShader;
+class OpenGlTexture;
 
 class OpenGlRenderer : public Renderer {
  public:
@@ -30,8 +31,8 @@ class OpenGlRenderer : public Renderer {
 
   std::unique_ptr<OpenGlShader> shader_;
   std::unique_ptr<OpenGlMesh> mesh_;
+  std::unique_ptr<OpenGlTexture> texture_;
   unsigned int framebuffer_ = 0;
-  unsigned int texture_ = 0;
   int render_target_width_ = 0;
   int render_target_height_ = 0;
 };

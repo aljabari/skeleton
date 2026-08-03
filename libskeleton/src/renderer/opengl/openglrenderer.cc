@@ -12,6 +12,7 @@
 
 #include "renderer/opengl/openglmesh.h"
 #include "renderer/opengl/openglshader.h"
+#include "renderer/opengl/opengltexture.h"
 
 namespace skeleton {
 
@@ -31,9 +32,6 @@ OpenGlRenderer::OpenGlRenderer(bool render_to_texture)
 OpenGlRenderer::~OpenGlRenderer() {
   if (framebuffer_ != 0) {
     glDeleteFramebuffers(1, &framebuffer_);
-  }
-  if (texture_ != 0) {
-    glDeleteTextures(1, &texture_);
   }
 }
 
@@ -61,21 +59,13 @@ void OpenGlRenderer::InitialiseForWindow(GLFWwindow* window) {
 }
 
 void OpenGlRenderer::CreateRenderTarget(int width, int height) {
-  glGenTextures(1, &texture_);
-  glBindTexture(GL_TEXTURE_2D, texture_);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-               GL_UNSIGNED_BYTE, nullptr);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  texture_ = std::make_unique<OpenGlTexture>(width, height);
 
   glGenFramebuffers(1, &framebuffer_);
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                         texture_, 0);
+                         texture_->GetId(), 0);
 
-  glBindTexture(GL_TEXTURE_2D, 0);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   render_target_width_ = width;
@@ -83,7 +73,7 @@ void OpenGlRenderer::CreateRenderTarget(int width, int height) {
 }
 
 unsigned int OpenGlRenderer::GetTextureId() const {
-  return texture_;
+  return texture_ != nullptr ? texture_->GetId() : 0;
 }
 
 void OpenGlRenderer::Render() {

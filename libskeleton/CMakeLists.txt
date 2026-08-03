@@ -6,6 +6,8 @@ if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
         include/libskeleton/opengl/openglrenderer.h
         src/renderer/opengl/openglshader.cc
         src/renderer/opengl/openglshader.h
+        src/renderer/opengl/opengltexture.cc
+        src/renderer/opengl/opengltexture.h
     )
 endif()
 
