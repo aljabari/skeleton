@@ -10,9 +10,9 @@
 #include <string>
 #include <vector>
 
+#include "renderer/opengl/openglframebuffer.h"
 #include "renderer/opengl/openglmesh.h"
 #include "renderer/opengl/openglshader.h"
-#include "renderer/opengl/opengltexture.h"
 
 namespace skeleton {
 
@@ -29,11 +29,7 @@ const std::vector<float> kTriangleVertices = {
 OpenGlRenderer::OpenGlRenderer(bool render_to_texture)
     : Renderer(render_to_texture) {}
 
-OpenGlRenderer::~OpenGlRenderer() {
-  if (framebuffer_ != 0) {
-    glDeleteFramebuffers(1, &framebuffer_);
-  }
-}
+OpenGlRenderer::~OpenGlRenderer() = default;
 
 void OpenGlRenderer::SetWindowHints() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -59,20 +55,7 @@ void OpenGlRenderer::InitialiseForWindow(GLFWwindow* window) {
 }
 
 void OpenGlRenderer::CreateRenderTarget(int width, int height) {
-  if (framebuffer_ != 0) {
-    glDeleteFramebuffers(1, &framebuffer_);
-    framebuffer_ = 0;
-  }
-
-  texture_ = std::make_unique<OpenGlTexture>(width, height);
-
-  glGenFramebuffers(1, &framebuffer_);
-  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                         texture_->GetId(), 0);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+  framebuffer_ = std::make_unique<OpenGlFramebuffer>(width, height);
   render_target_width_ = width;
   render_target_height_ = height;
 }
@@ -84,17 +67,21 @@ void OpenGlRenderer::ResizeRenderTarget(int width, int height) {
   if (width == render_target_width_ && height == render_target_height_) {
     return;
   }
-  CreateRenderTarget(width, height);
+  framebuffer_->Resize(width, height);
+  render_target_width_ = width;
+  render_target_height_ = height;
 }
 
 unsigned int OpenGlRenderer::GetTextureId() const {
-  return texture_ != nullptr ? texture_->GetId() : 0;
+  return framebuffer_ != nullptr ? framebuffer_->GetTextureId() : 0;
 }
 
 void OpenGlRenderer::Render() {
-  glBindFramebuffer(GL_FRAMEBUFFER, render_to_texture_ ? framebuffer_ : 0);
   if (render_to_texture_) {
+    framebuffer_->Bind();
     glViewport(0, 0, render_target_width_, render_target_height_);
+  } else {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
 
   glClearColor(0.2f, 0.3f, 0.8f, 1.0f);

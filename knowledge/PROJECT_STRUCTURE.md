@@ -37,10 +37,11 @@ skeleton/
 │       ├── renderer/
 │       │   ├── renderer.cc
 │       │   ├── opengl/
-│       │   │   ├── openglmesh.cc/.h       # Private: VAO/VBO wrapper
+│       │   │   ├── openglframebuffer.cc/.h    # Private: framebuffer + colour texture wrapper
+│       │   │   ├── openglmesh.cc/.h           # Private: VAO/VBO wrapper
 │       │   │   ├── openglrenderer.cc
-│       │   │   ├── openglshader.cc/.h     # Private: shader program wrapper
-│       │   │   └── opengltexture.cc/.h    # Private: texture wrapper
+│       │   │   ├── openglshader.cc/.h         # Private: shader program wrapper
+│       │   │   └── opengltexture.cc/.h        # Private: texture wrapper
 │       │   └── vulkan/
 │       │       └── vulkanrenderer.cc
 ├── tests/                    # Unit tests (Google Test), mirrors libskeleton/src

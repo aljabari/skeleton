@@ -1,5 +1,7 @@
 if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
     set(_renderer_opengl_sources
+        src/renderer/opengl/openglframebuffer.cc
+        src/renderer/opengl/openglframebuffer.h
         src/renderer/opengl/openglmesh.cc
         src/renderer/opengl/openglmesh.h
         src/renderer/opengl/openglrenderer.cc
