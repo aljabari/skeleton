@@ -14,6 +14,7 @@ int Run(int argc, char* argv[]) {
   Window window(800, 600, "SkelEdit", renderer);
 
   ImGui::CreateContext();
+  ImGui::GetIO().IniFilename = nullptr;
   ImGui_ImplGlfw_InitForOpenGL(window.GetNativeWindow(), true);
   ImGui_ImplOpenGL3_Init("#version 130");
 
