@@ -74,14 +74,16 @@ the generated `glad` target (OpenGL 3.3 core) to load GL function pointers via
 - The `render_target` argument is a `RenderTarget` enum
   (`RenderTarget::kRenderTargetWindow` — the default — or
   `RenderTarget::kRenderTargetTexture`).
-- The Vulkan renderer is not implemented yet: constructing a `VulkanRenderer`
-  throws `RendererCreationException`, so the factory catches it and falls back
-  to the next backend. The OpenGL creator always succeeds on supported
-  platforms.
+- `VulkanRenderer` initialises itself in its constructor via **volk**: it
+  creates a Vulkan instance, selects a physical device with a graphics queue
+  family, and creates a logical device. If any step fails (loader, instance,
+  physical device, or logical device) it throws `RendererCreationException`, so
+  the factory catches it and falls back to the next backend. The OpenGL
+  creator always succeeds on supported platforms.
 
 Both executables build their renderer through `CreateRenderer()` with no
 preferred backend, so they get the first backend in the platform priority
-order that can be created (OpenGL until Vulkan is implemented). `skeledit`
+order that can be created (Vulkan once it renders, OpenGL otherwise). `skeledit`
 passes `RenderTarget::kRenderTargetTexture` because it needs the texture APIs.
 Those APIs live on the base `Renderer` interface (`GetTextureId()`,
 `ResizeRenderTarget()`) with default no-op implementations, so both executables
