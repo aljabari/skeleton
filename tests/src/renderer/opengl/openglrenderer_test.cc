@@ -108,5 +108,41 @@ TEST(OpenGlRendererTest, ResizeRenderTargetToSameSizeKeepsTexture) {
   EXPECT_EQ(renderer.GetTextureId(), resized_texture_id);
 }
 
+TEST(OpenGlRendererTest, RenderSetsViewportToWindowFramebufferSize) {
+  OpenGlRenderer renderer;
+  Window window(640, 480, "Skeleton Window Viewport Test", renderer);
+
+  int expected_width = 0;
+  int expected_height = 0;
+  glfwGetFramebufferSize(window.GetNativeWindow(), &expected_width,
+                         &expected_height);
+
+  renderer.Render();
+
+  GLint viewport[4] = {0, 0, 0, 0};
+  glGetIntegerv(GL_VIEWPORT, viewport);
+  EXPECT_EQ(viewport[0], 0);
+  EXPECT_EQ(viewport[1], 0);
+  EXPECT_EQ(viewport[2], expected_width);
+  EXPECT_EQ(viewport[3], expected_height);
+  EXPECT_EQ(glGetError(), GL_NO_ERROR);
+}
+
+TEST(OpenGlRendererTest, RenderSetsViewportToRenderTargetSize) {
+  OpenGlRenderer renderer(true);
+  Window window(640, 480, "Skeleton Render Target Viewport Test", renderer);
+
+  renderer.ResizeRenderTarget(320, 200);
+  renderer.Render();
+
+  GLint viewport[4] = {0, 0, 0, 0};
+  glGetIntegerv(GL_VIEWPORT, viewport);
+  EXPECT_EQ(viewport[0], 0);
+  EXPECT_EQ(viewport[1], 0);
+  EXPECT_EQ(viewport[2], 320);
+  EXPECT_EQ(viewport[3], 200);
+  EXPECT_EQ(glGetError(), GL_NO_ERROR);
+}
+
 }  // namespace
 }  // namespace skeleton

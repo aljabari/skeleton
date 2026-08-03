@@ -30,6 +30,7 @@ class OpenGlRenderer : public Renderer {
  private:
   void CreateRenderTarget(int width, int height);
 
+  GLFWwindow* window_ = nullptr;
   std::unique_ptr<OpenGlShader> shader_;
   std::unique_ptr<OpenGlMesh> mesh_;
   std::unique_ptr<OpenGlFramebuffer> framebuffer_;

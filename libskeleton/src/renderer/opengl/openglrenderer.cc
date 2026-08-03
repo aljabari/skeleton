@@ -37,6 +37,7 @@ void OpenGlRenderer::SetWindowHints() {
 }
 
 void OpenGlRenderer::InitialiseForWindow(GLFWwindow* window) {
+  window_ = window;
   glfwMakeContextCurrent(window);
   gladLoadGL(glfwGetProcAddress);
 
@@ -77,12 +78,17 @@ unsigned int OpenGlRenderer::GetTextureId() const {
 }
 
 void OpenGlRenderer::Render() {
+  int viewport_width = 0;
+  int viewport_height = 0;
   if (render_to_texture_) {
     framebuffer_->Bind();
-    glViewport(0, 0, render_target_width_, render_target_height_);
+    viewport_width = render_target_width_;
+    viewport_height = render_target_height_;
   } else {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glfwGetFramebufferSize(window_, &viewport_width, &viewport_height);
   }
+  glViewport(0, 0, viewport_width, viewport_height);
 
   glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
