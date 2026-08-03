@@ -18,6 +18,13 @@ enum class RendererBackend {
   kOpenGl,
 };
 
+// Where the renderer draws its output: directly into the window's default
+// framebuffer, or into an off-screen texture.
+enum class RenderTarget {
+  kRenderTargetWindow,
+  kRenderTargetTexture,
+};
+
 // Thrown when a renderer backend cannot be created. The renderer factory
 // catches this exception to trigger fallback to the next backend.
 class RendererCreationException : public std::exception {
@@ -49,9 +56,10 @@ class Renderer {
   virtual void ResizeRenderTarget(int width, int height);
 
  protected:
-  explicit Renderer(bool render_to_texture = false);
+  explicit Renderer(RenderTarget render_target =
+                        RenderTarget::kRenderTargetWindow);
 
-  const bool render_to_texture_;
+  const RenderTarget render_target_;
 };
 
 }  // namespace skeleton

@@ -15,7 +15,7 @@ namespace skeleton {
 // Creates a renderer for a backend, or nullptr when the backend is unavailable
 // on the current platform. A creator may throw RendererCreationException to
 // report that the backend failed to initialise.
-using RendererCreator = std::function<std::unique_ptr<Renderer>(bool)>;
+using RendererCreator = std::function<std::unique_ptr<Renderer>(RenderTarget)>;
 
 // Maps each backend to the function that creates its renderer.
 using RendererCreatorMap = std::map<RendererBackend, RendererCreator>;
@@ -35,17 +35,20 @@ const RendererPriorityList& RendererPriorityOrder();
 // backend fails.
 std::unique_ptr<Renderer> CreateRendererWithFallback(
     RendererBackend preferred, const RendererPriorityList& priority_order,
-    const RendererCreatorMap& creators, bool render_to_texture = false);
+    const RendererCreatorMap& creators,
+    RenderTarget render_target = RenderTarget::kRenderTargetWindow);
 
 // Convenience overload that uses the platform's priority order and real
 // backend creators.
 std::unique_ptr<Renderer> CreateRendererWithFallback(
-    RendererBackend preferred, bool render_to_texture = false);
+    RendererBackend preferred,
+    RenderTarget render_target = RenderTarget::kRenderTargetWindow);
 
 // Creates a renderer using the platform's priority order and real backend
 // creators, without a preferred backend. The first backend in priority order
 // that can be created wins. Returns nullptr when every backend fails.
-std::unique_ptr<Renderer> CreateRenderer(bool render_to_texture = false);
+std::unique_ptr<Renderer> CreateRenderer(
+    RenderTarget render_target = RenderTarget::kRenderTargetWindow);
 
 }  // namespace skeleton
 

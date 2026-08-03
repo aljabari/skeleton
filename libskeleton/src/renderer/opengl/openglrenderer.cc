@@ -26,8 +26,8 @@ const std::vector<float> kTriangleVertices = {
 
 }  // namespace
 
-OpenGlRenderer::OpenGlRenderer(bool render_to_texture)
-    : Renderer(render_to_texture) {}
+OpenGlRenderer::OpenGlRenderer(RenderTarget render_target)
+    : Renderer(render_target) {}
 
 OpenGlRenderer::~OpenGlRenderer() = default;
 
@@ -51,7 +51,7 @@ void OpenGlRenderer::InitialiseForWindow(GLFWwindow* window) {
       shader_directory + "/triangle.vert", shader_directory + "/triangle.frag");
   mesh_ = std::make_unique<OpenGlMesh>(kTriangleVertices);
 
-  if (render_to_texture_) {
+  if (render_target_ == RenderTarget::kRenderTargetTexture) {
     int width = 0;
     int height = 0;
     glfwGetFramebufferSize(window, &width, &height);
@@ -66,7 +66,8 @@ void OpenGlRenderer::CreateRenderTarget(int width, int height) {
 }
 
 void OpenGlRenderer::ResizeRenderTarget(int width, int height) {
-  if (!render_to_texture_ || width <= 0 || height <= 0) {
+  if (render_target_ != RenderTarget::kRenderTargetTexture || width <= 0 ||
+      height <= 0) {
     return;
   }
   if (width == render_target_width_ && height == render_target_height_) {
@@ -84,7 +85,7 @@ unsigned int OpenGlRenderer::GetTextureId() const {
 void OpenGlRenderer::Render() {
   int viewport_width = 0;
   int viewport_height = 0;
-  if (render_to_texture_) {
+  if (render_target_ == RenderTarget::kRenderTargetTexture) {
     framebuffer_->Bind();
     viewport_width = render_target_width_;
     viewport_height = render_target_height_;

@@ -11,7 +11,7 @@
 namespace skeleton {
 
 int Run(int argc, char* argv[]) {
-  auto renderer = CreateRenderer(true);
+  auto renderer = CreateRenderer(RenderTarget::kRenderTargetTexture);
   if (renderer == nullptr) {
     return 1;
   }

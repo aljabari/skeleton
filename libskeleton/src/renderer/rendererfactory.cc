@@ -15,7 +15,7 @@ namespace {
 // available on the current platform. Renderers whose construction fails throw
 // RendererCreationException.
 std::unique_ptr<Renderer> CreatePlatformRenderer(RendererBackend backend,
-                                                 bool render_to_texture) {
+                                                 RenderTarget render_target) {
   switch (backend) {
     case RendererBackend::kVulkan:
 #ifdef SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN
@@ -25,7 +25,7 @@ std::unique_ptr<Renderer> CreatePlatformRenderer(RendererBackend backend,
 #endif
     case RendererBackend::kOpenGl:
 #ifdef SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL
-      return std::make_unique<OpenGlRenderer>(render_to_texture);
+      return std::make_unique<OpenGlRenderer>(render_target);
 #else
       return nullptr;
 #endif
@@ -38,13 +38,13 @@ std::unique_ptr<Renderer> CreatePlatformRenderer(RendererBackend backend,
 // throws RendererCreationException.
 std::unique_ptr<Renderer> CreateBackend(const RendererCreatorMap& creators,
                                         RendererBackend backend,
-                                        bool render_to_texture) {
+                                        RenderTarget render_target) {
   auto creator = creators.find(backend);
   if (creator == creators.end()) {
     return nullptr;
   }
   try {
-    return creator->second(render_to_texture);
+    return creator->second(render_target);
   } catch (const RendererCreationException&) {
     // The backend failed to initialise, so fall back to the next one.
     return nullptr;
@@ -55,14 +55,14 @@ std::unique_ptr<Renderer> CreateBackend(const RendererCreatorMap& creators,
 const RendererCreatorMap& PlatformCreators() {
   static const RendererCreatorMap creators = {
       {RendererBackend::kVulkan,
-       [](bool render_to_texture) {
+       [](RenderTarget render_target) {
          return CreatePlatformRenderer(RendererBackend::kVulkan,
-                                       render_to_texture);
+                                       render_target);
        }},
       {RendererBackend::kOpenGl,
-       [](bool render_to_texture) {
+       [](RenderTarget render_target) {
          return CreatePlatformRenderer(RendererBackend::kOpenGl,
-                                       render_to_texture);
+                                       render_target);
        }},
   };
   return creators;
@@ -86,9 +86,9 @@ const RendererPriorityList& RendererPriorityOrder() {
 
 std::unique_ptr<Renderer> CreateRendererWithFallback(
     RendererBackend preferred, const RendererPriorityList& priority_order,
-    const RendererCreatorMap& creators, bool render_to_texture) {
+    const RendererCreatorMap& creators, RenderTarget render_target) {
   if (std::unique_ptr<Renderer> renderer =
-          CreateBackend(creators, preferred, render_to_texture)) {
+          CreateBackend(creators, preferred, render_target)) {
     return renderer;
   }
 
@@ -97,7 +97,7 @@ std::unique_ptr<Renderer> CreateRendererWithFallback(
       continue;
     }
     if (std::unique_ptr<Renderer> renderer =
-            CreateBackend(creators, backend, render_to_texture)) {
+            CreateBackend(creators, backend, render_target)) {
       return renderer;
     }
   }
@@ -106,17 +106,17 @@ std::unique_ptr<Renderer> CreateRendererWithFallback(
 }
 
 std::unique_ptr<Renderer> CreateRendererWithFallback(
-    RendererBackend preferred, bool render_to_texture) {
+    RendererBackend preferred, RenderTarget render_target) {
   return CreateRendererWithFallback(preferred, RendererPriorityOrder(),
-                                    PlatformCreators(), render_to_texture);
+                                    PlatformCreators(), render_target);
 }
 
-std::unique_ptr<Renderer> CreateRenderer(bool render_to_texture) {
+std::unique_ptr<Renderer> CreateRenderer(RenderTarget render_target) {
   const RendererPriorityList& priority_order = RendererPriorityOrder();
   const RendererCreatorMap& creators = PlatformCreators();
   for (RendererBackend backend : priority_order) {
     if (std::unique_ptr<Renderer> renderer =
-            CreateBackend(creators, backend, render_to_texture)) {
+            CreateBackend(creators, backend, render_target)) {
       return renderer;
     }
   }

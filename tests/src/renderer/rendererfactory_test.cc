@@ -33,12 +33,12 @@ class TestRenderer : public Renderer {
 RendererCreatorMap SuccessfulCreators() {
   RendererCreatorMap creators;
   creators.emplace(RendererBackend::kVulkan,
-                   [](bool render_to_texture) {
+                   [](RenderTarget render_target) {
                      return std::make_unique<TestRenderer>(
                          RendererBackend::kVulkan);
                    });
   creators.emplace(RendererBackend::kOpenGl,
-                   [](bool render_to_texture) {
+                   [](RenderTarget render_target) {
                      return std::make_unique<TestRenderer>(
                          RendererBackend::kOpenGl);
                    });
@@ -49,11 +49,11 @@ RendererCreatorMap SuccessfulCreators() {
 RendererCreatorMap FailingCreators() {
   RendererCreatorMap creators;
   creators.emplace(RendererBackend::kVulkan,
-                   [](bool render_to_texture) -> std::unique_ptr<Renderer> {
+                   [](RenderTarget render_target) -> std::unique_ptr<Renderer> {
                      return nullptr;
                    });
   creators.emplace(RendererBackend::kOpenGl,
-                   [](bool render_to_texture) -> std::unique_ptr<Renderer> {
+                   [](RenderTarget render_target) -> std::unique_ptr<Renderer> {
                      return nullptr;
                    });
   return creators;
@@ -119,7 +119,7 @@ TEST(RendererFactoryTest, CreatesPreferredBackend) {
 
 TEST(RendererFactoryTest, FallsBackWhenPreferredFails) {
   RendererCreatorMap creators = FailingCreators();
-  creators[RendererBackend::kOpenGl] = [](bool render_to_texture) {
+  creators[RendererBackend::kOpenGl] = [](RenderTarget render_target) {
     return std::make_unique<TestRenderer>(RendererBackend::kOpenGl);
   };
 
@@ -152,13 +152,13 @@ TEST(RendererFactoryTest, PreferredIsOnlyAttemptedOnce) {
   int opengl_calls = 0;
   RendererCreatorMap creators;
   creators.emplace(RendererBackend::kVulkan,
-                   [&vulkan_calls](bool render_to_texture) {
+                   [&vulkan_calls](RenderTarget render_target) {
                      ++vulkan_calls;
                      return std::make_unique<TestRenderer>(
                          RendererBackend::kVulkan);
                    });
   creators.emplace(RendererBackend::kOpenGl,
-                   [&opengl_calls](bool render_to_texture) {
+                   [&opengl_calls](RenderTarget render_target) {
                      ++opengl_calls;
                      return std::make_unique<TestRenderer>(
                          RendererBackend::kOpenGl);
@@ -174,7 +174,7 @@ TEST(RendererFactoryTest, PreferredIsOnlyAttemptedOnce) {
 TEST(RendererFactoryTest, SkipsBackendsWithoutACreator) {
   RendererCreatorMap creators;
   creators.emplace(RendererBackend::kOpenGl,
-                   [](bool render_to_texture) {
+                   [](RenderTarget render_target) {
                      return std::make_unique<TestRenderer>(
                          RendererBackend::kOpenGl);
                    });
@@ -202,30 +202,30 @@ TEST(RendererFactoryTest, ReturnsNullptrWhenNoCreatorsExist) {
   EXPECT_EQ(renderer, nullptr);
 }
 
-TEST(RendererFactoryTest, ForwardsRenderToTextureToCreator) {
-  bool forwarded = false;
+TEST(RendererFactoryTest, ForwardsRenderTargetToCreator) {
+  RenderTarget forwarded = RenderTarget::kRenderTargetWindow;
   RendererCreatorMap creators;
   creators.emplace(RendererBackend::kVulkan,
-                   [&forwarded](bool render_to_texture) {
-                     forwarded = render_to_texture;
+                   [&forwarded](RenderTarget render_target) {
+                     forwarded = render_target;
                      return std::make_unique<TestRenderer>(
                          RendererBackend::kVulkan);
                    });
 
   CreateRendererWithFallback(RendererBackend::kVulkan, kVulkanThenOpenGl,
-                             creators, true);
+                             creators, RenderTarget::kRenderTargetTexture);
 
-  EXPECT_TRUE(forwarded);
+  EXPECT_EQ(forwarded, RenderTarget::kRenderTargetTexture);
 }
 
 TEST(RendererFactoryTest, FallsBackWhenCreatorThrows) {
   RendererCreatorMap creators;
   creators.emplace(RendererBackend::kVulkan,
-                   [](bool render_to_texture) -> std::unique_ptr<Renderer> {
+                   [](RenderTarget render_target) -> std::unique_ptr<Renderer> {
                      throw RendererCreationException("no Vulkan");
                    });
   creators.emplace(RendererBackend::kOpenGl,
-                   [](bool render_to_texture) {
+                   [](RenderTarget render_target) {
                      return std::make_unique<TestRenderer>(
                          RendererBackend::kOpenGl);
                    });
@@ -240,11 +240,11 @@ TEST(RendererFactoryTest, FallsBackWhenCreatorThrows) {
 TEST(RendererFactoryTest, ReturnsNullptrWhenEveryCreatorThrows) {
   RendererCreatorMap creators;
   creators.emplace(RendererBackend::kVulkan,
-                   [](bool render_to_texture) -> std::unique_ptr<Renderer> {
+                   [](RenderTarget render_target) -> std::unique_ptr<Renderer> {
                      throw RendererCreationException("no Vulkan");
                    });
   creators.emplace(RendererBackend::kOpenGl,
-                   [](bool render_to_texture) -> std::unique_ptr<Renderer> {
+                   [](RenderTarget render_target) -> std::unique_ptr<Renderer> {
                      throw RendererCreationException("no OpenGL");
                    });
 
@@ -259,7 +259,7 @@ TEST(RendererFactoryTest, ReturnsNullptrWhenEveryCreatorThrows) {
 TEST(RendererFactoryTest, PropagatesNonCreationExceptions) {
   RendererCreatorMap creators;
   creators.emplace(RendererBackend::kVulkan,
-                   [](bool render_to_texture) -> std::unique_ptr<Renderer> {
+                   [](RenderTarget render_target) -> std::unique_ptr<Renderer> {
                      throw std::runtime_error("unexpected");
                    });
 

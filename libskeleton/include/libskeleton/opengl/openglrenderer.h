@@ -17,7 +17,8 @@ class OpenGlShader;
 
 class OpenGlRenderer : public Renderer {
  public:
-  explicit OpenGlRenderer(bool render_to_texture = false);
+  explicit OpenGlRenderer(
+      RenderTarget render_target = RenderTarget::kRenderTargetWindow);
   ~OpenGlRenderer() override;
 
   RendererBackend GetBackend() const override;

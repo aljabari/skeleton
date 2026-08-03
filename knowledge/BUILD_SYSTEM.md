@@ -62,15 +62,18 @@ the generated `glad` target (OpenGL 3.3 core) to load GL function pointers via
 - `RendererPriorityOrder()` returns the platform's fallback priority order.
   New backends are added there (for example, a future DirectX backend on
   Windows would be listed before Vulkan).
-- `CreateRendererWithFallback(preferred, render_to_texture)` creates the
+- `CreateRendererWithFallback(preferred, render_target)` creates the
   preferred backend first and falls back through the platform priority order
   when a backend cannot be created. A backend is skipped when it has no
   creator, its creator returns `nullptr`, or it throws
   `RendererCreationException`. The core algorithm takes an explicit priority
   list and creator map so it can be unit tested with fake creators.
-- `CreateRenderer(render_to_texture)` is the same but has no preferred
+- `CreateRenderer(render_target)` is the same but has no preferred
   backend: it returns the first backend in the platform priority order that
   can be created.
+- The `render_target` argument is a `RenderTarget` enum
+  (`RenderTarget::kRenderTargetWindow` — the default — or
+  `RenderTarget::kRenderTargetTexture`).
 - The Vulkan renderer is not implemented yet: constructing a `VulkanRenderer`
   throws `RendererCreationException`, so the factory catches it and falls back
   to the next backend. The OpenGL creator always succeeds on supported
@@ -79,8 +82,8 @@ the generated `glad` target (OpenGL 3.3 core) to load GL function pointers via
 Both executables build their renderer through `CreateRenderer()` with no
 preferred backend, so they get the first backend in the platform priority
 order that can be created (OpenGL until Vulkan is implemented). `skeledit`
-passes `render_to_texture = true` because it needs the texture APIs. Those
-APIs live on the base `Renderer` interface (`GetTextureId()`,
+passes `RenderTarget::kRenderTargetTexture` because it needs the texture APIs.
+Those APIs live on the base `Renderer` interface (`GetTextureId()`,
 `ResizeRenderTarget()`) with default no-op implementations, so both executables
 use the renderer polymorphically through `Renderer&` without downcasting.
 

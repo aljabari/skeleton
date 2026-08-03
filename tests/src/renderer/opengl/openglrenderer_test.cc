@@ -80,7 +80,7 @@ TEST(OpenGlRendererTest, RenderDrawsTriangleWithoutErrors) {
 }
 
 TEST(OpenGlRendererTest, ResizeRenderTargetRecreatesRenderTarget) {
-  OpenGlRenderer renderer(true);
+  OpenGlRenderer renderer(RenderTarget::kRenderTargetTexture);
   Window window(640, 480, "Skeleton Render Target Resize Test", renderer);
 
   const unsigned int initial_texture_id = renderer.GetTextureId();
@@ -97,7 +97,7 @@ TEST(OpenGlRendererTest, ResizeRenderTargetRecreatesRenderTarget) {
 }
 
 TEST(OpenGlRendererTest, ResizeRenderTargetToSameSizeKeepsTexture) {
-  OpenGlRenderer renderer(true);
+  OpenGlRenderer renderer(RenderTarget::kRenderTargetTexture);
   Window window(640, 480, "Skeleton Render Target No-Op Test", renderer);
 
   renderer.ResizeRenderTarget(320, 200);
@@ -129,7 +129,7 @@ TEST(OpenGlRendererTest, RenderSetsViewportToWindowFramebufferSize) {
 }
 
 TEST(OpenGlRendererTest, RenderSetsViewportToRenderTargetSize) {
-  OpenGlRenderer renderer(true);
+  OpenGlRenderer renderer(RenderTarget::kRenderTargetTexture);
   Window window(640, 480, "Skeleton Render Target Viewport Test", renderer);
 
   renderer.ResizeRenderTarget(320, 200);

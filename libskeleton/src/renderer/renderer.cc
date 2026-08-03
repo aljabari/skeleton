@@ -4,8 +4,8 @@
 
 namespace skeleton {
 
-Renderer::Renderer(bool render_to_texture)
-    : render_to_texture_(render_to_texture) {}
+Renderer::Renderer(RenderTarget render_target)
+    : render_target_(render_target) {}
 
 Renderer::~Renderer() = default;
 
