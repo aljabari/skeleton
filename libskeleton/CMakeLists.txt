@@ -58,7 +58,9 @@ endif()
 
 if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
     target_compile_definitions(libskeleton
-        PUBLIC SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
+        PUBLIC
+            SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN
+            SKELETON_VULKAN_ENABLE_VALIDATION=$<IF:$<CONFIG:Debug>,1,0>)
 endif()
 
 target_include_directories(libskeleton

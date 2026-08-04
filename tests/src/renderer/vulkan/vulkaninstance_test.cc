@@ -42,5 +42,17 @@ TEST(VulkanInstanceTest, EnumeratesPhysicalDevices) {
   glfwTerminate();
 }
 
+#if SKELETON_VULKAN_ENABLE_VALIDATION
+TEST(VulkanInstanceTest, CreatesDebugMessenger) {
+  SkipIfVulkanUnavailable();
+
+  VulkanInstance instance;
+
+  EXPECT_NE(instance.DebugMessenger(), VK_NULL_HANDLE);
+
+  glfwTerminate();
+}
+#endif  // SKELETON_VULKAN_ENABLE_VALIDATION
+
 }  // namespace
 }  // namespace skeleton

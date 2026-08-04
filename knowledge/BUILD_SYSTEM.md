@@ -90,6 +90,20 @@ Release so the CRT still calls the app's `main()`.
   The private `VulkanInstance`/`VulkanDevice` RAII helpers live under
   `libskeleton/src/renderer/vulkan/`.
 
+Vulkan validation layers are enabled only in Debug builds. In that
+configuration `libskeleton` defines `SKELETON_VULKAN_ENABLE_VALIDATION=1`
+(exported `PUBLIC`, so tests can guard against it); everywhere else it is `0`.
+When the macro is `1` and the `VK_LAYER_KHRONOS_validation` layer is installed
+(it ships with the Vulkan SDK), `VulkanInstance` enables that layer and the
+`VK_EXT_debug_utils` extension when creating the instance, then creates a
+`VkDebugUtilsMessengerEXT`. The messenger callback routes each validation
+message into spdlog, mapping severity to logger level (error, warning, info,
+and verbose map to `SPDLOG_ERROR`, `SPDLOG_WARN`, `SPDLOG_INFO`, and
+`SPDLOG_DEBUG`), so validation output appears in the console and the `skeledit`
+log window alongside normal logs. If the layer is unavailable the instance is
+still created (with a warning); the messenger and the layer code are compiled
+out of non-Debug builds.
+
 Both executables build their renderer through `CreateRenderer()` with no
 preferred backend, so they get the first backend in the platform priority
 order that can be created (Vulkan once it renders, OpenGL otherwise). `skeledit`
