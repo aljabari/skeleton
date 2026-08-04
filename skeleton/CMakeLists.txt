@@ -6,9 +6,10 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES src/ma
 
 target_compile_features(skeleton PRIVATE cxx_std_20)
 
-# Match libskeleton: strip spdlog logging in non-Debug builds.
+# Match libskeleton: strip spdlog logging in non-Debug builds unless
+# SKELETON_ENABLE_LOGGING_IN_RELEASE is ON.
 target_compile_definitions(skeleton PRIVATE
-    SPDLOG_ACTIVE_LEVEL=$<IF:$<CONFIG:Debug>,SPDLOG_LEVEL_TRACE,SPDLOG_LEVEL_OFF>)
+    SPDLOG_ACTIVE_LEVEL=$<IF:$<OR:$<CONFIG:Debug>,$<BOOL:${SKELETON_ENABLE_LOGGING_IN_RELEASE}>>,SPDLOG_LEVEL_TRACE,SPDLOG_LEVEL_OFF>)
 
 if (WIN32)
     # Release builds run as a GUI application without a console window. Debug

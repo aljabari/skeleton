@@ -37,7 +37,11 @@ This project follows the
   `spdlog::debug`/etc. function calls and never `std::cout` or `std::cerr`. The
   macros are compiled out below `SPDLOG_ACTIVE_LEVEL`, which the build sets to
   `SPDLOG_LEVEL_TRACE` in Debug builds and `SPDLOG_LEVEL_OFF` in release builds
-  (except `skeledit`, which always uses `SPDLOG_LEVEL_TRACE`). Use `fmt`-style
+  (`skeledit` always uses `SPDLOG_LEVEL_TRACE`). Because `libskeleton` is a
+  shared static library, its release log level is controlled globally by the
+  `SKELETON_ENABLE_LOGGING_IN_RELEASE` CMake option (default `OFF`); enable it
+  to compile library logs into release builds, e.g. so the release editor's log
+  window shows renderer and window messages. Use `fmt`-style
   `{}` placeholders instead of `<<`-chaining. Log an `error` immediately before
   throwing a `RendererCreationException` so the failure reason is visible even
   when the factory swallows the exception during fallback. All log output uses

@@ -193,6 +193,16 @@ builds**. `skeledit` and `skeledit_tests` define `SPDLOG_ACTIVE_LEVEL` as
 `SPDLOG_LEVEL_TRACE` unconditionally, so the editor keeps its logs (and its log
 window) in release builds.
 
+Because `libskeleton` is a static library compiled once, its `SPDLOG_ACTIVE_LEVEL`
+cannot differ per consumer: in a plain release build only `skeledit`'s own
+messages (e.g. "SkelEdit started.") reach the log window, since every log call
+inside `libskeleton` is compiled out. To also see library logs (renderer
+creation, window creation, Vulkan/GL messages) in a release `skeledit`,
+configure with `-DSKELETON_ENABLE_LOGGING_IN_RELEASE=ON`. This compiles
+`libskeleton`, `skeleton`, and `libskeleton_tests` with `SPDLOG_LEVEL_TRACE` in
+non-Debug configurations too. It is `OFF` by default, keeping release logging
+stripped for the standalone `skeleton` console application.
+
 All log output shares one canonical format defined in
 `libskeleton/include/libskeleton/logging.h`:
 `kLogPattern` = `[%Y-%m-%d %H:%M:%S.%e] [%l] %v` (plain) and

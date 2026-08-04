@@ -10,7 +10,7 @@ namespace skeleton {
 
 int Run(int argc, char* argv[]) {
   spdlog::set_pattern(kLogPattern);
-  auto renderer = CreateRenderer(RendererBackend::kOpenGl);
+  auto renderer = CreateRenderer();
   if (renderer == nullptr) {
     SPDLOG_ERROR("No renderer available; exiting.");
     return 1;
