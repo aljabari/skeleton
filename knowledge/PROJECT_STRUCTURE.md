@@ -53,6 +53,7 @@ skeleton/
 │   └── src/
 │       ├── window_test.cc
 │       ├── skeledit/
+│       │   ├── editorlogsink_test.cc   # EditorLogSink buffering tests (skeledit_tests)
 │       │   └── imguieditor_test.cc   # ImGuiEditor dock-layout tests (skeledit_tests)
 │       └── renderer/
 │           ├── opengl/
@@ -72,10 +73,13 @@ skeleton/
 ├── skeledit/                 # Editor executable target, links libskeleton and imgui
 │   ├── CMakeLists.txt        # Fetches imgui docking branch (skeledit-only dependency)
 │   ├── include/skeledit/
-│   │   └── imguieditor.h     # Public header for the ImGui editor wrapper
+│   │   ├── editorlogsink.h   # spdlog sink + LogSink impl for the editor log window
+│   │   ├── imguieditor.h     # Public header for the ImGui editor wrapper
+│   │   └── logsink.h         # LogLevel/LogEntry/LogSink interface
 │   └── src/
 │       ├── main.cc
-│       └── imguieditor.cc    # ImGui context/backends, dockable viewport, dock layout
+│       ├── editorlogsink.cc  # Buffers the newest kMaxEntries log messages
+│       └── imguieditor.cc    # ImGui context/backends, dockable viewport, dock layout, log window
 └── build/                    # Build output (gitignored)
 ```
 

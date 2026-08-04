@@ -33,14 +33,14 @@ const RendererPriorityList& RendererPriorityOrder();
 // it has no entry in |creators|, its creator returns nullptr, or its creator
 // throws RendererCreationException. Returns nullptr when every candidate
 // backend fails.
-std::unique_ptr<Renderer> CreateRendererWithFallback(
+std::unique_ptr<Renderer> CreateRenderer(
     RendererBackend preferred, const RendererPriorityList& priority_order,
     const RendererCreatorMap& creators,
     RenderTarget render_target = RenderTarget::kRenderTargetWindow);
 
 // Convenience overload that uses the platform's priority order and real
 // backend creators.
-std::unique_ptr<Renderer> CreateRendererWithFallback(
+std::unique_ptr<Renderer> CreateRenderer(
     RendererBackend preferred,
     RenderTarget render_target = RenderTarget::kRenderTargetWindow);
 

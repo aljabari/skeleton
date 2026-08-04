@@ -4,8 +4,11 @@
 #define SKELEDIT_IMGUIEDITOR_H_
 
 #include <functional>
+#include <memory>
 
 #include <imgui.h>
+
+#include "skeledit/logsink.h"
 
 struct GLFWwindow;
 
@@ -15,6 +18,7 @@ class ImGuiEditor {
  public:
   ImGuiEditor(GLFWwindow* window, unsigned int viewport_texture_id,
               int viewport_width, int viewport_height,
+              std::shared_ptr<LogSink> log_sink,
               std::function<void(int, int)> viewport_resize_callback);
   ~ImGuiEditor();
 
@@ -33,12 +37,14 @@ class ImGuiEditor {
  private:
   void DrawDockSpace();
   void DrawViewport();
+  void DrawLogs();
 
   GLFWwindow* window_;
   unsigned int viewport_texture_id_;
   int viewport_width_;
   int viewport_height_;
   bool dock_layout_initialised_ = false;
+  std::shared_ptr<LogSink> log_sink_;
   std::function<void(int, int)> viewport_resize_callback_;
 };
 

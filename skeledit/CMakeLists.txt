@@ -16,11 +16,13 @@ endif()
 add_executable(skeledit
     src/main.cc
     src/imguieditor.cc
+    src/editorlogsink.cc
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES
     src/main.cc
     src/imguieditor.cc
+    src/editorlogsink.cc
 )
 
 target_compile_features(skeledit PRIVATE cxx_std_20)
@@ -31,6 +33,6 @@ target_include_directories(skeledit
         $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(skeledit PRIVATE libskeleton imgui)
+target_link_libraries(skeledit PRIVATE libskeleton imgui spdlog)
 
 cpplint_add_target(skeledit ROOT skeledit/include)

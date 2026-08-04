@@ -177,6 +177,15 @@ spdlog default logger (`spdlog::debug`/`info`/`warn`/`error`); the renderer
 factory logs backend creation, fallback, and failure reasons, and errors are
 logged before every thrown `RendererCreationException`.
 
+`skeledit` configures the default logger with two sinks: a `stdout_color_sink_mt`
+(console) and an `EditorLogSink` (`skeledit/include/skeledit/editorlogsink.h`).
+`EditorLogSink` implements the `LogSink` interface (`skeledit/include/skeledit/logsink.h`)
+and is also an spdlog `base_sink`, so every log message is stored in the
+`ImGuiEditor` log window as well as printed to the console. It keeps the newest
+`kMaxEntries` (500) entries, is thread-safe, and stores each message prefixed
+with its long level name (`[info]`, `[warning]`, ...). The default logger
+pattern is `"[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v"`.
+
 `imgui` is only a dependency of `skeledit`; it is fetched and added from
 `skeledit/CMakeLists.txt`, not from `cmake/dependencies.cmake`. The upstream
 repository intentionally ships no `CMakeLists.txt`, so the project provides one

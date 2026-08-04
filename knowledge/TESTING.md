@@ -39,7 +39,8 @@ location. Currently:
 |                     | `tests/src/renderer/vulkan/vulkaninstance_test.cc` | `VulkanInstance` instance creation and physical-device enumeration (skips when Vulkan is unavailable) |
 |                     | `tests/src/renderer/vulkan/vulkandevice_test.cc` | `VulkanDevice` logical-device/queue creation from a `VulkanInstance` (skips when Vulkan is unavailable) |
 |                     | `tests/src/renderer/vulkan/vulkanrenderer_test.cc` | `VulkanRenderer` instance/physical-device/logical-device creation (skips when Vulkan is unavailable) |
-| `skeledit_tests`    | `tests/src/skeledit/imguieditor_test.cc`       | `ImGuiEditor` dock-layout construction (headless, no GL context) |
+| `skeledit_tests`    | `tests/src/skeledit/editorlogsink_test.cc` | `EditorLogSink` message buffering, level prefixing, `Clear`, and `kMaxEntries` bound |
+|                     | `tests/src/skeledit/imguieditor_test.cc`       | `ImGuiEditor` dock-layout construction (headless, no GL context) |
 
 Tests for the private OpenGL classes (`OpenGlShader`, `OpenGlMesh`,
 `OpenGlTexture`, `OpenGlFramebuffer`) include their headers via the
@@ -47,14 +48,17 @@ Tests for the private OpenGL classes (`OpenGlShader`, `OpenGlMesh`,
 `SKELETON_RES_DIR` (exported publicly by `libskeleton`) points tests at the
 real shader files under `libskeleton/res/shaders`.
 
-`skeledit_tests` compiles `skeledit/src/imguieditor.cc` directly and links
-`imgui`, `glfw`, and Google Test. It drives the dock builder API headlessly:
+`skeledit_tests` compiles `skeledit/src/imguieditor.cc` and
+`skeledit/src/editorlogsink.cc` directly and links `spdlog`, `imgui`, `glfw`,
+and Google Test. It drives the dock builder API headlessly:
 the test `SetUp` creates an ImGui context, enables
 `ImGuiConfigFlags_DockingEnable`, sets a display size / delta time, and builds
 the font atlas via `io.Fonts->Build()` so that `ImGui::NewFrame()` can run
 without a renderer backend. Only the static, backend-free parts of the class
 (`DockspaceId()`, `CreateDockLayout()`) are exercised, since the constructor
-and frame/render methods need a real GL context.
+and frame/render methods need a real GL context. The `EditorLogSink` tests log
+through a standalone `spdlog::logger` (not the default logger) so they run
+without touching global spdlog state.
 
 ## Running tests
 

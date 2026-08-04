@@ -1,9 +1,12 @@
 // Copyright 2026 aljabari
 
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
 #include <memory>
+#include <vector>
 
+#include "skeledit/editorlogsink.h"
 #include "skeledit/imguieditor.h"
 
 #include "libskeleton/renderer.h"
@@ -12,8 +15,29 @@
 
 namespace skeleton {
 
+namespace {
+
+// Configures spdlog so every log message is written to stdout and to the
+// editor's log window. Returns the sink backing the log window.
+std::shared_ptr<EditorLogSink> ConfigureLogging() {
+  auto log_sink = std::make_shared<EditorLogSink>();
+  std::vector<spdlog::sink_ptr> sinks;
+  sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+  sinks.push_back(log_sink);
+  auto logger = std::make_shared<spdlog::logger>("skeledit", sinks.begin(),
+                                                 sinks.end());
+  spdlog::set_default_logger(logger);
+  spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+  return log_sink;
+}
+
+}  // namespace
+
 int Run(int argc, char* argv[]) {
-  auto renderer = CreateRenderer(RenderTarget::kRenderTargetTexture);
+  const std::shared_ptr<EditorLogSink> log_sink = ConfigureLogging();
+
+  auto renderer = CreateRenderer(RendererBackend::kOpenGl,
+                                 RenderTarget::kRenderTargetTexture);
   if (renderer == nullptr) {
     spdlog::error("No renderer available; exiting.");
     return 1;
@@ -22,7 +46,8 @@ int Run(int argc, char* argv[]) {
   Renderer* renderer_ptr = renderer.get();
   Window window(1280, 720, "SkelEdit", *renderer);
   ImGuiEditor editor(window.GetNativeWindow(), renderer_ptr->GetTextureId(),
-                     1280, 720, [renderer_ptr](int width, int height) {
+                     1280, 720, log_sink,
+                     [renderer_ptr](int width, int height) {
                        renderer_ptr->ResizeRenderTarget(width, height);
                      });
   window.Maximize();

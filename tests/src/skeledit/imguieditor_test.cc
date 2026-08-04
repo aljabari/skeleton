@@ -27,17 +27,27 @@ class ImGuiEditorTest : public ::testing::Test {
     ImGui::Begin("Viewport");
     ImGui::End();
   }
+
+  void DrawLogsWindowOnce() {
+    ImGui::Begin("Logs");
+    ImGui::End();
+  }
 };
 
-TEST_F(ImGuiEditorTest, CreateDockLayoutDocksViewportWindow) {
+TEST_F(ImGuiEditorTest, CreateDockLayoutDocksViewportAndLogsWindows) {
   ImGui::NewFrame();
   DrawViewportWindowOnce();
+  DrawLogsWindowOnce();
 
   ImGuiEditor::CreateDockLayout(800, 600);
 
   ImGuiWindow* viewport = ImGui::FindWindowByName("Viewport");
   ASSERT_NE(viewport, nullptr);
-  EXPECT_EQ(viewport->DockId, ImGuiEditor::DockspaceId());
+  EXPECT_NE(viewport->DockId, 0);
+
+  ImGuiWindow* logs = ImGui::FindWindowByName("Logs");
+  ASSERT_NE(logs, nullptr);
+  EXPECT_NE(logs->DockId, 0);
 
   ImGuiDockNode* node = ImGui::DockBuilderGetNode(ImGuiEditor::DockspaceId());
   ASSERT_NE(node, nullptr);
@@ -47,21 +57,31 @@ TEST_F(ImGuiEditorTest, CreateDockLayoutDocksViewportWindow) {
 TEST_F(ImGuiEditorTest, CreateDockLayoutIsIdempotent) {
   ImGui::NewFrame();
   DrawViewportWindowOnce();
+  DrawLogsWindowOnce();
 
   ImGuiEditor::CreateDockLayout(800, 600);
   ImGuiEditor::CreateDockLayout(800, 600);
 
   ImGuiWindow* viewport = ImGui::FindWindowByName("Viewport");
   ASSERT_NE(viewport, nullptr);
-  EXPECT_EQ(viewport->DockId, ImGuiEditor::DockspaceId());
+  EXPECT_NE(viewport->DockId, 0);
+
+  ImGuiWindow* logs = ImGui::FindWindowByName("Logs");
+  ASSERT_NE(logs, nullptr);
+  EXPECT_NE(logs->DockId, 0);
+
+  ImGuiDockNode* node = ImGui::DockBuilderGetNode(ImGuiEditor::DockspaceId());
+  ASSERT_NE(node, nullptr);
+  EXPECT_TRUE(node->IsDockSpace());
 }
 
-TEST_F(ImGuiEditorTest, ViewportDocksIntoDockspaceHost) {
+TEST_F(ImGuiEditorTest, WindowsDockIntoDockspaceHost) {
   ImGui::NewFrame();
   ImGuiEditor::CreateDockLayout(800, 600);
   ImGui::DockSpaceOverViewport(ImGuiEditor::DockspaceId(),
                                ImGui::GetMainViewport());
   DrawViewportWindowOnce();
+  DrawLogsWindowOnce();
   ImGui::Render();
   ImGui::EndFrame();
 
@@ -69,11 +89,16 @@ TEST_F(ImGuiEditorTest, ViewportDocksIntoDockspaceHost) {
   ImGui::DockSpaceOverViewport(ImGuiEditor::DockspaceId(),
                                ImGui::GetMainViewport());
   DrawViewportWindowOnce();
+  DrawLogsWindowOnce();
 
   ImGuiWindow* viewport = ImGui::FindWindowByName("Viewport");
   ASSERT_NE(viewport, nullptr);
   ASSERT_NE(viewport->DockNode, nullptr);
-  EXPECT_EQ(viewport->DockNode->ID, ImGuiEditor::DockspaceId());
+  ImGuiDockNode* root = viewport->DockNode;
+  while (root->ParentNode != nullptr) {
+    root = root->ParentNode;
+  }
+  EXPECT_EQ(root->ID, ImGuiEditor::DockspaceId());
 
   ImGui::EndFrame();
 }

@@ -44,14 +44,20 @@ gtest_discover_tests(libskeleton_tests)
 cpplint_add_target(libskeleton_tests ROOT ${CMAKE_SOURCE_DIR})
 
 add_executable(skeledit_tests
+    src/skeledit/editorlogsink_test.cc
     src/skeledit/imguieditor_test.cc
+    ../skeledit/src/editorlogsink.cc
     ../skeledit/src/imguieditor.cc
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES
+    src/skeledit/editorlogsink_test.cc
     src/skeledit/imguieditor_test.cc
 )
-source_group("Source Files\\skeledit" FILES ../skeledit/src/imguieditor.cc)
+source_group("Source Files\\skeledit" FILES
+    ../skeledit/src/editorlogsink.cc
+    ../skeledit/src/imguieditor.cc
+)
 
 target_compile_features(skeledit_tests PRIVATE cxx_std_20)
 
@@ -62,6 +68,7 @@ target_include_directories(skeledit_tests
 
 target_link_libraries(skeledit_tests
     PRIVATE
+        spdlog
         imgui
         glfw
         GTest::gtest_main

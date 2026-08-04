@@ -105,7 +105,7 @@ const RendererPriorityList& RendererPriorityOrder() {
   return priority_order;
 }
 
-std::unique_ptr<Renderer> CreateRendererWithFallback(
+std::unique_ptr<Renderer> CreateRenderer(
     RendererBackend preferred, const RendererPriorityList& priority_order,
     const RendererCreatorMap& creators, RenderTarget render_target) {
   if (std::unique_ptr<Renderer> renderer =
@@ -133,9 +133,9 @@ std::unique_ptr<Renderer> CreateRendererWithFallback(
   return nullptr;
 }
 
-std::unique_ptr<Renderer> CreateRendererWithFallback(
-    RendererBackend preferred, RenderTarget render_target) {
-  return CreateRendererWithFallback(preferred, RendererPriorityOrder(),
+std::unique_ptr<Renderer> CreateRenderer(RendererBackend preferred,
+                                         RenderTarget render_target) {
+  return CreateRenderer(preferred, RendererPriorityOrder(),
                                     PlatformCreators(), render_target);
 }
 
