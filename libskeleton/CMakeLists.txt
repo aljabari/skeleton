@@ -41,6 +41,12 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${_lib
 
 target_compile_features(libskeleton PUBLIC cxx_std_20)
 
+# spdlog macros compile in only messages at or above SPDLOG_ACTIVE_LEVEL. Logging
+# is fully compiled in for Debug builds and fully stripped for all other
+# configurations (Release etc.).
+target_compile_definitions(libskeleton PRIVATE
+    SPDLOG_ACTIVE_LEVEL=$<IF:$<CONFIG:Debug>,SPDLOG_LEVEL_TRACE,SPDLOG_LEVEL_OFF>)
+
 if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
     target_compile_definitions(libskeleton
         PUBLIC

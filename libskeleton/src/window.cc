@@ -11,7 +11,7 @@ namespace skeleton {
 Window::Window(int width, int height, const char* title, Renderer& renderer)
     : renderer_(renderer), window_(nullptr) {
   if (!glfwInit()) {
-    spdlog::error("Failed to initialize GLFW");
+    SPDLOG_ERROR("Failed to initialize GLFW");
     return;
   }
 
@@ -19,13 +19,13 @@ Window::Window(int width, int height, const char* title, Renderer& renderer)
 
   window_ = glfwCreateWindow(width, height, title, nullptr, nullptr);
   if (!window_) {
-    spdlog::error("Failed to create GLFW window");
+    SPDLOG_ERROR("Failed to create GLFW window");
     glfwTerminate();
     return;
   }
 
   renderer_.InitialiseForWindow(window_);
-  spdlog::info("Created GLFW window \"{}\" ({}x{}).", title, width, height);
+  SPDLOG_INFO("Created GLFW window \"{}\" ({}x{}).", title, width, height);
 }
 
 Window::~Window() {

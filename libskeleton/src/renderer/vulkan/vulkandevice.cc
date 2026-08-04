@@ -17,11 +17,11 @@ VulkanDevice::VulkanDevice(const VulkanInstance& instance) {
       physical_device_ = device;
       queue_family_index_ = queue_family_index;
       CreateLogicalDevice();
-      spdlog::debug("Created Vulkan logical device.");
+      SPDLOG_DEBUG("Created Vulkan logical device.");
       return;
     }
   }
-  spdlog::error("No Vulkan physical device with a graphics queue found.");
+  SPDLOG_ERROR("No Vulkan physical device with a graphics queue found.");
   throw RendererCreationException(
       "No Vulkan physical device with a graphics queue found.");
 }
@@ -80,7 +80,7 @@ void VulkanDevice::CreateLogicalDevice() {
 
   if (vkCreateDevice(physical_device_, &create_info, nullptr, &device_) !=
       VK_SUCCESS) {
-    spdlog::error("Failed to create the Vulkan logical device.");
+    SPDLOG_ERROR("Failed to create the Vulkan logical device.");
     throw RendererCreationException(
         "Failed to create the Vulkan logical device.");
   }

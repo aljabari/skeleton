@@ -46,7 +46,7 @@ void OpenGlRenderer::InitialiseForWindow(GLFWwindow* window) {
   window_ = window;
   glfwMakeContextCurrent(window);
   gladLoadGL(glfwGetProcAddress);
-  spdlog::info("Initialised OpenGL renderer.");
+  SPDLOG_INFO("Initialised OpenGL renderer.");
 
   const std::string shader_directory =
       std::string(SKELETON_RES_DIR) + "/shaders";
@@ -105,7 +105,7 @@ void OpenGlRenderer::Render() {
     shader_->Use();
     mesh_->Draw();
   } else {
-    spdlog::warn("OpenGL renderer has no shader or mesh; skipping draw.");
+    SPDLOG_WARN("OpenGL renderer has no shader or mesh; skipping draw.");
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);

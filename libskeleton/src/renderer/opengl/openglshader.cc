@@ -32,7 +32,7 @@ GLuint CompileShader(GLenum type, const std::string& source) {
   if (success == 0) {
     char info_log[512] = {};
     glGetShaderInfoLog(shader, sizeof(info_log), nullptr, info_log);
-    spdlog::error("Shader compilation failed:\n{}", info_log);
+    SPDLOG_ERROR("Shader compilation failed:\n{}", info_log);
     return 0;
   }
   return shader;
@@ -65,7 +65,7 @@ OpenGlShader::OpenGlShader(const std::string& vertex_path,
   if (success == 0) {
     char info_log[512] = {};
     glGetProgramInfoLog(program_, sizeof(info_log), nullptr, info_log);
-    spdlog::error("Shader program link failed:\n{}", info_log);
+    SPDLOG_ERROR("Shader program link failed:\n{}", info_log);
     glDeleteProgram(program_);
     program_ = 0;
   }

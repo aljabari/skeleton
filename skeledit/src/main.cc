@@ -39,10 +39,10 @@ int Run(int argc, char* argv[]) {
   auto renderer = CreateRenderer(RendererBackend::kOpenGl,
                                  RenderTarget::kRenderTargetTexture);
   if (renderer == nullptr) {
-    spdlog::error("No renderer available; exiting.");
+    SPDLOG_ERROR("No renderer available; exiting.");
     return 1;
   }
-  spdlog::info("SkelEdit started.");
+  SPDLOG_INFO("SkelEdit started.");
   Renderer* renderer_ptr = renderer.get();
   Window window(1280, 720, "SkelEdit", *renderer);
   ImGuiEditor editor(window.GetNativeWindow(), renderer_ptr->GetTextureId(),

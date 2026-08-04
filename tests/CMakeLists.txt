@@ -26,6 +26,10 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES
 
 target_compile_features(libskeleton_tests PRIVATE cxx_std_20)
 
+# Match libskeleton: strip spdlog logging in non-Debug builds.
+target_compile_definitions(libskeleton_tests PRIVATE
+    SPDLOG_ACTIVE_LEVEL=$<IF:$<CONFIG:Debug>,SPDLOG_LEVEL_TRACE,SPDLOG_LEVEL_OFF>)
+
 target_include_directories(libskeleton_tests
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/../libskeleton/src
@@ -60,6 +64,10 @@ source_group("Source Files\\skeledit" FILES
 )
 
 target_compile_features(skeledit_tests PRIVATE cxx_std_20)
+
+# Match skeledit: keep spdlog logging enabled in every configuration.
+target_compile_definitions(skeledit_tests PRIVATE
+    SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
 
 target_include_directories(skeledit_tests
     PRIVATE

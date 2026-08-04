@@ -27,6 +27,11 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES
 
 target_compile_features(skeledit PRIVATE cxx_std_20)
 
+# The editor keeps its logging enabled in every configuration, so spdlog macros
+# are never stripped out of release builds of skeledit.
+target_compile_definitions(skeledit PRIVATE
+    SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
+
 target_include_directories(skeledit
     PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

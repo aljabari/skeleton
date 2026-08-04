@@ -19,7 +19,7 @@ constexpr char kEngineName[] = "Skeleton";
 
 VulkanInstance::VulkanInstance() {
   if (volkInitialize() != VK_SUCCESS) {
-    spdlog::error("Failed to initialise the Vulkan loader.");
+    SPDLOG_ERROR("Failed to initialise the Vulkan loader.");
     throw RendererCreationException("Failed to initialise the Vulkan loader.");
   }
 
@@ -36,11 +36,11 @@ VulkanInstance::VulkanInstance() {
   create_info.pApplicationInfo = &app_info;
 
   if (vkCreateInstance(&create_info, nullptr, &instance_) != VK_SUCCESS) {
-    spdlog::error("Failed to create the Vulkan instance.");
+    SPDLOG_ERROR("Failed to create the Vulkan instance.");
     throw RendererCreationException("Failed to create the Vulkan instance.");
   }
   volkLoadInstance(instance_);
-  spdlog::debug("Created Vulkan instance.");
+  SPDLOG_DEBUG("Created Vulkan instance.");
 }
 
 VulkanInstance::~VulkanInstance() {
@@ -58,7 +58,7 @@ std::vector<VkPhysicalDevice> VulkanInstance::EnumeratePhysicalDevices() const {
   if (vkEnumeratePhysicalDevices(instance_, &device_count, nullptr) !=
           VK_SUCCESS ||
       device_count == 0) {
-    spdlog::error("No Vulkan physical devices found.");
+    SPDLOG_ERROR("No Vulkan physical devices found.");
     throw RendererCreationException("No Vulkan physical devices found.");
   }
 

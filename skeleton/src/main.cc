@@ -8,12 +8,12 @@
 namespace skeleton {
 
 int Run(int argc, char* argv[]) {
-  auto renderer = CreateRenderer();
+  auto renderer = CreateRenderer(RendererBackend::kOpenGl);
   if (renderer == nullptr) {
-    spdlog::error("No renderer available; exiting.");
+    SPDLOG_ERROR("No renderer available; exiting.");
     return 1;
   }
-  spdlog::info("Skeleton started.");
+  SPDLOG_INFO("Skeleton started.");
   Window window(1280, 720, "Skeleton", *renderer);
   while (window.IsOpen()) {
     window.PollEvents();
