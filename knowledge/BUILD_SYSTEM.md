@@ -53,6 +53,13 @@ so client code can guard against the API with:
 the generated `glad` target (OpenGL 3.3 core) to load GL function pointers via
 `gladLoadGL`.
 
+On Windows, the `skeleton` and `skeledit` executables set `WIN32_EXECUTABLE` to
+`ON` in Release configurations, so release builds run as GUI applications with
+no console window. Debug (and MinSizeRel/RelWithDebInfo) keep the console so
+log output stays visible while developing. Because the GUI subsystem makes MSVC
+expect a `WinMain` entry point, both targets add `/ENTRY:mainCRTStartup` in
+Release so the CRT still calls the app's `main()`.
+
 ## Renderer factory and fallback priority
 
 `RendererBackend` (in `renderer.h`) lists the renderer backends
