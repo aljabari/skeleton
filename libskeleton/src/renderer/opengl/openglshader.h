@@ -10,7 +10,11 @@
 namespace skeleton {
 
 // RAII wrapper around an OpenGL shader program. The program is compiled and
-// linked from a vertex and a fragment shader file, and deleted on destruction.
+// linked from a vertex and a fragment SPIR-V module: each module is
+// cross-compiled to desktop GLSL with spirv-cross (which converts the
+// Vulkan-style shaders, whose input and output locations are explicit, to the
+// OpenGL coordinate system) and then compiled. The program is deleted on
+// destruction.
 class OpenGlShader {
  public:
   OpenGlShader(const std::string& vertex_path,

@@ -32,7 +32,7 @@ location. Currently:
 | `libskeleton_tests` | `tests/src/window_test.cc`                     | `Window` as a thin facade over the renderer's window (`IsOpen`, `Maximize`, `GetNativeWindow`, `PollEvents`), verified with a mock renderer |
 |                     | `tests/src/renderer/opengl/openglframebuffer_test.cc` | `OpenGlFramebuffer` allocation, binding, resizing, and cleanup |
 |                     | `tests/src/renderer/opengl/openglrenderer_test.cc` | `OpenGlRenderer::CreateContext` window/context creation (3.3 context, current context, glad), triangle rendering, render-target resizing, and viewport configuration |
-|                     | `tests/src/renderer/opengl/openglshader_test.cc` | `OpenGlShader` compilation/linking and program binding |
+|                     | `tests/src/renderer/opengl/openglshader_test.cc` | `OpenGlShader` loading and cross-compiling the shared SPIR-V modules (SPIRV-Cross produces `#version 330` desktop GLSL with the y-flip and clip-space fixup), compilation/linking, and program binding |
 |                     | `tests/src/renderer/opengl/openglmesh_test.cc` | `OpenGlMesh` VAO binding and error-free drawing |
 |                     | `tests/src/renderer/opengl/opengltexture_test.cc` | `OpenGlTexture` allocation, binding, and cleanup |
 |                     | `tests/src/renderer/rendererfactory_test.cc` | `RendererBackend` enum, platform priority order, and fallback creation (`CreateRenderer` with a preferred backend) with injectable fake creators, including creators that return `nullptr` or throw `RendererCreationException`, and renderers whose `CreateContext` throws |
@@ -54,8 +54,9 @@ location. Currently:
 Tests for the private OpenGL classes (`OpenGlShader`, `OpenGlMesh`,
 `OpenGlTexture`, `OpenGlFramebuffer`) include their headers via the
 `libskeleton/src` include directory, which the tests target adds privately.
-`SKELETON_RES_DIR` (exported publicly by `libskeleton`) points tests at the
-real shader files under `libskeleton/res/shaders`.
+`SKELETON_SHADER_DIR` (exported publicly by `libskeleton`) points tests at the
+build-time compiled SPIR-V shaders under
+`${CMAKE_CURRENT_BINARY_DIR}/shaders`.
 
 `skeledit_tests` compiles `skeledit/src/imguieditor.cc` and
 `skeledit/src/editorlogsink.cc` directly and links `spdlog`, `imgui`, `glfw`,

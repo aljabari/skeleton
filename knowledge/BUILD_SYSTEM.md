@@ -3,7 +3,7 @@
 - **Build tool:** CMake (minimum 3.16)
 - **Generator:** Visual Studio (preferred on Windows), Ninja (alternative)
 - **C++ standard:** C++20 (required, not optional)
-- **Dependencies:** GLFW, Dear ImGui, spdlog (fetched automatically via `FetchContent`)
+- **Dependencies:** GLFW, Dear ImGui, spdlog, SPIRV-Cross (fetched automatically via `FetchContent`)
 
 ## Targets
 
@@ -135,35 +135,29 @@ use the renderer polymorphically through `Renderer&` without downcasting.
 
 ## Resources
 
-Runtime resources live under `libskeleton/res/` (e.g. GLSL shaders in
-`libskeleton/res/shaders/`). `libskeleton` exports the compile definition
+Runtime shader sources live under `libskeleton/res/shaders/`
+(`triangle.vert`/`triangle.frag`). They are written in **Vulkan-style GLSL**
+(`#version 450` with explicit `layout(location = ...)` qualifiers) because the
+Vulkan coordinate system is the single coordinate system for all rendering
+backends: the Vulkan renderer consumes the compiled SPIR-V directly, and the
+OpenGL renderer cross-compiles the same SPIR-V to desktop GLSL at run time.
 
-```cmake
-SKELETON_RES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/res"
-```
+### Shader compilation to SPIR-V
 
-(where `CMAKE_CURRENT_SOURCE_DIR` is `libskeleton/`) so both the library and
-its consumers can locate resources at run time. `SKELETON_RES_DIR` is defined
-only when OpenGL is supported.
-
-### Vulkan shader compilation
-
-When `SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN` is set, `libskeleton` compiles
-the GLSL shaders under `libskeleton/res/shaders/` (currently
-`triangle.vert`/`triangle.frag`, shared with the OpenGL renderer) to SPIR-V at
-build time with **glslc** (searched for via `find_program`; installing the
-Vulkan SDK or adding `glslc` to `PATH` is required). The `.spv` files are
-generated into the build tree at `${CMAKE_CURRENT_BINARY_DIR}/shaders/` by the
-`libskeleton_shaders` custom target, which `libskeleton` depends on so the files
-exist before the library (or anything linking it, such as the tests) builds.
-The shaders are compiled with `-fauto-map-locations` because the shared GLSL
-uses implicit varying/attribute locations (required for OpenGL 3.3
-compatibility); glslc assigns them consistently across stages.
+When either `SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL` or
+`SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN` is set, `libskeleton` compiles the
+GLSL shaders under `libskeleton/res/shaders/` to SPIR-V at build time with
+**glslc** (searched for via `find_program`; installing the Vulkan SDK or adding
+`glslc` to `PATH` is required). The `.spv` files are generated into the build
+tree at `${CMAKE_CURRENT_BINARY_DIR}/shaders/` by the `libskeleton_shaders`
+custom target, which `libskeleton` depends on so the files exist before the
+library (or anything linking it, such as the tests) builds. The shaders use
+explicit input/output locations, so no `-fauto-map-locations` flag is needed.
 
 `libskeleton` exports the `PUBLIC` compile definition
 
 ```cmake
-SKELETON_VULKAN_SHADER_DIR="${CMAKE_CURRENT_BINARY_DIR}/shaders"
+SKELETON_SHADER_DIR="${CMAKE_CURRENT_BINARY_DIR}/shaders"
 ```
 
 so the library and its consumers (executables and tests) can locate the
@@ -171,6 +165,27 @@ compiled SPIR-V at run time. `VulkanGraphicsPipeline`
 (`libskeleton/src/renderer/vulkan/vulkangraphicspipeline.cc/.h`) reads those
 files, creates a `VkShaderModule` per stage, and builds the graphics pipeline
 from them.
+
+### OpenGL shader cross-compilation
+
+The OpenGL renderer loads the same SPIR-V modules and cross-compiles them to
+desktop GLSL at run time with **SPIRV-Cross** (`spirv_cross::CompilerGLSL`,
+`spirv-cross-glsl` target, linked `PUBLIC` when OpenGL is supported).
+`OpenGlShader` (`libskeleton/src/renderer/opengl/openglshader.cc/.h`) targets
+GLSL 3.30 (desktop, not ES) and sets two vertex-stage options so the
+Vulkan-authored shaders render correctly in OpenGL's y-up framebuffer:
+`flip_vert_y` (emits `gl_Position.y = -gl_Position.y;`) and
+`fixup_clipspace` (converts the `[0, w]` clip depth to OpenGL's `[-w, w]`,
+emitting `gl_Position.z = 2.0 * gl_Position.z - gl_Position.w;`). The
+cross-compiled sources are then compiled and linked exactly like the previous
+hand-written GLSL. A `RendererCreationException` is thrown if a SPIR-V file
+cannot be read or cross-compiled.
+
+Because the mesh is authored once in the Vulkan coordinate system, both
+renderers use the same winding (front faces wind counter-clockwise in the
+y-down framebuffer): `VulkanGraphicsPipeline` uses
+`VK_FRONT_FACE_COUNTER_CLOCKWISE`, and the y flip applied by the OpenGL vertex
+shader makes the same vertices face the OpenGL camera.
 
 ## How to build
 
@@ -227,6 +242,7 @@ The project uses **CMake FetchContent** to download and build dependencies:
 | spdlog     | https://github.com/gabime/spdlog.git       | v1.17.0 |
 | googletest | https://github.com/google/googletest.git   | v1.17.0 |
 | imgui      | https://github.com/ocornut/imgui.git       | docking |
+| spirv-cross | https://github.com/KhronosGroup/SPIRV-Cross.git | vulkan-sdk-1.4.350.1 |
 
 `glad` requires a Python interpreter with `jinja2` installed; it is only
 declared when OpenGL is supported on the target platform. `volk` is only
@@ -236,7 +252,11 @@ pointers are loaded at run time via `volkInitialize()`. volk's
 `VOLK_PULL_IN_VULKAN` option (ON by default) pulls the Vulkan headers into its
 PUBLIC include directories via `find_package(Vulkan)`, so consumers do not need
 to locate the headers themselves. `googletest` is only declared when
-`SKELETON_BUILD_TESTS` is `ON`.
+`SKELETON_BUILD_TESTS` is `ON`. `spirv-cross` is only declared when OpenGL is
+supported; it has no release tags, so it tracks the `vulkan-sdk-1.4.350.1`
+tag, and the CLI, tests, and the MSL/HLSL/CPP/REFLECT/C-API/util subprojects
+are disabled so only the GLSL backend (`spirv-cross-glsl`, which links
+`spirv-cross-core`) is built.
 
 `spdlog` is a logging dependency of `libskeleton`, linked `PUBLIC` so consumers
 (executables and tests) can use it transitively. Its bundled fmt is used, and

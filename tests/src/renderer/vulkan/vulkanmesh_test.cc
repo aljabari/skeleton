@@ -13,12 +13,13 @@
 namespace skeleton {
 namespace {
 
-// The same hardcoded triangle mesh the OpenGL renderer tests use: three
-// vertices of interleaved position (vec3) and colour (vec3).
+// The same hardcoded triangle mesh the OpenGL renderer tests use, authored in
+// the Vulkan coordinate system: three vertices of interleaved position (vec3)
+// and colour (vec3).
 const std::vector<float> kTriangleVertices = {
     -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  //
-    0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  //
     0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,  //
+    0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  //
 };
 
 // Initialises GLFW and skips the test when Vulkan is not available on the

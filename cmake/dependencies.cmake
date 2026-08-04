@@ -21,6 +21,27 @@ if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
     FetchContent_MakeAvailable(glad)
 endif()
 
+if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
+    # The OpenGL renderer loads the SPIR-V shaders at run time and
+    # cross-compiles them to desktop GLSL with spirv-cross. Only the GLSL
+    # backend is needed, so the other backends, the CLI, and the test suite
+    # are disabled to keep the build small.
+    set(SPIRV_CROSS_CLI OFF CACHE BOOL "" FORCE)
+    set(SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+    set(SPIRV_CROSS_ENABLE_MSL OFF CACHE BOOL "" FORCE)
+    set(SPIRV_CROSS_ENABLE_HLSL OFF CACHE BOOL "" FORCE)
+    set(SPIRV_CROSS_ENABLE_CPP OFF CACHE BOOL "" FORCE)
+    set(SPIRV_CROSS_ENABLE_REFLECT OFF CACHE BOOL "" FORCE)
+    set(SPIRV_CROSS_ENABLE_C_API OFF CACHE BOOL "" FORCE)
+    set(SPIRV_CROSS_ENABLE_UTIL OFF CACHE BOOL "" FORCE)
+    FetchContent_Declare(
+        spirv-cross
+        GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross.git
+        GIT_TAG vulkan-sdk-1.4.350.1
+    )
+    FetchContent_MakeAvailable(spirv-cross)
+endif()
+
 if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
     # Vulkan headers are needed to compile volk; volk also pulls them into its
     # own PUBLIC include directories (VOLK_PULL_IN_VULKAN is ON by default).

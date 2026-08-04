@@ -30,7 +30,7 @@ skeleton/
 │   │   │   └── openglrenderer.h
 │   │   └── vulkan/
 │   │       └── vulkanrenderer.h
-│   ├── res/                  # Runtime resources (shaders)
+│   ├── res/                  # Vulkan-style GLSL shader sources (compiled to SPIR-V at build time)
 │   │   └── shaders/
 │   │       ├── triangle.frag
 │   │       └── triangle.vert
@@ -43,7 +43,7 @@ skeleton/
 │       │   │   ├── openglframebuffer.cc/.h    # Private: framebuffer + colour texture wrapper
 │       │   │   ├── openglmesh.cc/.h           # Private: VAO/VBO wrapper
 │       │   │   ├── openglrenderer.cc
-│       │   │   ├── openglshader.cc/.h         # Private: shader program wrapper
+│       │   │   ├── openglshader.cc/.h         # Private: shader program wrapper; cross-compiles SPIR-V to GLSL via SPIRV-Cross
 │       │   │   └── opengltexture.cc/.h        # Private: texture wrapper
 │       │   └── vulkan/
 │       │       ├── vulkancommandbuffer.cc/.h # Private: RAII command pool + primary command buffer

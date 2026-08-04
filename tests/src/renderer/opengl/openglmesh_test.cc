@@ -14,8 +14,8 @@ namespace {
 
 const std::vector<float> kTriangleVertices = {
     -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  //
-    0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  //
     0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,  //
+    0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  //
 };
 
 class OpenGlMeshTest : public ::testing::Test {

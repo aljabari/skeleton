@@ -176,11 +176,9 @@ void VulkanGraphicsPipeline::CreatePipeline(VkRenderPass render_pass,
   rasterizer.rasterizerDiscardEnable = VK_FALSE;
   rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
   rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-  // The triangle mesh is shared with the OpenGL renderer, where the vertices
-  // wind counter-clockwise in an y-up framebuffer. Vulkan's framebuffer has
-  // y pointing down, which flips the apparent winding, so the shared vertex
-  // order is clockwise here.
-  rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+  // The shared mesh is authored in the Vulkan coordinate system, so front
+  // faces wind counter-clockwise in the y-down framebuffer.
+  rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
   rasterizer.depthBiasEnable = VK_FALSE;
   rasterizer.lineWidth = 1.0f;
 

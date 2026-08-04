@@ -20,10 +20,14 @@ namespace skeleton {
 
 namespace {
 
+// The same hardcoded triangle mesh the Vulkan renderer draws, authored in the
+// Vulkan coordinate system (front faces wind counter-clockwise in the
+// y-down framebuffer): three vertices of interleaved position (vec3) and
+// colour (vec3).
 const std::vector<float> kTriangleVertices = {
     -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  //
-    0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  //
     0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,  //
+    0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  //
 };
 
 }  // namespace
@@ -59,10 +63,10 @@ void OpenGlRenderer::CreateContext(const WindowConfig& config) {
   gladLoadGL(glfwGetProcAddress);
   SPDLOG_INFO("Initialised OpenGL renderer.");
 
-  const std::string shader_directory =
-      std::string(SKELETON_RES_DIR) + "/shaders";
+  const std::string shader_directory = SKELETON_SHADER_DIR;
   shader_ = std::make_unique<OpenGlShader>(
-      shader_directory + "/triangle.vert", shader_directory + "/triangle.frag");
+      shader_directory + "/triangle.vert.spv",
+      shader_directory + "/triangle.frag.spv");
   mesh_ = std::make_unique<OpenGlMesh>(kTriangleVertices);
 
   if (render_target_ == RenderTarget::kRenderTargetTexture) {

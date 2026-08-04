@@ -26,12 +26,14 @@ namespace skeleton {
 
 namespace {
 
-// The same hardcoded triangle mesh the OpenGL renderer draws: three vertices
-// of interleaved position (vec3) and colour (vec3).
+// The same hardcoded triangle mesh the OpenGL renderer draws, authored in the
+// Vulkan coordinate system (front faces wind counter-clockwise in the
+// y-down framebuffer): three vertices of interleaved position (vec3) and
+// colour (vec3).
 const std::vector<float> kTriangleVertices = {
     -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  //
-    0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  //
     0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,  //
+    0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  //
 };
 
 // The background the triangle is cleared to before each frame, matching the
@@ -93,7 +95,7 @@ void VulkanRenderer::CreateSwapchainResources(const WindowConfig& config) {
   render_pass_ =
       std::make_unique<VulkanRenderPass>(*device_, swapchain_->ImageFormat());
 
-  const std::string shader_directory = SKELETON_VULKAN_SHADER_DIR;
+  const std::string shader_directory = SKELETON_SHADER_DIR;
   graphics_pipeline_ = std::make_unique<VulkanGraphicsPipeline>(
       *device_, render_pass_->RenderPass(), swapchain_->Extent(),
       shader_directory + "/triangle.vert.spv",

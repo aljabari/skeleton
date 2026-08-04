@@ -84,7 +84,7 @@ TEST(VulkanGraphicsPipelineTest, CreatesPipelineFromCompiledShaders) {
     CreateColorRenderPass(device.Device(), swapchain.ImageFormat(),
                           &render_pass);
 
-    const std::string shader_directory = SKELETON_VULKAN_SHADER_DIR;
+    const std::string shader_directory = SKELETON_SHADER_DIR;
     {
       VulkanGraphicsPipeline pipeline(
           device, render_pass, swapchain.Extent(),
