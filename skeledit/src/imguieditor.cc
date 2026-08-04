@@ -2,14 +2,15 @@
 
 #include "skeledit/imguieditor.h"
 
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
 #include <imgui_internal.h>
 
 #include <memory>
+#include <stdexcept>
 #include <utility>
 #include <vector>
+
+#include "skeledit/imguibackend.h"
 
 namespace skeleton {
 
@@ -35,11 +36,10 @@ ImVec4 LogLevelColor(LogLevel level) {
 }  // namespace
 
 ImGuiEditor::ImGuiEditor(
-    GLFWwindow* window, unsigned int viewport_texture_id, int viewport_width,
+    std::unique_ptr<ImGuiBackend> backend, int viewport_width,
     int viewport_height, std::shared_ptr<LogSink> log_sink,
     std::function<void(int, int)> viewport_resize_callback)
-    : window_(window),
-      viewport_texture_id_(viewport_texture_id),
+    : backend_(std::move(backend)),
       viewport_width_(viewport_width),
       viewport_height_(viewport_height),
       log_sink_(std::move(log_sink)),
@@ -48,19 +48,21 @@ ImGuiEditor::ImGuiEditor(
   ImGuiIO& io = ImGui::GetIO();
   io.IniFilename = nullptr;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-  ImGui_ImplGlfw_InitForOpenGL(window_, true);
-  ImGui_ImplOpenGL3_Init("#version 130");
+  if (backend_ == nullptr || !backend_->Init()) {
+    ImGui::DestroyContext();
+    throw std::runtime_error("Failed to initialise the ImGui backend.");
+  }
 }
 
 ImGuiEditor::~ImGuiEditor() {
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplGlfw_Shutdown();
+  if (backend_ != nullptr) {
+    backend_->Shutdown();
+  }
   ImGui::DestroyContext();
 }
 
 void ImGuiEditor::NewFrame() {
-  ImGui_ImplOpenGL3_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
+  backend_->NewFrame();
   ImGui::NewFrame();
 }
 
@@ -76,7 +78,7 @@ void ImGuiEditor::Draw() {
 
 void ImGuiEditor::Render() {
   ImGui::Render();
-  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  backend_->RenderDrawData();
 }
 
 ImGuiID ImGuiEditor::DockspaceId() {
@@ -101,7 +103,7 @@ void ImGuiEditor::DrawDockSpace() {
   ImGui::DockSpaceOverViewport(DockspaceId(), ImGui::GetMainViewport());
 }
 
-void ImGuiEditor::SetViewportTextureId(unsigned int viewport_texture_id) {
+void ImGuiEditor::SetViewportTextureId(ImTextureID viewport_texture_id) {
   viewport_texture_id_ = viewport_texture_id;
 }
 
@@ -118,9 +120,15 @@ void ImGuiEditor::DrawViewport() {
     viewport_width_ = width;
     viewport_height_ = height;
   }
-  ImGui::Image(static_cast<ImTextureID>(viewport_texture_id_),
-               ImVec2(viewport_width_, viewport_height_), ImVec2(0.0f, 1.0f),
-               ImVec2(1.0f, 0.0f));
+  if (viewport_texture_id_ != 0) {
+    ImGui::Image(viewport_texture_id_,
+                 ImVec2(viewport_width_, viewport_height_), ImVec2(0.0f, 1.0f),
+                 ImVec2(1.0f, 0.0f));
+  } else {
+    // The backend has no render target texture yet (for example the Vulkan
+    // renderer does not render to a texture).
+    ImGui::TextUnformatted("No render target.");
+  }
   ImGui::End();
   ImGui::PopStyleVar();
 }

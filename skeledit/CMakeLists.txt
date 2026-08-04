@@ -13,16 +13,29 @@ if(NOT imgui_POPULATED)
     add_subdirectory(${imgui_SOURCE_DIR} ${imgui_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
-add_executable(skeledit
+set(_skeledit_sources
     src/main.cc
     src/imguieditor.cc
     src/editorlogsink.cc
 )
 
+if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
+    list(APPEND _skeledit_sources src/opengl_imguibackend.cc)
+endif()
+
+if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
+    list(APPEND _skeledit_sources src/vulkan_imguibackend.cc)
+endif()
+
+if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL OR
+    SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
+    list(APPEND _skeledit_sources src/imguibackendfactory.cc)
+endif()
+
+add_executable(skeledit ${_skeledit_sources})
+
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES
-    src/main.cc
-    src/imguieditor.cc
-    src/editorlogsink.cc
+    ${_skeledit_sources}
 )
 
 target_compile_features(skeledit PRIVATE cxx_std_20)
@@ -31,6 +44,13 @@ target_compile_features(skeledit PRIVATE cxx_std_20)
 # are never stripped out of release builds of skeledit.
 target_compile_definitions(skeledit PRIVATE
     SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
+
+if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
+    # skeledit includes imgui_impl_vulkan.h itself, which switches to volk
+    # only when this define is set (the imgui library sets it PRIVATE).
+    target_compile_definitions(skeledit PRIVATE
+        IMGUI_IMPL_VULKAN_USE_VOLK)
+endif()
 
 if (WIN32)
     # Release builds run as a GUI application without a console window. Debug

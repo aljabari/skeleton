@@ -10,15 +10,20 @@
 
 #include "skeledit/logsink.h"
 
-struct GLFWwindow;
-
 namespace skeleton {
+
+class ImGuiBackend;
 
 class ImGuiEditor {
  public:
-  ImGuiEditor(GLFWwindow* window, unsigned int viewport_texture_id,
-              int viewport_width, int viewport_height,
-              std::shared_ptr<LogSink> log_sink,
+  // |backend| renders the editor UI into the frame of a renderer backend. The
+  // backend's Init is called from the constructor after the ImGui context is
+  // created; the constructor throws when the backend cannot be initialised.
+  // |viewport_texture_id| is the initial ImGui texture identifier of the
+  // renderer's render target; set it again each frame with
+  // SetViewportTextureId.
+  ImGuiEditor(std::unique_ptr<ImGuiBackend> backend, int viewport_width,
+              int viewport_height, std::shared_ptr<LogSink> log_sink,
               std::function<void(int, int)> viewport_resize_callback);
   ~ImGuiEditor();
 
@@ -29,7 +34,7 @@ class ImGuiEditor {
   void Draw();
   void Render();
 
-  void SetViewportTextureId(unsigned int viewport_texture_id);
+  void SetViewportTextureId(ImTextureID viewport_texture_id);
 
   static ImGuiID DockspaceId();
   static void CreateDockLayout(int viewport_width, int viewport_height);
@@ -39,8 +44,8 @@ class ImGuiEditor {
   void DrawViewport();
   void DrawLogs();
 
-  GLFWwindow* window_;
-  unsigned int viewport_texture_id_;
+  std::unique_ptr<ImGuiBackend> backend_;
+  ImTextureID viewport_texture_id_ = 0;
   int viewport_width_;
   int viewport_height_;
   bool dock_layout_initialised_ = false;

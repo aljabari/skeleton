@@ -7,6 +7,8 @@
 #include <vector>
 
 #include "skeledit/editorlogsink.h"
+#include "skeledit/imguibackend.h"
+#include "skeledit/imguibackendfactory.h"
 #include "skeledit/imguieditor.h"
 
 #include "libskeleton/logging.h"
@@ -46,7 +48,7 @@ int Run(int argc, char* argv[]) {
   SPDLOG_INFO("SkelEdit started.");
   Renderer* renderer_ptr = renderer.get();
   Window window(*renderer);
-  ImGuiEditor editor(window.GetNativeWindow(), renderer_ptr->GetTextureId(),
+  ImGuiEditor editor(CreateImGuiBackend(window.GetNativeWindow(), renderer_ptr),
                      1280, 720, log_sink,
                      [renderer_ptr](int width, int height) {
                        renderer_ptr->ResizeRenderTarget(width, height);
@@ -58,8 +60,16 @@ int Run(int argc, char* argv[]) {
     editor.NewFrame();
     editor.SetViewportTextureId(renderer_ptr->GetTextureId());
     editor.Draw();
-    renderer->Render();
-    editor.Render();
+    if (renderer_ptr->GetBackend() == RendererBackend::kVulkan) {
+      // The Vulkan renderer composites the ImGui UI inside its own render
+      // pass, so the draw data must be recorded before the renderer records
+      // its frame.
+      editor.Render();
+      renderer->Render();
+    } else {
+      renderer->Render();
+      editor.Render();
+    }
     window.SwapBuffers();
   }
 

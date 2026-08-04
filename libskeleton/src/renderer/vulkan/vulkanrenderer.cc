@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "libskeleton/renderer.h"
@@ -174,6 +175,11 @@ void VulkanRenderer::Render() {
   vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer, &offset);
   vkCmdDraw(command_buffer, static_cast<uint32_t>(mesh_->VertexCount()), 1, 0,
             0);
+  if (overlay_draw_callback_ != nullptr) {
+    // The overlay draws inside the same render pass, so it composites over the
+    // scene on the same swapchain image.
+    overlay_draw_callback_(command_buffer);
+  }
   vkCmdEndRenderPass(command_buffer);
 
   if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS) {
@@ -246,6 +252,27 @@ VkQueue VulkanRenderer::GraphicsQueue() const {
 
 VkQueue VulkanRenderer::PresentQueue() const {
   return device_ ? device_->PresentQueue() : VK_NULL_HANDLE;
+}
+
+VkRenderPass VulkanRenderer::RenderPass() const {
+  return render_pass_ ? render_pass_->RenderPass() : VK_NULL_HANDLE;
+}
+
+uint32_t VulkanRenderer::QueueFamilyIndex() const {
+  return device_ ? device_->QueueFamilyIndex() : 0;
+}
+
+uint32_t VulkanRenderer::SwapchainImageCount() const {
+  return swapchain_ ? static_cast<uint32_t>(swapchain_->ImageViews().size())
+                    : 0;
+}
+
+uint32_t VulkanRenderer::SwapchainMinImageCount() const {
+  return swapchain_ ? swapchain_->MinImageCount() : 0;
+}
+
+void VulkanRenderer::SetOverlayDrawCallback(OverlayDrawCallback callback) {
+  overlay_draw_callback_ = std::move(callback);
 }
 
 }  // namespace skeleton

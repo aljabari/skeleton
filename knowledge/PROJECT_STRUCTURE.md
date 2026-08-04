@@ -92,12 +92,19 @@ skeleton/
 │   ├── CMakeLists.txt        # Fetches imgui docking branch (skeledit-only dependency)
 │   ├── include/skeledit/
 │   │   ├── editorlogsink.h   # spdlog sink + LogSink impl for the editor log window
+│   │   ├── imguibackend.h    # Abstract ImGuiBackend interface (GLFW platform + renderer backend)
+│   │   ├── imguibackendfactory.h # CreateImGuiBackend: builds the backend for a Renderer
 │   │   ├── imguieditor.h     # Public header for the ImGui editor wrapper
-│   │   └── logsink.h         # LogLevel/LogEntry/LogSink interface
+│   │   ├── logsink.h         # LogLevel/LogEntry/LogSink interface
+│   │   ├── opengl_imguibackend.h # GLFW + ImGui OpenGL3 backend
+│   │   ├── vulkan_imguibackend.h # GLFW + ImGui Vulkan backend (draws via renderer overlay hook)
 │   └── src/
 │       ├── main.cc
 │       ├── editorlogsink.cc  # Buffers newest kMaxEntries log lines (canonical format)
-│       └── imguieditor.cc    # ImGui context/backends, dockable viewport, dock layout, log window
+│       ├── imguibackendfactory.cc # Backend factory dispatching on Renderer::GetBackend
+│       ├── imguieditor.cc    # ImGui context/backends, dockable viewport, dock layout, log window
+│       ├── opengl_imguibackend.cc  # ImGui_ImplGlfw_InitForOpenGL + ImGui_ImplOpenGL3_*
+│       └── vulkan_imguibackend.cc  # ImGui_ImplGlfw_InitForVulkan + ImGui_ImplVulkan_* + overlay hook
 └── build/                    # Build output (gitignored)
 ```
 

@@ -29,6 +29,9 @@ class VulkanSwapchain {
   VkSwapchainKHR Swapchain() const;
   VkExtent2D Extent() const;
   VkFormat ImageFormat() const;
+  // The minImageCount the swapchain was created with. The swapchain may own
+  // more images than this.
+  uint32_t MinImageCount() const;
   const std::vector<VkImage>& Images() const;
   const std::vector<VkImageView>& ImageViews() const;
 
@@ -44,6 +47,7 @@ class VulkanSwapchain {
   VkSwapchainKHR swapchain_ = VK_NULL_HANDLE;
   VkExtent2D extent_{};
   VkFormat image_format_ = VK_FORMAT_UNDEFINED;
+  uint32_t min_image_count_ = 0;
   std::vector<VkImage> images_;
   std::vector<VkImageView> image_views_;
 };

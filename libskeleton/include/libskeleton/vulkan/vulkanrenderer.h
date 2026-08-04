@@ -5,6 +5,7 @@
 
 #include <volk.h>
 
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -48,6 +49,19 @@ class VulkanRenderer : public Renderer {
   VkDevice Device() const;
   VkQueue GraphicsQueue() const;
   VkQueue PresentQueue() const;
+  VkRenderPass RenderPass() const;
+  uint32_t QueueFamilyIndex() const;
+  uint32_t SwapchainImageCount() const;
+  uint32_t SwapchainMinImageCount() const;
+
+  // Invoked on the command buffer while it is recording, after the scene is
+  // drawn and before the render pass ends. Callers use it to composite their
+  // own draw calls (for example a UI overlay) over the frame. The callback is
+  // called only for frames whose command buffer is actually recorded; frames
+  // skipped because the swapchain is out of date do not invoke it. Pass an
+  // empty callback to remove it.
+  using OverlayDrawCallback = std::function<void(VkCommandBuffer)>;
+  void SetOverlayDrawCallback(OverlayDrawCallback callback);
 
  private:
   void CreateSwapchainResources(const WindowConfig& config);
@@ -65,6 +79,7 @@ class VulkanRenderer : public Renderer {
   std::unique_ptr<VulkanSemaphore> render_finished_semaphore_;
   std::unique_ptr<VulkanFence> in_flight_fence_;
   VkSurfaceKHR surface_ = VK_NULL_HANDLE;
+  OverlayDrawCallback overlay_draw_callback_;
 };
 
 }  // namespace skeleton

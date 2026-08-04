@@ -328,12 +328,50 @@ The `imgui` dependency tracks the `docking` branch (a moving target, currently
 and `ImGuiDockNode` types) through `imgui_internal.h`, which the editor code
 includes alongside the public `<imgui.h>`.
 
-All Dear ImGui usage is contained in the `ImGuiEditor` class
-(`skeledit/include/skeledit/imguieditor.h`,
-`skeledit/src/imguieditor.cc`): context creation, GLFW/OpenGL3 backend
-init/shutdown, the per-frame lifecycle (`NewFrame`/`Render`), and drawing the
-dockable viewport. `skeledit/src/main.cc` only wires `ImGuiEditor` up to the
-`Window` and the renderer (via the factory). `skeledit_tests` (see [TESTING.md](TESTING.md))
+All Dear ImGui usage is contained in `skeledit`; `libskeleton` never mentions
+ImGui. The ImGui backend seam is the GLFW init call
+(`ImGui_ImplGlfw_InitForOpenGL` vs `ImGui_ImplGlfw_InitForVulkan`), so the
+editor is split into a backend-neutral shell and per-backend implementations:
+
+- `ImGuiBackend` (`skeledit/include/skeledit/imguibackend.h`) is the abstract
+  interface: `Init`, `NewFrame`, `RenderDrawData`, `Shutdown`. Each concrete
+  backend owns the paired GLFW + renderer ImGui backends.
+- `OpenGlImGuiBackend` (`opengl_imguibackend.cc/.h`) wraps
+  `ImGui_ImplGlfw_InitForOpenGL` + `ImGui_ImplOpenGL3_*` and draws immediately
+  from `RenderDrawData`.
+- `VulkanImGuiBackend` (`vulkan_imguibackend.cc/.h`) wraps
+  `ImGui_ImplGlfw_InitForVulkan` + `ImGui_ImplVulkan_*`. `Init` fills
+  `ImGui_ImplVulkan_InitInfo` from `VulkanRenderer` (instance, physical device,
+  device, graphics queue family/queue, `DescriptorPoolSize` so the backend
+  creates its own descriptor pool, swapchain image counts, and the renderer's
+  render pass for `PipelineInfoMain.RenderPass`) and registers an overlay
+  callback on the renderer. Its `RenderDrawData` is a no-op because the UI is
+  composited by the renderer's overlay hook.
+- `ImGuiEditor` (`imguieditor.cc/.h`) now takes a `std::unique_ptr<ImGuiBackend>`
+  in its constructor, calls `Init` after creating the ImGui context, and
+  dispatches `NewFrame`/`Render` through the backend. The viewport texture id is
+  stored as `ImTextureID` (64-bit) so both the GL texture id and a future
+  `VkDescriptorSet` fit.
+- `CreateImGuiBackend` (`imguibackendfactory.h`, `imguibackendfactory.cc`)
+  builds the right backend from `Renderer::GetBackend()`; `skeledit/src/main.cc`
+  passes it to the editor. For Vulkan the frame loop calls `editor.Render()`
+  *before* `renderer->Render()` so the ImGui draw data exists when the renderer
+  records its frame.
+
+The Vulkan renderer supports the overlay through a generic, ImGui-agnostic
+hook: `VulkanRenderer::SetOverlayDrawCallback` accepts a
+`std::function<void(VkCommandBuffer)>` invoked inside the render pass after the
+scene is drawn and before `vkCmdEndRenderPass`, so the overlay composites over
+the same swapchain image (it is skipped for frames not recorded, e.g. when the
+swapchain is out of date). To drive `ImGui_ImplVulkan_InitInfo`,
+`VulkanRenderer` also exposes `RenderPass()`, `QueueFamilyIndex()`,
+`SwapchainImageCount()`, and `SwapchainMinImageCount()` (the latter two come
+from `VulkanSwapchain`, which now records its requested `minImageCount`).
+`skeledit` additionally defines `IMGUI_IMPL_VULKAN_USE_VOLK` for its own
+compilation units so `imgui_impl_vulkan.h` resolves through volk, matching how
+the `imgui` library itself is compiled.
+
+`skeledit_tests` (see [TESTING.md](TESTING.md))
 compiles `skeledit/src/imguieditor.cc` alongside its test source so the
 headless-testable static dock-layout logic can be exercised without a GL
 context.

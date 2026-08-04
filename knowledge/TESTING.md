@@ -66,11 +66,18 @@ the test `SetUp` creates an ImGui context, enables
 the font atlas via `io.Fonts->Build()` so that `ImGui::NewFrame()` can run
 without a renderer backend. Only the static, backend-free parts of the class
 (`DockspaceId()`, `CreateDockLayout()`) are exercised, since the constructor
-and frame/render methods need a real GL context. The `EditorLogSink` tests log
+now takes a `std::unique_ptr<ImGuiBackend>` and the frame/render methods need a
+real GL/Vulkan context. The `EditorLogSink` tests log
 through a standalone `spdlog::logger` (not the default logger) so they run
 without touching global spdlog state. They assert the entries match the shared
 `kLogPattern` shape (gtest's `MatchesRegex` is limited, so timestamps are
 matched with `\d` escapes and no `{n}` repetition).
+
+The ImGui-backend refactor is verified at run time rather than by unit tests:
+running `skeledit` picks the Vulkan renderer first, and the Vulkan backend
+(`ImGui_ImplVulkan_Init` against the renderer's render pass, plus the overlay
+hook firing inside `VulkanRenderer::Render`) initialises and draws without
+validation-layer errors in Debug builds.
 
 ## Running tests
 

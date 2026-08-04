@@ -44,6 +44,10 @@ VkFormat VulkanSwapchain::ImageFormat() const {
   return image_format_;
 }
 
+uint32_t VulkanSwapchain::MinImageCount() const {
+  return min_image_count_;
+}
+
 const std::vector<VkImage>& VulkanSwapchain::Images() const {
   return images_;
 }
@@ -116,6 +120,7 @@ void VulkanSwapchain::CreateSwapchain(uint32_t width, uint32_t height) {
       image_count > capabilities.maxImageCount) {
     image_count = capabilities.maxImageCount;
   }
+  min_image_count_ = image_count;
 
   VkSwapchainCreateInfoKHR create_info{};
   create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
