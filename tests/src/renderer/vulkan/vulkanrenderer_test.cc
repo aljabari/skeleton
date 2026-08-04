@@ -45,5 +45,19 @@ TEST(VulkanRendererTest, GetBackendReturnsVulkan) {
   EXPECT_EQ(renderer.GetBackend(), RendererBackend::kVulkan);
 }
 
+TEST(VulkanRendererTest, DrawsTriangleMeshWithoutError) {
+  SkipIfVulkanUnavailable();
+
+  {
+    VulkanRenderer renderer;
+    renderer.CreateContext(WindowConfig{800, 600, "test"});
+
+    EXPECT_NO_THROW(renderer.Render());
+    EXPECT_NO_THROW(renderer.Render());
+  }
+
+  glfwTerminate();
+}
+
 }  // namespace
 }  // namespace skeleton

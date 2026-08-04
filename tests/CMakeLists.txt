@@ -6,11 +6,16 @@ add_executable(libskeleton_tests
     src/renderer/opengl/openglshader_test.cc
     src/renderer/opengl/opengltexture_test.cc
     src/renderer/rendererfactory_test.cc
+    src/renderer/vulkan/vulkancommandbuffer_test.cc
     src/renderer/vulkan/vulkandevice_test.cc
+    src/renderer/vulkan/vulkanfence_test.cc
+    src/renderer/vulkan/vulkanframebuffer_test.cc
     src/renderer/vulkan/vulkangraphicspipeline_test.cc
     src/renderer/vulkan/vulkaninstance_test.cc
     src/renderer/vulkan/vulkanmesh_test.cc
     src/renderer/vulkan/vulkanrenderer_test.cc
+    src/renderer/vulkan/vulkanrenderpass_test.cc
+    src/renderer/vulkan/vulkansemaphore_test.cc
     src/renderer/vulkan/vulkanswapchain_test.cc
 )
 
@@ -22,11 +27,16 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES
     src/renderer/opengl/openglshader_test.cc
     src/renderer/opengl/opengltexture_test.cc
     src/renderer/rendererfactory_test.cc
+    src/renderer/vulkan/vulkancommandbuffer_test.cc
     src/renderer/vulkan/vulkandevice_test.cc
+    src/renderer/vulkan/vulkanfence_test.cc
+    src/renderer/vulkan/vulkanframebuffer_test.cc
     src/renderer/vulkan/vulkangraphicspipeline_test.cc
     src/renderer/vulkan/vulkaninstance_test.cc
     src/renderer/vulkan/vulkanmesh_test.cc
     src/renderer/vulkan/vulkanrenderer_test.cc
+    src/renderer/vulkan/vulkanrenderpass_test.cc
+    src/renderer/vulkan/vulkansemaphore_test.cc
     src/renderer/vulkan/vulkanswapchain_test.cc
 )
 

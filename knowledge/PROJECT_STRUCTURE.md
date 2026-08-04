@@ -46,10 +46,15 @@ skeleton/
 │       │   │   ├── openglshader.cc/.h         # Private: shader program wrapper
 │       │   │   └── opengltexture.cc/.h        # Private: texture wrapper
 │       │   └── vulkan/
+│       │       ├── vulkancommandbuffer.cc/.h # Private: RAII command pool + primary command buffer
 │       │       ├── vulkandevice.cc/.h    # Private: RAII logical device + graphics queue
+│       │       ├── vulkanfence.cc/.h     # Private: RAII synchronisation fence
+│       │       ├── vulkanframebuffer.cc/.h # Private: RAII framebuffer over a swapchain image view
 │       │       ├── vulkangraphicspipeline.cc/.h # Private: RAII graphics pipeline + shader modules
 │       │       ├── vulkaninstance.cc/.h  # Private: RAII instance + physical-device enumeration
 │       │       ├── vulkanmesh.cc/.h      # Private: RAII vertex buffer + device memory
+│       │       ├── vulkanrenderpass.cc/.h # Private: RAII render pass for the swapchain images
+│       │       ├── vulkansemaphore.cc/.h # Private: RAII synchronisation semaphore
 │       │       ├── vulkanswapchain.cc/.h # Private: RAII swapchain + image views
 │       │       ├── vulkanvalidation.cc/.h  # Private: RAII debug messenger for validation layers
 │       │       └── vulkanrenderer.cc
@@ -68,11 +73,16 @@ skeleton/
 │           │   └── opengltexture_test.cc
 │           ├── rendererfactory_test.cc
 │           └── vulkan/
+│               ├── vulkancommandbuffer_test.cc
 │               ├── vulkandevice_test.cc
+│               ├── vulkanfence_test.cc
+│               ├── vulkanframebuffer_test.cc
 │               ├── vulkangraphicspipeline_test.cc
 │               ├── vulkaninstance_test.cc
 │               ├── vulkanmesh_test.cc
 │               ├── vulkanrenderer_test.cc
+│               ├── vulkanrenderpass_test.cc
+│               ├── vulkansemaphore_test.cc
 │               └── vulkanswapchain_test.cc
 ├── skeleton/                 # Executable target
 │   ├── CMakeLists.txt

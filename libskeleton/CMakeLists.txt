@@ -15,14 +15,24 @@ endif()
 
 if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
     set(_renderer_vulkan_sources
+        src/renderer/vulkan/vulkancommandbuffer.cc
+        src/renderer/vulkan/vulkancommandbuffer.h
         src/renderer/vulkan/vulkandevice.cc
         src/renderer/vulkan/vulkandevice.h
+        src/renderer/vulkan/vulkanfence.cc
+        src/renderer/vulkan/vulkanfence.h
+        src/renderer/vulkan/vulkanframebuffer.cc
+        src/renderer/vulkan/vulkanframebuffer.h
         src/renderer/vulkan/vulkangraphicspipeline.cc
         src/renderer/vulkan/vulkangraphicspipeline.h
         src/renderer/vulkan/vulkaninstance.cc
         src/renderer/vulkan/vulkaninstance.h
         src/renderer/vulkan/vulkanmesh.cc
         src/renderer/vulkan/vulkanmesh.h
+        src/renderer/vulkan/vulkanrenderpass.cc
+        src/renderer/vulkan/vulkanrenderpass.h
+        src/renderer/vulkan/vulkansemaphore.cc
+        src/renderer/vulkan/vulkansemaphore.h
         src/renderer/vulkan/vulkanswapchain.cc
         src/renderer/vulkan/vulkanswapchain.h
         src/renderer/vulkan/vulkanvalidation.cc

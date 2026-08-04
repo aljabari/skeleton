@@ -102,8 +102,9 @@ Release so the CRT still calls the app's `main()`.
   makes its context current, loads the GL functions with glad, and creates the
   shader, mesh, and (for texture targets) the render target.
 - The private `VulkanInstance`/`VulkanDevice`/`VulkanSwapchain`/
-  `VulkanGraphicsPipeline`/`VulkanMesh` RAII helpers live under
-  `libskeleton/src/renderer/vulkan/`.
+  `VulkanGraphicsPipeline`/`VulkanMesh`/`VulkanRenderPass`/
+  `VulkanFramebuffer`/`VulkanCommandBuffer`/`VulkanSemaphore`/`VulkanFence`
+  RAII helpers live under `libskeleton/src/renderer/vulkan/`.
 
 Vulkan validation layers are enabled only in Debug builds. In that
 configuration `libskeleton` defines `SKELETON_VULKAN_ENABLE_VALIDATION=1`
