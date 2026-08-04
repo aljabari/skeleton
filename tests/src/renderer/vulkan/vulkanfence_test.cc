@@ -44,6 +44,10 @@ TEST(VulkanFenceTest, CreatesFence) {
     const VulkanFence fence(device);
 
     EXPECT_NE(fence.Fence(), VK_NULL_HANDLE);
+    // The fence starts signaled so the first Render() wait returns
+    // immediately instead of blocking forever.
+    EXPECT_EQ(vkGetFenceStatus(device.Device(), fence.Fence()),
+              VK_SUCCESS);
   }
 
   vkDestroySurfaceKHR(instance.Instance(), surface, nullptr);

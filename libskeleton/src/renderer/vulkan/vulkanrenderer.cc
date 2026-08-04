@@ -127,7 +127,6 @@ void VulkanRenderer::Render() {
   const VkDevice device = device_->Device();
   VkFence in_flight_fence = in_flight_fence_->Fence();
   vkWaitForFences(device, 1, &in_flight_fence, VK_TRUE, UINT64_MAX);
-  vkResetFences(device, 1, &in_flight_fence);
 
   uint32_t image_index = 0;
   const VkResult acquire_result = vkAcquireNextImageKHR(
@@ -135,8 +134,8 @@ void VulkanRenderer::Render() {
       image_available_semaphore_->Semaphore(), VK_NULL_HANDLE, &image_index);
   if (acquire_result == VK_ERROR_OUT_OF_DATE_KHR) {
     // The swapchain no longer matches the window (for example it was
-    // resized); skip this frame. The fence was reset above, so the next frame
-    // waits normally.
+    // resized); skip this frame. No submit was made, so the fence is left
+    // signaled and the next frame waits normally.
     SPDLOG_DEBUG("Swapchain out of date; skipping frame.");
     return;
   }
@@ -144,6 +143,8 @@ void VulkanRenderer::Render() {
     SPDLOG_ERROR("Failed to acquire a swapchain image.");
     throw RendererCreationException("Failed to acquire a swapchain image.");
   }
+  // Only reset the fence once this frame will actually submit work.
+  vkResetFences(device, 1, &in_flight_fence);
 
   VkCommandBuffer command_buffer = command_buffer_->CommandBuffer();
   VkCommandBufferBeginInfo begin_info{};

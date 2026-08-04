@@ -11,6 +11,9 @@ namespace skeleton {
 VulkanFence::VulkanFence(const VulkanDevice& device) : device_(device) {
   VkFenceCreateInfo create_info{};
   create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+  // Start signaled so the first wait in Render() returns immediately; the
+  // fence is only signaled again once the first frame is submitted.
+  create_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
   if (vkCreateFence(device_.Device(), &create_info, nullptr, &fence_) !=
       VK_SUCCESS) {
