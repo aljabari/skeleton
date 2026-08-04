@@ -31,20 +31,31 @@ const std::vector<float> kTriangleVertices = {
 OpenGlRenderer::OpenGlRenderer(RenderTarget render_target)
     : Renderer(render_target) {}
 
-OpenGlRenderer::~OpenGlRenderer() = default;
+OpenGlRenderer::~OpenGlRenderer() {
+  if (window_ != nullptr) {
+    // Keep the context current so the GL objects below are deleted while their
+    // context still exists.
+    glfwMakeContextCurrent(window_);
+  }
+  framebuffer_.reset();
+  mesh_.reset();
+  shader_.reset();
+  if (window_ != nullptr) {
+    glfwDestroyWindow(window_);
+  }
+}
 
 RendererBackend OpenGlRenderer::GetBackend() const {
   return RendererBackend::kOpenGl;
 }
 
-void OpenGlRenderer::SetWindowHints() {
+void OpenGlRenderer::CreateContext(const WindowConfig& config) {
+  InitGlfw();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-}
+  window_ = CreateGlfwWindow(config);
 
-void OpenGlRenderer::InitialiseForWindow(GLFWwindow* window) {
-  window_ = window;
-  glfwMakeContextCurrent(window);
+  glfwMakeContextCurrent(window_);
   gladLoadGL(glfwGetProcAddress);
   SPDLOG_INFO("Initialised OpenGL renderer.");
 
@@ -57,9 +68,15 @@ void OpenGlRenderer::InitialiseForWindow(GLFWwindow* window) {
   if (render_target_ == RenderTarget::kRenderTargetTexture) {
     int width = 0;
     int height = 0;
-    glfwGetFramebufferSize(window, &width, &height);
+    glfwGetFramebufferSize(window_, &width, &height);
     CreateRenderTarget(width, height);
   }
+  SPDLOG_INFO("Created OpenGL context for window \"{}\" ({}x{}).",
+              config.title, config.width, config.height);
+}
+
+GLFWwindow* OpenGlRenderer::GetNativeWindow() const {
+  return window_;
 }
 
 void OpenGlRenderer::CreateRenderTarget(int width, int height) {

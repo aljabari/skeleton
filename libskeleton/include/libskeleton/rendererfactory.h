@@ -31,24 +31,30 @@ const RendererPriorityList& RendererPriorityOrder();
 // Creates a renderer, trying |preferred| first and falling back through
 // |priority_order| when a backend cannot be created. A backend is skipped when
 // it has no entry in |creators|, its creator returns nullptr, or its creator
-// throws RendererCreationException. Returns nullptr when every candidate
-// backend fails.
+// or the renderer's context creation throws RendererCreationException. The
+// chosen backend's CreateContext is called with |window_config| so window
+// creation and context initialisation happen inside this function, where
+// fallback can react to failure. Returns nullptr when every candidate backend
+// fails.
 std::unique_ptr<Renderer> CreateRenderer(
     RendererBackend preferred, const RendererPriorityList& priority_order,
     const RendererCreatorMap& creators,
-    RenderTarget render_target = RenderTarget::kRenderTargetWindow);
+    RenderTarget render_target = RenderTarget::kRenderTargetWindow,
+    const WindowConfig& window_config = {});
 
 // Convenience overload that uses the platform's priority order and real
 // backend creators.
 std::unique_ptr<Renderer> CreateRenderer(
     RendererBackend preferred,
-    RenderTarget render_target = RenderTarget::kRenderTargetWindow);
+    RenderTarget render_target = RenderTarget::kRenderTargetWindow,
+    const WindowConfig& window_config = {});
 
 // Creates a renderer using the platform's priority order and real backend
 // creators, without a preferred backend. The first backend in priority order
 // that can be created wins. Returns nullptr when every backend fails.
 std::unique_ptr<Renderer> CreateRenderer(
-    RenderTarget render_target = RenderTarget::kRenderTargetWindow);
+    RenderTarget render_target = RenderTarget::kRenderTargetWindow,
+    const WindowConfig& window_config = {});
 
 }  // namespace skeleton
 

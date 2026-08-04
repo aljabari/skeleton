@@ -9,9 +9,12 @@ struct GLFWwindow;
 
 namespace skeleton {
 
+// Wraps the window owned by a renderer (created during its context
+// initialisation) with the GLFW operations used by the application loop. The
+// window itself is created and destroyed by the renderer.
 class Window {
  public:
-  Window(int width, int height, const char* title, Renderer& renderer);
+  explicit Window(Renderer& renderer);
   ~Window();
 
   Window(const Window&) = delete;
@@ -25,7 +28,6 @@ class Window {
 
  private:
   Renderer& renderer_;
-  GLFWwindow* window_;
 };
 
 }  // namespace skeleton

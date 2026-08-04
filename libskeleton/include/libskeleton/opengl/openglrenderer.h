@@ -22,8 +22,8 @@ class OpenGlRenderer : public Renderer {
   ~OpenGlRenderer() override;
 
   RendererBackend GetBackend() const override;
-  void SetWindowHints() override;
-  void InitialiseForWindow(GLFWwindow* window) override;
+  void CreateContext(const WindowConfig& config) override;
+  GLFWwindow* GetNativeWindow() const override;
   void Render() override;
   void ResizeRenderTarget(int width, int height) override;
 

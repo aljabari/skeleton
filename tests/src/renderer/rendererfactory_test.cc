@@ -21,12 +21,28 @@ class TestRenderer : public Renderer {
   explicit TestRenderer(RendererBackend backend) : backend_(backend) {}
 
   RendererBackend GetBackend() const override { return backend_; }
-  void SetWindowHints() override {}
-  void InitialiseForWindow(GLFWwindow* window) override {}
+  void CreateContext(const WindowConfig& config) override {
+    received_config_ = true;
+    config_ = config;
+    if (throw_on_context_) {
+      throw RendererCreationException("context creation failed");
+    }
+  }
   void Render() override {}
+  GLFWwindow* GetNativeWindow() const override { return nullptr; }
+
+  // When set, CreateContext throws RendererCreationException.
+  void SetThrowOnContext(bool throw_on_context) {
+    throw_on_context_ = throw_on_context;
+  }
+  bool ReceivedConfig() const { return received_config_; }
+  const WindowConfig& Config() const { return config_; }
 
  private:
   RendererBackend backend_;
+  bool received_config_ = false;
+  bool throw_on_context_ = false;
+  WindowConfig config_{};
 };
 
 // Creates a map with a creator for every backend that always succeeds.
@@ -252,6 +268,78 @@ TEST(RendererFactoryTest, ReturnsNullptrWhenEveryCreatorThrows) {
       RendererBackend::kVulkan, kVulkanThenOpenGl, creators);
 
   EXPECT_EQ(renderer, nullptr);
+}
+
+// Context creation failures (window creation, backend initialisation) happen
+// inside CreateRenderer, so they must trigger fallback just like creation
+// failures do.
+TEST(RendererFactoryTest, FallsBackWhenContextCreationFails) {
+  RendererCreatorMap creators;
+  creators.emplace(RendererBackend::kVulkan,
+                   [](RenderTarget render_target) {
+                     auto renderer = std::make_unique<TestRenderer>(
+                         RendererBackend::kVulkan);
+                     renderer->SetThrowOnContext(true);
+                     return renderer;
+                   });
+  creators.emplace(RendererBackend::kOpenGl,
+                   [](RenderTarget render_target) {
+                     return std::make_unique<TestRenderer>(
+                         RendererBackend::kOpenGl);
+                   });
+
+  std::unique_ptr<Renderer> renderer = CreateRenderer(
+      RendererBackend::kVulkan, kVulkanThenOpenGl, creators);
+
+  ASSERT_NE(renderer, nullptr);
+  EXPECT_EQ(renderer->GetBackend(), RendererBackend::kOpenGl);
+}
+
+TEST(RendererFactoryTest, ReturnsNullptrWhenEveryContextCreationFails) {
+  RendererCreatorMap creators;
+  creators.emplace(RendererBackend::kVulkan,
+                   [](RenderTarget render_target) {
+                     auto renderer = std::make_unique<TestRenderer>(
+                         RendererBackend::kVulkan);
+                     renderer->SetThrowOnContext(true);
+                     return renderer;
+                   });
+  creators.emplace(RendererBackend::kOpenGl,
+                   [](RenderTarget render_target) {
+                     auto renderer = std::make_unique<TestRenderer>(
+                         RendererBackend::kOpenGl);
+                     renderer->SetThrowOnContext(true);
+                     return renderer;
+                   });
+
+  std::unique_ptr<Renderer> renderer = CreateRenderer(
+      RendererBackend::kVulkan, kVulkanThenOpenGl, creators);
+
+  EXPECT_EQ(renderer, nullptr);
+}
+
+// The window configuration is forwarded to the created renderer so window
+// creation happens inside context initialisation.
+TEST(RendererFactoryTest, ForwardsWindowConfigToContextCreation) {
+  RendererCreatorMap creators;
+  creators.emplace(RendererBackend::kVulkan,
+                   [](RenderTarget render_target) {
+                     return std::make_unique<TestRenderer>(
+                         RendererBackend::kVulkan);
+                   });
+  const WindowConfig config{800, 600, "forwarded"};
+
+  std::unique_ptr<Renderer> renderer = CreateRenderer(
+      RendererBackend::kVulkan, kVulkanThenOpenGl, creators,
+      RenderTarget::kRenderTargetWindow, config);
+
+  ASSERT_NE(renderer, nullptr);
+  TestRenderer* test_renderer = dynamic_cast<TestRenderer*>(renderer.get());
+  ASSERT_NE(test_renderer, nullptr);
+  EXPECT_TRUE(test_renderer->ReceivedConfig());
+  EXPECT_EQ(test_renderer->Config().width, config.width);
+  EXPECT_EQ(test_renderer->Config().height, config.height);
+  EXPECT_STREQ(test_renderer->Config().title, config.title);
 }
 
 // Only RendererCreationException triggers fallback; other exceptions must

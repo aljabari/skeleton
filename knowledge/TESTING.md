@@ -29,16 +29,16 @@ location. Currently:
 
 | Target              | Sources                                        | Covers                                           |
 |---------------------|------------------------------------------------|--------------------------------------------------|
-| `libskeleton_tests` | `tests/src/window_test.cc`                     | `Window` behaviour, verified with a mock renderer |
+| `libskeleton_tests` | `tests/src/window_test.cc`                     | `Window` as a thin facade over the renderer's window (`IsOpen`, `Maximize`, `GetNativeWindow`, `PollEvents`), verified with a mock renderer |
 |                     | `tests/src/renderer/opengl/openglframebuffer_test.cc` | `OpenGlFramebuffer` allocation, binding, resizing, and cleanup |
-|                     | `tests/src/renderer/opengl/openglrenderer_test.cc` | OpenGL renderer window hints, GL context initialisation, triangle rendering, render-target resizing, and viewport configuration |
+|                     | `tests/src/renderer/opengl/openglrenderer_test.cc` | `OpenGlRenderer::CreateContext` window/context creation (3.3 context, current context, glad), triangle rendering, render-target resizing, and viewport configuration |
 |                     | `tests/src/renderer/opengl/openglshader_test.cc` | `OpenGlShader` compilation/linking and program binding |
 |                     | `tests/src/renderer/opengl/openglmesh_test.cc` | `OpenGlMesh` VAO binding and error-free drawing |
 |                     | `tests/src/renderer/opengl/opengltexture_test.cc` | `OpenGlTexture` allocation, binding, and cleanup |
-|                     | `tests/src/renderer/rendererfactory_test.cc` | `RendererBackend` enum, platform priority order, and fallback creation (`CreateRenderer` with a preferred backend) with injectable fake creators, including creators that return `nullptr` or throw `RendererCreationException` |
+|                     | `tests/src/renderer/rendererfactory_test.cc` | `RendererBackend` enum, platform priority order, and fallback creation (`CreateRenderer` with a preferred backend) with injectable fake creators, including creators that return `nullptr` or throw `RendererCreationException`, and renderers whose `CreateContext` throws |
 |                     | `tests/src/renderer/vulkan/vulkaninstance_test.cc` | `VulkanInstance` instance creation and physical-device enumeration (skips when Vulkan is unavailable); in Debug builds, debug-messenger creation for validation layers |
 |                     | `tests/src/renderer/vulkan/vulkandevice_test.cc` | `VulkanDevice` logical-device/queue creation from a `VulkanInstance` and window surface, including the present queue (skips when Vulkan is unavailable) |
-|                     | `tests/src/renderer/vulkan/vulkanrenderer_test.cc` | `VulkanRenderer` instance/surface/physical-device/logical-device creation with graphics and present queues (skips when Vulkan is unavailable) |
+|                     | `tests/src/renderer/vulkan/vulkanrenderer_test.cc` | `VulkanRenderer::CreateContext` instance/surface/window/physical-device/logical-device creation with graphics and present queues (skips when Vulkan is unavailable) |
 | `skeledit_tests`    | `tests/src/skeledit/editorlogsink_test.cc` | `EditorLogSink` buffering, canonical timestamped format (`[YYYY-MM-DD HH:MM:SS.mmm] [level] message`), `Clear`, and `kMaxEntries` bound |
 |                     | `tests/src/skeledit/imguieditor_test.cc`       | `ImGuiEditor` dock-layout construction (headless, no GL context) |
 

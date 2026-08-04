@@ -11,92 +11,121 @@
 namespace skeleton {
 namespace {
 
-using ::testing::_;
-using ::testing::Invoke;
-using ::testing::NiceMock;
-using ::testing::SaveArg;
-
 class MockRenderer : public Renderer {
  public:
   MOCK_METHOD(RendererBackend, GetBackend, (), (const, override));
-  MOCK_METHOD(void, SetWindowHints, (), (override));
-  MOCK_METHOD(void, InitialiseForWindow, (GLFWwindow* window), (override));
+  MOCK_METHOD(void, CreateContext, (const WindowConfig&), (override));
   MOCK_METHOD(void, Render, (), (override));
+
+  GLFWwindow* GetNativeWindow() const override { return native_window_; }
+  void SetNativeWindow(GLFWwindow* window) { native_window_ = window; }
+
+ private:
+  GLFWwindow* native_window_ = nullptr;
 };
 
-TEST(WindowTest, CallsSetWindowHintsBeforeWindowCreation) {
-  NiceMock<MockRenderer> renderer;
-  testing::InSequence sequence;
-  EXPECT_CALL(renderer, SetWindowHints()).WillOnce(Invoke([] {
-    EXPECT_EQ(glfwGetCurrentContext(), nullptr);
-  }));
-  EXPECT_CALL(renderer, InitialiseForWindow(_)).Times(1);
-
-  Window window(800, 600, "Skeleton Test Window", renderer);
+// Creates a real GLFW window and attaches it to |renderer|. The caller must
+// destroy the window and call glfwTerminate.
+void CreateNativeWindow(MockRenderer* renderer, GLFWwindow** out_window) {
+  ASSERT_TRUE(glfwInit());
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+  *out_window =
+      glfwCreateWindow(800, 600, "Skeleton Test Window", nullptr, nullptr);
+  ASSERT_NE(*out_window, nullptr);
+  renderer->SetNativeWindow(*out_window);
 }
 
-TEST(WindowTest, PassesCreatedWindowToRenderer) {
-  NiceMock<MockRenderer> renderer;
-  GLFWwindow* created_window = nullptr;
-  EXPECT_CALL(renderer, InitialiseForWindow(_))
-      .WillOnce(SaveArg<0>(&created_window));
+TEST(WindowTest, GetNativeWindowReturnsRendererWindow) {
+  MockRenderer renderer;
+  GLFWwindow* native = nullptr;
+  CreateNativeWindow(&renderer, &native);
 
-  Window window(800, 600, "Skeleton Test Window", renderer);
+  Window window(renderer);
 
-  EXPECT_NE(created_window, nullptr);
+  EXPECT_EQ(window.GetNativeWindow(), native);
+
+  glfwDestroyWindow(native);
+  glfwTerminate();
 }
 
-TEST(WindowTest, GetNativeWindowReturnsCreatedWindow) {
-  NiceMock<MockRenderer> renderer;
-  GLFWwindow* created_window = nullptr;
-  EXPECT_CALL(renderer, InitialiseForWindow(_))
-      .WillOnce(SaveArg<0>(&created_window));
+TEST(WindowTest, IsOpenReturnsTrueWhenRendererHasWindow) {
+  MockRenderer renderer;
+  GLFWwindow* native = nullptr;
+  CreateNativeWindow(&renderer, &native);
 
-  Window window(800, 600, "Skeleton Test Window", renderer);
-
-  EXPECT_EQ(window.GetNativeWindow(), created_window);
-}
-
-TEST(WindowTest, IsOpenReturnsTrueAfterCreation) {
-  NiceMock<MockRenderer> renderer;
-  Window window(800, 600, "Skeleton Test Window", renderer);
+  Window window(renderer);
 
   EXPECT_TRUE(window.IsOpen());
+
+  glfwDestroyWindow(native);
+  glfwTerminate();
 }
 
 TEST(WindowTest, IsOpenReturnsFalseWhenCloseRequested) {
-  NiceMock<MockRenderer> renderer;
-  GLFWwindow* created_window = nullptr;
-  EXPECT_CALL(renderer, InitialiseForWindow(_))
-      .WillOnce(SaveArg<0>(&created_window));
+  MockRenderer renderer;
+  GLFWwindow* native = nullptr;
+  CreateNativeWindow(&renderer, &native);
 
-  Window window(800, 600, "Skeleton Test Window", renderer);
-  ASSERT_NE(created_window, nullptr);
+  Window window(renderer);
+  glfwSetWindowShouldClose(native, GLFW_TRUE);
 
-  glfwSetWindowShouldClose(created_window, GLFW_TRUE);
+  EXPECT_FALSE(window.IsOpen());
+
+  glfwDestroyWindow(native);
+  glfwTerminate();
+}
+
+TEST(WindowTest, IsOpenReturnsFalseWithoutAWindow) {
+  MockRenderer renderer;
+
+  Window window(renderer);
 
   EXPECT_FALSE(window.IsOpen());
 }
 
 TEST(WindowTest, MaximizeMaximisesWindow) {
-  NiceMock<MockRenderer> renderer;
-  Window window(800, 600, "Skeleton Test Window", renderer);
+  MockRenderer renderer;
+  GLFWwindow* native = nullptr;
+  CreateNativeWindow(&renderer, &native);
 
+  Window window(renderer);
   window.Maximize();
 
-  EXPECT_EQ(glfwGetWindowAttrib(window.GetNativeWindow(), GLFW_MAXIMIZED),
-            GLFW_TRUE);
+  EXPECT_EQ(glfwGetWindowAttrib(native, GLFW_MAXIMIZED), GLFW_TRUE);
+
+  glfwDestroyWindow(native);
+  glfwTerminate();
 }
 
 TEST(WindowTest, MultipleWindowsCanCoexist) {
-  NiceMock<MockRenderer> renderer_one;
-  NiceMock<MockRenderer> renderer_two;
+  MockRenderer renderer_one;
+  GLFWwindow* first = nullptr;
+  CreateNativeWindow(&renderer_one, &first);
+  MockRenderer renderer_two;
+  GLFWwindow* second = nullptr;
+  CreateNativeWindow(&renderer_two, &second);
 
-  Window first(400, 300, "First Test Window", renderer_one);
-  Window second(400, 300, "Second Test Window", renderer_two);
+  Window window_one(renderer_one);
+  Window window_two(renderer_two);
 
-  EXPECT_TRUE(first.IsOpen());
-  EXPECT_TRUE(second.IsOpen());
+  EXPECT_TRUE(window_one.IsOpen());
+  EXPECT_TRUE(window_two.IsOpen());
+
+  glfwDestroyWindow(first);
+  glfwDestroyWindow(second);
+  glfwTerminate();
+}
+
+TEST(WindowTest, PollEventsDoesNotCrash) {
+  MockRenderer renderer;
+  GLFWwindow* native = nullptr;
+  CreateNativeWindow(&renderer, &native);
+
+  Window window(renderer);
+  Window::PollEvents();
+
+  glfwDestroyWindow(native);
+  glfwTerminate();
 }
 
 }  // namespace

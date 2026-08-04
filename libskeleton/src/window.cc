@@ -4,54 +4,32 @@
 
 #include <GLFW/glfw3.h>
 
-#include <spdlog/spdlog.h>
-
 namespace skeleton {
 
-Window::Window(int width, int height, const char* title, Renderer& renderer)
-    : renderer_(renderer), window_(nullptr) {
-  if (!glfwInit()) {
-    SPDLOG_ERROR("Failed to initialize GLFW");
-    return;
-  }
+Window::Window(Renderer& renderer) : renderer_(renderer) {}
 
-  renderer_.SetWindowHints();
-
-  window_ = glfwCreateWindow(width, height, title, nullptr, nullptr);
-  if (!window_) {
-    SPDLOG_ERROR("Failed to create GLFW window");
-    glfwTerminate();
-    return;
-  }
-
-  renderer_.InitialiseForWindow(window_);
-  SPDLOG_INFO("Created GLFW window \"{}\" ({}x{}).", title, width, height);
-}
-
-Window::~Window() {
-  if (window_) {
-    glfwDestroyWindow(window_);
-  }
-  glfwTerminate();
-}
+Window::~Window() = default;
 
 bool Window::IsOpen() const {
-  return window_ ? glfwWindowShouldClose(window_) == 0 : false;
+  GLFWwindow* window = renderer_.GetNativeWindow();
+  return window != nullptr && glfwWindowShouldClose(window) == 0;
 }
 
 GLFWwindow* Window::GetNativeWindow() {
-  return window_;
+  return renderer_.GetNativeWindow();
 }
 
 void Window::Maximize() {
-  if (window_) {
-    glfwMaximizeWindow(window_);
+  GLFWwindow* window = renderer_.GetNativeWindow();
+  if (window != nullptr) {
+    glfwMaximizeWindow(window);
   }
 }
 
 void Window::SwapBuffers() {
-  if (window_) {
-    glfwSwapBuffers(window_);
+  GLFWwindow* window = renderer_.GetNativeWindow();
+  if (window != nullptr) {
+    glfwSwapBuffers(window);
   }
 }
 

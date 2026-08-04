@@ -37,14 +37,15 @@ std::shared_ptr<EditorLogSink> ConfigureLogging() {
 int Run(int argc, char* argv[]) {
   const std::shared_ptr<EditorLogSink> log_sink = ConfigureLogging();
 
-  auto renderer = CreateRenderer(RenderTarget::kRenderTargetTexture);
+  auto renderer = CreateRenderer(RenderTarget::kRenderTargetTexture,
+                                 WindowConfig{1280, 720, "SkelEdit"});
   if (renderer == nullptr) {
     SPDLOG_ERROR("No renderer available; exiting.");
     return 1;
   }
   SPDLOG_INFO("SkelEdit started.");
   Renderer* renderer_ptr = renderer.get();
-  Window window(1280, 720, "SkelEdit", *renderer);
+  Window window(*renderer);
   ImGuiEditor editor(window.GetNativeWindow(), renderer_ptr->GetTextureId(),
                      1280, 720, log_sink,
                      [renderer_ptr](int width, int height) {

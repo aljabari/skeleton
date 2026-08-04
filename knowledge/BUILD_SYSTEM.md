@@ -69,31 +69,40 @@ Release so the CRT still calls the app's `main()`.
 - `RendererPriorityOrder()` returns the platform's fallback priority order.
   New backends are added there (for example, a future DirectX backend on
   Windows would be listed before Vulkan).
-- `CreateRenderer(preferred, render_target)` creates the preferred backend
-  first and falls back through the platform priority order when a backend
-  cannot be created. A backend is skipped when it has no creator, its creator
-  returns `nullptr`, or it throws `RendererCreationException`. The core
-  algorithm takes an explicit priority list and creator map so it can be unit
-  tested with fake creators.
-- `CreateRenderer(render_target)` is the same but has no preferred
-  backend: it returns the first backend in the platform priority order that
-  can be created.
+- `CreateRenderer(preferred, render_target, window_config)` creates the
+  preferred backend first and falls back through the platform priority order
+  when a backend cannot be created. A backend is skipped when it has no
+  creator, its creator returns `nullptr`, or its creator or the renderer's
+  `CreateContext` throws `RendererCreationException`. The core algorithm takes
+  an explicit priority list and creator map so it can be unit tested with fake
+  creators.
+- `CreateRenderer(render_target, window_config)` is the same but has no
+  preferred backend: it returns the first backend in the platform priority
+  order that can be created.
 - The `render_target` argument is a `RenderTarget` enum
   (`RenderTarget::kRenderTargetWindow` — the default — or
   `RenderTarget::kRenderTargetTexture`).
-- `VulkanRenderer` initialises GLFW (idempotent) in its constructor and creates
-  a `VulkanInstance` (volk loader + Vulkan instance) with the surface
-  extensions returned by `glfwGetRequiredInstanceExtensions`, so
-  `glfwCreateWindowSurface` can later succeed. `InitialiseForWindow` then
-  retrieves the window's surface with `glfwCreateWindowSurface` and creates a
-  `VulkanDevice` with that surface: it picks a physical device with a graphics
-  queue family and a present queue family (the same family when possible) and
-  creates a logical device with a graphics queue and a present queue. If any
-  step fails (loader, GLFW, instance, surface, physical device, or logical
-  device) it throws `RendererCreationException`, so the factory catches it and
-  falls back to the next backend. The OpenGL creator always succeeds on
-  supported platforms. The private `VulkanInstance`/`VulkanDevice` RAII helpers
-  live under `libskeleton/src/renderer/vulkan/`.
+- The `window_config` argument is a `WindowConfig` struct (in `renderer.h`)
+  holding the width, height, and title of the window the renderer creates.
+- Window creation is part of context initialisation: the factory calls each
+  backend's `CreateContext(window_config)` inside its fallback handling, so a
+  backend that fails to create a window or its context (GLFW initialisation,
+  Vulkan instance/surface/device, GL context) throws
+  `RendererCreationException`, which is caught and falls back to the next
+  backend. Renderers own the window they create and destroy it on destruction.
+- `VulkanRenderer::CreateContext` initialises GLFW, creates a `VulkanInstance`
+  (volk loader + Vulkan instance) with the surface extensions returned by
+  `glfwGetRequiredInstanceExtensions`, creates the window with
+  `GLFW_CLIENT_API = GLFW_NO_API`, then retrieves the window's surface with
+  `glfwCreateWindowSurface` and creates a `VulkanDevice` with that surface: it
+  picks a physical device with a graphics queue family and a present queue
+  family (the same family when possible) and creates a logical device with a
+  graphics queue and a present queue.
+- `OpenGlRenderer::CreateContext` requests a 3.3 context, creates the window,
+  makes its context current, loads the GL functions with glad, and creates the
+  shader, mesh, and (for texture targets) the render target.
+- The private `VulkanInstance`/`VulkanDevice` RAII helpers live under
+  `libskeleton/src/renderer/vulkan/`.
 
 Vulkan validation layers are enabled only in Debug builds. In that
 configuration `libskeleton` defines `SKELETON_VULKAN_ENABLE_VALIDATION=1`
@@ -110,10 +119,14 @@ log window alongside normal logs. If the layer is unavailable the instance is
 still created (with a warning); the messenger and the layer code are compiled
 out of non-Debug builds.
 
-Both executables build their renderer through `CreateRenderer()` with no
-preferred backend, so they get the first backend in the platform priority
-order that can be created (Vulkan once it renders, OpenGL otherwise). `skeledit`
-passes `RenderTarget::kRenderTargetTexture` because it needs the texture APIs.
+Both executables build their renderer through `CreateRenderer(render_target,
+window_config)` with no preferred backend, so they get the first backend in
+the platform priority order that can be created (Vulkan once it renders, OpenGL
+otherwise). The window is created as part of that call, so the application
+wraps the renderer's window in a `Window` (a thin facade over the GLFW loop
+operations: `IsOpen`, `PollEvents`, `SwapBuffers`, `Maximize`,
+`GetNativeWindow`). `skeledit` passes
+`RenderTarget::kRenderTargetTexture` because it needs the texture APIs.
 Those APIs live on the base `Renderer` interface (`GetTextureId()`,
 `ResizeRenderTarget()`) with default no-op implementations, so both executables
 use the renderer polymorphically through `Renderer&` without downcasting.

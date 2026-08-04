@@ -7,55 +7,39 @@
 #include <GLFW/glfw3.h>
 #include <gtest/gtest.h>
 
-#include "libskeleton/window.h"
+#include "libskeleton/renderer.h"
 
 namespace skeleton {
 namespace {
 
-TEST(OpenGlRendererTest, HintsCreateOpenGl33Context) {
-  ASSERT_TRUE(glfwInit());
-
+TEST(OpenGlRendererTest, CreateContextCreatesOpenGl33Window) {
   OpenGlRenderer renderer;
-  renderer.SetWindowHints();
+  renderer.CreateContext(WindowConfig{640, 480, "OpenGL Hint Test"});
 
-  GLFWwindow* window =
-      glfwCreateWindow(640, 480, "OpenGL Hint Test", nullptr, nullptr);
+  GLFWwindow* window = renderer.GetNativeWindow();
   ASSERT_NE(window, nullptr);
   EXPECT_EQ(glfwGetWindowAttrib(window, GLFW_CONTEXT_VERSION_MAJOR), 3);
   EXPECT_EQ(glfwGetWindowAttrib(window, GLFW_CONTEXT_VERSION_MINOR), 3);
-
-  glfwDestroyWindow(window);
-  glfwTerminate();
 }
 
-TEST(OpenGlRendererTest, InitialiseForWindowMakesContextCurrent) {
-  ASSERT_TRUE(glfwInit());
-
+TEST(OpenGlRendererTest, CreateContextMakesContextCurrent) {
   OpenGlRenderer renderer;
-  renderer.SetWindowHints();
+  renderer.CreateContext(WindowConfig{640, 480, "OpenGL Context Test"});
 
-  GLFWwindow* window =
-      glfwCreateWindow(640, 480, "OpenGL Context Test", nullptr, nullptr);
-  ASSERT_NE(window, nullptr);
-
-  renderer.InitialiseForWindow(window);
-  EXPECT_EQ(glfwGetCurrentContext(), window);
+  EXPECT_EQ(glfwGetCurrentContext(), renderer.GetNativeWindow());
   EXPECT_NE(glGetString(GL_VERSION), nullptr);
-
-  glfwDestroyWindow(window);
-  glfwTerminate();
 }
 
-TEST(OpenGlContextTest, IsCurrentAfterWindowConstruction) {
+TEST(OpenGlContextTest, ContextIsCurrentAfterCreateContext) {
   OpenGlRenderer renderer;
-  Window window(640, 480, "Skeleton Context Test", renderer);
+  renderer.CreateContext(WindowConfig{640, 480, "Skeleton Context Test"});
 
   EXPECT_NE(glfwGetCurrentContext(), nullptr);
 }
 
 TEST(OpenGlContextTest, GladLoadsOpenGlFunctions) {
   OpenGlRenderer renderer;
-  Window window(640, 480, "Skeleton Glad Test", renderer);
+  renderer.CreateContext(WindowConfig{640, 480, "Skeleton Glad Test"});
 
   const GLubyte* version = glGetString(GL_VERSION);
   ASSERT_NE(version, nullptr);
@@ -72,7 +56,8 @@ TEST(OpenGlContextTest, GladLoadsOpenGlFunctions) {
 
 TEST(OpenGlRendererTest, RenderDrawsTriangleWithoutErrors) {
   OpenGlRenderer renderer;
-  Window window(640, 480, "Skeleton Render Triangle Test", renderer);
+  renderer.CreateContext(
+      WindowConfig{640, 480, "Skeleton Render Triangle Test"});
 
   renderer.Render();
 
@@ -81,7 +66,8 @@ TEST(OpenGlRendererTest, RenderDrawsTriangleWithoutErrors) {
 
 TEST(OpenGlRendererTest, ResizeRenderTargetRecreatesRenderTarget) {
   OpenGlRenderer renderer(RenderTarget::kRenderTargetTexture);
-  Window window(640, 480, "Skeleton Render Target Resize Test", renderer);
+  renderer.CreateContext(
+      WindowConfig{640, 480, "Skeleton Render Target Resize Test"});
 
   const unsigned int initial_texture_id = renderer.GetTextureId();
   EXPECT_NE(initial_texture_id, 0u);
@@ -98,7 +84,8 @@ TEST(OpenGlRendererTest, ResizeRenderTargetRecreatesRenderTarget) {
 
 TEST(OpenGlRendererTest, ResizeRenderTargetToSameSizeKeepsTexture) {
   OpenGlRenderer renderer(RenderTarget::kRenderTargetTexture);
-  Window window(640, 480, "Skeleton Render Target No-Op Test", renderer);
+  renderer.CreateContext(
+      WindowConfig{640, 480, "Skeleton Render Target No-Op Test"});
 
   renderer.ResizeRenderTarget(320, 200);
   const unsigned int resized_texture_id = renderer.GetTextureId();
@@ -110,11 +97,12 @@ TEST(OpenGlRendererTest, ResizeRenderTargetToSameSizeKeepsTexture) {
 
 TEST(OpenGlRendererTest, RenderSetsViewportToWindowFramebufferSize) {
   OpenGlRenderer renderer;
-  Window window(640, 480, "Skeleton Window Viewport Test", renderer);
+  renderer.CreateContext(
+      WindowConfig{640, 480, "Skeleton Window Viewport Test"});
 
   int expected_width = 0;
   int expected_height = 0;
-  glfwGetFramebufferSize(window.GetNativeWindow(), &expected_width,
+  glfwGetFramebufferSize(renderer.GetNativeWindow(), &expected_width,
                          &expected_height);
 
   renderer.Render();
@@ -130,7 +118,8 @@ TEST(OpenGlRendererTest, RenderSetsViewportToWindowFramebufferSize) {
 
 TEST(OpenGlRendererTest, RenderSetsViewportToRenderTargetSize) {
   OpenGlRenderer renderer(RenderTarget::kRenderTargetTexture);
-  Window window(640, 480, "Skeleton Render Target Viewport Test", renderer);
+  renderer.CreateContext(
+      WindowConfig{640, 480, "Skeleton Render Target Viewport Test"});
 
   renderer.ResizeRenderTarget(320, 200);
   renderer.Render();

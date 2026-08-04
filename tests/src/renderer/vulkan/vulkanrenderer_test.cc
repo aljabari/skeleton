@@ -23,12 +23,9 @@ void SkipIfVulkanUnavailable() {
 TEST(VulkanRendererTest, CreatesInstanceSurfaceAndLogicalDevice) {
   SkipIfVulkanUnavailable();
 
-  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  GLFWwindow* window = glfwCreateWindow(800, 600, "test", nullptr, nullptr);
-  ASSERT_NE(window, nullptr);
   {
     VulkanRenderer renderer;
-    renderer.InitialiseForWindow(window);
+    renderer.CreateContext(WindowConfig{800, 600, "test"});
 
     EXPECT_NE(renderer.Instance(), VK_NULL_HANDLE);
     EXPECT_NE(renderer.Surface(), VK_NULL_HANDLE);
@@ -36,19 +33,16 @@ TEST(VulkanRendererTest, CreatesInstanceSurfaceAndLogicalDevice) {
     EXPECT_NE(renderer.Device(), VK_NULL_HANDLE);
     EXPECT_NE(renderer.GraphicsQueue(), VK_NULL_HANDLE);
     EXPECT_NE(renderer.PresentQueue(), VK_NULL_HANDLE);
+    EXPECT_NE(renderer.GetNativeWindow(), nullptr);
   }
 
-  glfwDestroyWindow(window);
   glfwTerminate();
 }
 
 TEST(VulkanRendererTest, GetBackendReturnsVulkan) {
-  SkipIfVulkanUnavailable();
-
   VulkanRenderer renderer;
-  EXPECT_EQ(renderer.GetBackend(), RendererBackend::kVulkan);
 
-  glfwTerminate();
+  EXPECT_EQ(renderer.GetBackend(), RendererBackend::kVulkan);
 }
 
 }  // namespace

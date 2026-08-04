@@ -22,14 +22,14 @@ class VulkanRenderer : public Renderer {
   ~VulkanRenderer() override;
 
   RendererBackend GetBackend() const override;
-  void SetWindowHints() override;
-  void InitialiseForWindow(GLFWwindow* window) override;
+  void CreateContext(const WindowConfig& config) override;
+  GLFWwindow* GetNativeWindow() const override;
   void Render() override;
 
-  // The instance is created by the constructor; the surface, physical device,
-  // logical device, and queues are created by InitialiseForWindow. Handles are
-  // VK_NULL_HANDLE until their creation step succeeds, and the steps throw
-  // RendererCreationException on failure.
+  // CreateContext creates the window and instance, then the surface, physical
+  // device, logical device, and queues. Handles are VK_NULL_HANDLE until their
+  // creation step succeeds, and every step throws RendererCreationException on
+  // failure. The window is owned by the renderer and destroyed with it.
   VkInstance Instance() const;
   VkSurfaceKHR Surface() const;
   VkPhysicalDevice PhysicalDevice() const;
@@ -38,6 +38,7 @@ class VulkanRenderer : public Renderer {
   VkQueue PresentQueue() const;
 
  private:
+  GLFWwindow* window_ = nullptr;
   std::unique_ptr<VulkanInstance> instance_;
   std::unique_ptr<VulkanDevice> device_;
   VkSurfaceKHR surface_ = VK_NULL_HANDLE;
