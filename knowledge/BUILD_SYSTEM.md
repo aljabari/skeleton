@@ -62,12 +62,12 @@ the generated `glad` target (OpenGL 3.3 core) to load GL function pointers via
 - `RendererPriorityOrder()` returns the platform's fallback priority order.
   New backends are added there (for example, a future DirectX backend on
   Windows would be listed before Vulkan).
-- `CreateRendererWithFallback(preferred, render_target)` creates the
-  preferred backend first and falls back through the platform priority order
-  when a backend cannot be created. A backend is skipped when it has no
-  creator, its creator returns `nullptr`, or it throws
-  `RendererCreationException`. The core algorithm takes an explicit priority
-  list and creator map so it can be unit tested with fake creators.
+- `CreateRenderer(preferred, render_target)` creates the preferred backend
+  first and falls back through the platform priority order when a backend
+  cannot be created. A backend is skipped when it has no creator, its creator
+  returns `nullptr`, or it throws `RendererCreationException`. The core
+  algorithm takes an explicit priority list and creator map so it can be unit
+  tested with fake creators.
 - `CreateRenderer(render_target)` is the same but has no preferred
   backend: it returns the first backend in the platform priority order that
   can be created.
@@ -173,18 +173,35 @@ to locate the headers themselves. `googletest` is only declared when
 `spdlog` is a logging dependency of `libskeleton`, linked `PUBLIC` so consumers
 (executables and tests) can use it transitively. Its bundled fmt is used, and
 its own examples and tests are disabled. All project logging goes through the
-spdlog default logger (`spdlog::debug`/`info`/`warn`/`error`); the renderer
-factory logs backend creation, fallback, and failure reasons, and errors are
-logged before every thrown `RendererCreationException`.
+`SPDLOG_*` macros (`SPDLOG_DEBUG`/`SPDLOG_INFO`/`SPDLOG_WARN`/`SPDLOG_ERROR`),
+which target the spdlog default logger; the renderer factory logs backend
+creation, fallback, and failure reasons, and errors are logged before every
+thrown `RendererCreationException`.
+
+The macros compile in only messages at or above the `SPDLOG_ACTIVE_LEVEL`
+macro. The build sets it per target: `libskeleton`, `skeleton`, and
+`libskeleton_tests` use `SPDLOG_LEVEL_TRACE` in Debug configurations and
+`SPDLOG_LEVEL_OFF` everywhere else, so **all logging is stripped out of release
+builds**. `skeledit` and `skeledit_tests` define `SPDLOG_ACTIVE_LEVEL` as
+`SPDLOG_LEVEL_TRACE` unconditionally, so the editor keeps its logs (and its log
+window) in release builds.
+
+All log output shares one canonical format defined in
+`libskeleton/include/libskeleton/logging.h`:
+`kLogPattern` = `[%Y-%m-%d %H:%M:%S.%e] [%l] %v` (plain) and
+`kLogPatternConsole` = the same with the level wrapped in `%^...%$` colour
+markers. `skeleton` and `skeledit` call `spdlog::set_pattern()` with these, and
+`EditorLogSink` formats each entry with a `spdlog::pattern_formatter` built from
+`kLogPattern`, so the editor log window shows exactly the same timestamp, level,
+and message text as both consoles (the only difference is ANSI colouring).
 
 `skeledit` configures the default logger with two sinks: a `stdout_color_sink_mt`
 (console) and an `EditorLogSink` (`skeledit/include/skeledit/editorlogsink.h`).
 `EditorLogSink` implements the `LogSink` interface (`skeledit/include/skeledit/logsink.h`)
 and is also an spdlog `base_sink`, so every log message is stored in the
 `ImGuiEditor` log window as well as printed to the console. It keeps the newest
-`kMaxEntries` (500) entries, is thread-safe, and stores each message prefixed
-with its long level name (`[info]`, `[warning]`, ...). The default logger
-pattern is `"[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v"`.
+`kMaxEntries` (500) entries and is thread-safe. The trailing newline the
+formatter appends is stripped so each window entry is rendered on its own line.
 
 `imgui` is only a dependency of `skeledit`; it is fetched and added from
 `skeledit/CMakeLists.txt`, not from `cmake/dependencies.cmake`. The upstream

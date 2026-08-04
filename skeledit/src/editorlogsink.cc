@@ -5,7 +5,10 @@
 #include <spdlog/spdlog.h>
 
 #include <string>
+#include <utility>
 #include <vector>
+
+#include "libskeleton/logging.h"
 
 namespace skeleton {
 
@@ -30,6 +33,8 @@ LogLevel ToLogLevel(spdlog::level::level_enum level) {
 
 }  // namespace
 
+EditorLogSink::EditorLogSink() : formatter_(kLogPattern) {}
+
 std::vector<LogEntry> EditorLogSink::Entries() const {
   std::lock_guard<std::mutex> lock(mutex_);
   return entries_;
@@ -41,14 +46,18 @@ void EditorLogSink::Clear() {
 }
 
 void EditorLogSink::sink_it_(const spdlog::details::log_msg& message) {
-  const std::string payload(message.payload.data(), message.payload.size());
-  const spdlog::string_view_t level_view =
-      spdlog::level::to_string_view(message.level);
-  const std::string level(level_view.data(), level_view.size());
+  spdlog::memory_buf_t formatted;
+  formatter_.format(message, formatted);
+
+  std::string text(formatted.data(), formatted.size());
+  // The formatter appends the platform EOL; the editor renders each entry on
+  // its own line, so the trailing newline is dropped.
+  while (!text.empty() && (text.back() == '\n' || text.back() == '\r')) {
+    text.pop_back();
+  }
 
   std::lock_guard<std::mutex> lock(mutex_);
-  entries_.push_back(
-      LogEntry{ToLogLevel(message.level), "[" + level + "] " + payload});
+  entries_.push_back(LogEntry{ToLogLevel(message.level), std::move(text)});
   if (entries_.size() > kMaxEntries) {
     entries_.erase(entries_.begin());
   }

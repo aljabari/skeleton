@@ -2,6 +2,7 @@
 
 #include "skeledit/editorlogsink.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <spdlog/spdlog.h>
 
@@ -27,13 +28,25 @@ TEST(EditorLogSinkTest, BuffersLogMessagesWithLevel) {
   const std::vector<LogEntry> entries = sink->Entries();
   ASSERT_EQ(entries.size(), 4u);
   EXPECT_EQ(entries[0].level, LogLevel::kDebug);
-  EXPECT_EQ(entries[0].message, "[debug] debug message");
+  EXPECT_THAT(entries[0].message,
+              ::testing::MatchesRegex("\\[\\d\\d\\d\\d-\\d\\d-\\d\\d "
+                                      "\\d\\d:\\d\\d:\\d\\d"
+                                      "\\.\\d\\d\\d\\] "
+                                      "\\[debug\\] debug message"));
   EXPECT_EQ(entries[1].level, LogLevel::kInfo);
-  EXPECT_EQ(entries[1].message, "[info] hello 42");
+  EXPECT_THAT(entries[1].message, ::testing::HasSubstr("] [info] hello 42"));
   EXPECT_EQ(entries[2].level, LogLevel::kWarn);
-  EXPECT_EQ(entries[2].message, "[warning] warning message");
+  EXPECT_THAT(entries[2].message,
+              ::testing::MatchesRegex("\\[\\d\\d\\d\\d-\\d\\d-\\d\\d "
+                                      "\\d\\d:\\d\\d:\\d\\d"
+                                      "\\.\\d\\d\\d\\] "
+                                      "\\[warning\\] warning message"));
   EXPECT_EQ(entries[3].level, LogLevel::kError);
-  EXPECT_EQ(entries[3].message, "[error] error message");
+  EXPECT_THAT(entries[3].message,
+              ::testing::MatchesRegex("\\[\\d\\d\\d\\d-\\d\\d-\\d\\d "
+                                      "\\d\\d:\\d\\d:\\d\\d"
+                                      "\\.\\d\\d\\d\\] "
+                                      "\\[error\\] error message"));
 }
 
 TEST(EditorLogSinkTest, ClearEmptiesEntries) {
@@ -56,10 +69,12 @@ TEST(EditorLogSinkTest, BoundsNumberOfBufferedEntries) {
 
   const std::vector<LogEntry> entries = sink->Entries();
   ASSERT_EQ(entries.size(), EditorLogSink::kMaxEntries);
-  EXPECT_EQ(entries.front().message, "[info] message 10");
-  EXPECT_EQ(entries.back().message,
-            "[info] message " +
-                std::to_string(EditorLogSink::kMaxEntries + 9));
+  EXPECT_THAT(entries.front().message,
+              ::testing::HasSubstr("] [info] message 10"));
+  EXPECT_THAT(entries.back().message,
+              ::testing::HasSubstr("] [info] message " +
+                                   std::to_string(EditorLogSink::kMaxEntries +
+                                                  9)));
 }
 
 }  // namespace

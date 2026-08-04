@@ -32,9 +32,15 @@ This project follows the
 - **Testing:** All production code must be accompanied by unit tests written
   with **Google Test** (and **Google Mock** where a mock is needed). Tests live
   in the `tests/` directory. See [TESTING.md](TESTING.md).
-- **Logging:** All logging uses **spdlog** through the default logger free
-  functions (`spdlog::debug`/`info`/`warn`/`error`); never use `std::cout` or
-  `std::cerr`. Use `fmt`-style `{}` placeholders instead of `<<`-chaining.
-  Log an `error` immediately before throwing a `RendererCreationException` so
-  the failure reason is visible even when the factory swallows the exception
-  during fallback.
+- **Logging:** All logging uses **spdlog** through the `SPDLOG_*` macros
+  (`SPDLOG_DEBUG`/`SPDLOG_INFO`/`SPDLOG_WARN`/`SPDLOG_ERROR`), never the direct
+  `spdlog::debug`/etc. function calls and never `std::cout` or `std::cerr`. The
+  macros are compiled out below `SPDLOG_ACTIVE_LEVEL`, which the build sets to
+  `SPDLOG_LEVEL_TRACE` in Debug builds and `SPDLOG_LEVEL_OFF` in release builds
+  (except `skeledit`, which always uses `SPDLOG_LEVEL_TRACE`). Use `fmt`-style
+  `{}` placeholders instead of `<<`-chaining. Log an `error` immediately before
+  throwing a `RendererCreationException` so the failure reason is visible even
+  when the factory swallows the exception during fallback. All log output uses
+  the canonical patterns in `libskeleton/include/libskeleton/logging.h`
+  (`kLogPattern` for consoles and the editor log window, `kLogPatternConsole`
+  for the coloured `skeledit` console).

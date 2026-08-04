@@ -22,6 +22,7 @@ skeleton/
 ├── libskeleton/              # Static library target
 │   ├── CMakeLists.txt
 │   ├── include/libskeleton/  # Public headers
+│   │   ├── logging.h
 │   │   ├── window.h
 │   │   ├── renderer.h
 │   │   ├── rendererfactory.h
@@ -78,7 +79,7 @@ skeleton/
 │   │   └── logsink.h         # LogLevel/LogEntry/LogSink interface
 │   └── src/
 │       ├── main.cc
-│       ├── editorlogsink.cc  # Buffers the newest kMaxEntries log messages
+│       ├── editorlogsink.cc  # Buffers newest kMaxEntries log lines (canonical format)
 │       └── imguieditor.cc    # ImGui context/backends, dockable viewport, dock layout, log window
 └── build/                    # Build output (gitignored)
 ```

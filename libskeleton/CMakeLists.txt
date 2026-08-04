@@ -28,6 +28,7 @@ set(_libskeleton_sources
     src/window.cc
     src/renderer/renderer.cc
     src/renderer/rendererfactory.cc
+    include/libskeleton/logging.h
     include/libskeleton/rendererfactory.h
     include/libskeleton/window.h
     include/libskeleton/renderer.h

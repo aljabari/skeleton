@@ -2,12 +2,14 @@
 
 #include <spdlog/spdlog.h>
 
+#include "libskeleton/logging.h"
 #include "libskeleton/rendererfactory.h"
 #include "libskeleton/window.h"
 
 namespace skeleton {
 
 int Run(int argc, char* argv[]) {
+  spdlog::set_pattern(kLogPattern);
   auto renderer = CreateRenderer(RendererBackend::kOpenGl);
   if (renderer == nullptr) {
     SPDLOG_ERROR("No renderer available; exiting.");

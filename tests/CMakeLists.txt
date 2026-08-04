@@ -72,6 +72,7 @@ target_compile_definitions(skeledit_tests PRIVATE
 target_include_directories(skeledit_tests
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/../skeledit/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../libskeleton/include
 )
 
 target_link_libraries(skeledit_tests

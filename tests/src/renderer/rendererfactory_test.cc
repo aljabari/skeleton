@@ -110,7 +110,7 @@ TEST(RendererFactoryTest, PriorityOrderPrefersVulkanOverOpenGl) {
 #endif
 
 TEST(RendererFactoryTest, CreatesPreferredBackend) {
-  std::unique_ptr<Renderer> renderer = CreateRendererWithFallback(
+  std::unique_ptr<Renderer> renderer = CreateRenderer(
       RendererBackend::kVulkan, kVulkanThenOpenGl, SuccessfulCreators());
 
   ASSERT_NE(renderer, nullptr);
@@ -123,7 +123,7 @@ TEST(RendererFactoryTest, FallsBackWhenPreferredFails) {
     return std::make_unique<TestRenderer>(RendererBackend::kOpenGl);
   };
 
-  std::unique_ptr<Renderer> renderer = CreateRendererWithFallback(
+  std::unique_ptr<Renderer> renderer = CreateRenderer(
       RendererBackend::kVulkan, kVulkanThenOpenGl, creators);
 
   ASSERT_NE(renderer, nullptr);
@@ -131,7 +131,7 @@ TEST(RendererFactoryTest, FallsBackWhenPreferredFails) {
 }
 
 TEST(RendererFactoryTest, PreferredWinsOverHigherPriorityFallback) {
-  std::unique_ptr<Renderer> renderer = CreateRendererWithFallback(
+  std::unique_ptr<Renderer> renderer = CreateRenderer(
       RendererBackend::kOpenGl, kVulkanThenOpenGl, SuccessfulCreators());
 
   ASSERT_NE(renderer, nullptr);
@@ -139,7 +139,7 @@ TEST(RendererFactoryTest, PreferredWinsOverHigherPriorityFallback) {
 }
 
 TEST(RendererFactoryTest, PreferredNotInPriorityOrderIsStillTriedFirst) {
-  std::unique_ptr<Renderer> renderer = CreateRendererWithFallback(
+  std::unique_ptr<Renderer> renderer = CreateRenderer(
       RendererBackend::kVulkan, {RendererBackend::kOpenGl},
       SuccessfulCreators());
 
@@ -164,7 +164,7 @@ TEST(RendererFactoryTest, PreferredIsOnlyAttemptedOnce) {
                          RendererBackend::kOpenGl);
                    });
 
-  CreateRendererWithFallback(RendererBackend::kVulkan, kVulkanThenOpenGl,
+  CreateRenderer(RendererBackend::kVulkan, kVulkanThenOpenGl,
                              creators);
 
   EXPECT_EQ(vulkan_calls, 1);
@@ -179,7 +179,7 @@ TEST(RendererFactoryTest, SkipsBackendsWithoutACreator) {
                          RendererBackend::kOpenGl);
                    });
 
-  std::unique_ptr<Renderer> renderer = CreateRendererWithFallback(
+  std::unique_ptr<Renderer> renderer = CreateRenderer(
       RendererBackend::kVulkan, kVulkanThenOpenGl, creators);
 
   ASSERT_NE(renderer, nullptr);
@@ -187,7 +187,7 @@ TEST(RendererFactoryTest, SkipsBackendsWithoutACreator) {
 }
 
 TEST(RendererFactoryTest, ReturnsNullptrWhenEveryBackendFails) {
-  std::unique_ptr<Renderer> renderer = CreateRendererWithFallback(
+  std::unique_ptr<Renderer> renderer = CreateRenderer(
       RendererBackend::kVulkan, kVulkanThenOpenGl, FailingCreators());
 
   EXPECT_EQ(renderer, nullptr);
@@ -196,7 +196,7 @@ TEST(RendererFactoryTest, ReturnsNullptrWhenEveryBackendFails) {
 TEST(RendererFactoryTest, ReturnsNullptrWhenNoCreatorsExist) {
   RendererCreatorMap creators;
 
-  std::unique_ptr<Renderer> renderer = CreateRendererWithFallback(
+  std::unique_ptr<Renderer> renderer = CreateRenderer(
       RendererBackend::kVulkan, kVulkanThenOpenGl, creators);
 
   EXPECT_EQ(renderer, nullptr);
@@ -212,7 +212,7 @@ TEST(RendererFactoryTest, ForwardsRenderTargetToCreator) {
                          RendererBackend::kVulkan);
                    });
 
-  CreateRendererWithFallback(RendererBackend::kVulkan, kVulkanThenOpenGl,
+  CreateRenderer(RendererBackend::kVulkan, kVulkanThenOpenGl,
                              creators, RenderTarget::kRenderTargetTexture);
 
   EXPECT_EQ(forwarded, RenderTarget::kRenderTargetTexture);
@@ -230,7 +230,7 @@ TEST(RendererFactoryTest, FallsBackWhenCreatorThrows) {
                          RendererBackend::kOpenGl);
                    });
 
-  std::unique_ptr<Renderer> renderer = CreateRendererWithFallback(
+  std::unique_ptr<Renderer> renderer = CreateRenderer(
       RendererBackend::kVulkan, kVulkanThenOpenGl, creators);
 
   ASSERT_NE(renderer, nullptr);
@@ -248,7 +248,7 @@ TEST(RendererFactoryTest, ReturnsNullptrWhenEveryCreatorThrows) {
                      throw RendererCreationException("no OpenGL");
                    });
 
-  std::unique_ptr<Renderer> renderer = CreateRendererWithFallback(
+  std::unique_ptr<Renderer> renderer = CreateRenderer(
       RendererBackend::kVulkan, kVulkanThenOpenGl, creators);
 
   EXPECT_EQ(renderer, nullptr);
@@ -263,7 +263,7 @@ TEST(RendererFactoryTest, PropagatesNonCreationExceptions) {
                      throw std::runtime_error("unexpected");
                    });
 
-  EXPECT_THROW(CreateRendererWithFallback(RendererBackend::kVulkan,
+  EXPECT_THROW(CreateRenderer(RendererBackend::kVulkan,
                                           kVulkanThenOpenGl, creators),
                std::runtime_error);
 }
@@ -272,7 +272,7 @@ TEST(RendererFactoryTest, PropagatesNonCreationExceptions) {
 // back to the next backend in the priority order.
 TEST(RendererFactoryTest, PlatformFallbackReturnsSupportedBackend) {
   std::unique_ptr<Renderer> renderer =
-      CreateRendererWithFallback(RendererBackend::kVulkan);
+      CreateRenderer(RendererBackend::kVulkan);
 
   ASSERT_NE(renderer, nullptr);
   const RendererPriorityList& order = RendererPriorityOrder();

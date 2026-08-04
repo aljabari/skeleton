@@ -9,6 +9,7 @@
 #include "skeledit/editorlogsink.h"
 #include "skeledit/imguieditor.h"
 
+#include "libskeleton/logging.h"
 #include "libskeleton/renderer.h"
 #include "libskeleton/rendererfactory.h"
 #include "libskeleton/window.h"
@@ -27,7 +28,7 @@ std::shared_ptr<EditorLogSink> ConfigureLogging() {
   auto logger = std::make_shared<spdlog::logger>("skeledit", sinks.begin(),
                                                  sinks.end());
   spdlog::set_default_logger(logger);
-  spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+  spdlog::set_pattern(kLogPatternConsole);
   return log_sink;
 }
 
