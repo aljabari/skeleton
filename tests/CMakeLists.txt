@@ -9,6 +9,7 @@ add_executable(libskeleton_tests
     src/renderer/vulkan/vulkandevice_test.cc
     src/renderer/vulkan/vulkaninstance_test.cc
     src/renderer/vulkan/vulkanrenderer_test.cc
+    src/renderer/vulkan/vulkanswapchain_test.cc
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES
@@ -22,6 +23,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES
     src/renderer/vulkan/vulkandevice_test.cc
     src/renderer/vulkan/vulkaninstance_test.cc
     src/renderer/vulkan/vulkanrenderer_test.cc
+    src/renderer/vulkan/vulkanswapchain_test.cc
 )
 
 target_compile_features(libskeleton_tests PRIVATE cxx_std_20)

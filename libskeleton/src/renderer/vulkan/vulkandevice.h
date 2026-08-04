@@ -14,8 +14,9 @@ namespace skeleton {
 // RAII wrapper around a Vulkan logical device. Construction selects a physical
 // device with a graphics queue family and a queue family that supports
 // presentation to |surface| (possibly the same family), creates the logical
-// device with a queue for each, and throws RendererCreationException on
-// failure; destruction destroys the logical device.
+// device with a queue for each and the VK_KHR_swapchain extension enabled, and
+// throws RendererCreationException on failure; destruction destroys the
+// logical device.
 class VulkanDevice {
  public:
   VulkanDevice(const VulkanInstance& instance, VkSurfaceKHR surface);

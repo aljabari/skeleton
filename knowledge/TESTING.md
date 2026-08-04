@@ -39,6 +39,7 @@ location. Currently:
 |                     | `tests/src/renderer/vulkan/vulkaninstance_test.cc` | `VulkanInstance` instance creation and physical-device enumeration (skips when Vulkan is unavailable); in Debug builds, debug-messenger creation for validation layers |
 |                     | `tests/src/renderer/vulkan/vulkandevice_test.cc` | `VulkanDevice` logical-device/queue creation from a `VulkanInstance` and window surface, including the present queue (skips when Vulkan is unavailable) |
 |                     | `tests/src/renderer/vulkan/vulkanrenderer_test.cc` | `VulkanRenderer::CreateContext` instance/surface/window/physical-device/logical-device creation with graphics and present queues (skips when Vulkan is unavailable) |
+|                     | `tests/src/renderer/vulkan/vulkanswapchain_test.cc` | `VulkanSwapchain` swapchain and image-view creation, including swapchain extent and format selection (skips when Vulkan is unavailable) |
 | `skeledit_tests`    | `tests/src/skeledit/editorlogsink_test.cc` | `EditorLogSink` buffering, canonical timestamped format (`[YYYY-MM-DD HH:MM:SS.mmm] [level] message`), `Clear`, and `kMaxEntries` bound |
 |                     | `tests/src/skeledit/imguieditor_test.cc`       | `ImGuiEditor` dock-layout construction (headless, no GL context) |
 

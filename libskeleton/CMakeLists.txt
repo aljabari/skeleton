@@ -19,6 +19,8 @@ if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
         src/renderer/vulkan/vulkandevice.h
         src/renderer/vulkan/vulkaninstance.cc
         src/renderer/vulkan/vulkaninstance.h
+        src/renderer/vulkan/vulkanswapchain.cc
+        src/renderer/vulkan/vulkanswapchain.h
         src/renderer/vulkan/vulkanvalidation.cc
         src/renderer/vulkan/vulkanvalidation.h
         src/renderer/vulkan/vulkanrenderer.cc

@@ -111,6 +111,9 @@ void VulkanDevice::CreateLogicalDevice() {
   create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
   create_info.queueCreateInfoCount = queue_create_infos.size();
   create_info.pQueueCreateInfos = queue_create_infos.data();
+  const char* device_extensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  create_info.enabledExtensionCount = 1;
+  create_info.ppEnabledExtensionNames = device_extensions;
 
   if (vkCreateDevice(physical_device_, &create_info, nullptr, &device_) !=
       VK_SUCCESS) {
