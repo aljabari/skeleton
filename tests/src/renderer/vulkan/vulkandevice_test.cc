@@ -47,6 +47,7 @@ TEST(VulkanDeviceTest, CreatesLogicalDevice) {
     EXPECT_NE(device.PresentQueue(), VK_NULL_HANDLE);
   }
 
+  vkDestroySurfaceKHR(instance.Instance(), surface, nullptr);
   glfwDestroyWindow(window);
   glfwTerminate();
 }

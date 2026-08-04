@@ -17,6 +17,8 @@ if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
     set(_renderer_vulkan_sources
         src/renderer/vulkan/vulkandevice.cc
         src/renderer/vulkan/vulkandevice.h
+        src/renderer/vulkan/vulkangraphicspipeline.cc
+        src/renderer/vulkan/vulkangraphicspipeline.h
         src/renderer/vulkan/vulkaninstance.cc
         src/renderer/vulkan/vulkaninstance.h
         src/renderer/vulkan/vulkanswapchain.cc
@@ -26,6 +28,36 @@ if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
         src/renderer/vulkan/vulkanrenderer.cc
         include/libskeleton/vulkan/vulkanrenderer.h
     )
+
+    # Compile the GLSL shaders to SPIR-V at build time with glslc. The .spv
+    # files are written into the build tree and loaded at run time by
+    # VulkanGraphicsPipeline; SKELETON_VULKAN_SHADER_DIR points libskeleton (and
+    # its consumers, including the tests) at that directory.
+    find_program(SKELETON_GLSLC_EXECUTABLE NAMES glslc)
+    if (NOT SKELETON_GLSLC_EXECUTABLE)
+        message(FATAL_ERROR
+            "glslc (the Vulkan SPIR-V compiler) was not found; install the "
+            "Vulkan SDK or add glslc to PATH.")
+    endif()
+    set(_vulkan_shader_dir "${CMAKE_CURRENT_BINARY_DIR}/shaders")
+    set(_vulkan_shader_sources
+        ${CMAKE_CURRENT_SOURCE_DIR}/res/shaders/triangle.vert
+        ${CMAKE_CURRENT_SOURCE_DIR}/res/shaders/triangle.frag)
+    set(_vulkan_spv_outputs)
+    foreach(_vulkan_shader IN LISTS _vulkan_shader_sources)
+        get_filename_component(_vulkan_shader_name "${_vulkan_shader}" NAME)
+        list(APPEND _vulkan_spv_outputs
+            "${_vulkan_shader_dir}/${_vulkan_shader_name}.spv")
+        add_custom_command(
+            OUTPUT "${_vulkan_shader_dir}/${_vulkan_shader_name}.spv"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${_vulkan_shader_dir}"
+            COMMAND "${SKELETON_GLSLC_EXECUTABLE}" -fauto-map-locations
+                "${_vulkan_shader}"
+                -o "${_vulkan_shader_dir}/${_vulkan_shader_name}.spv"
+            DEPENDS "${_vulkan_shader}"
+            VERBATIM)
+    endforeach()
+    add_custom_target(libskeleton_shaders DEPENDS ${_vulkan_spv_outputs})
 endif()
 
 set(_libskeleton_sources
@@ -41,6 +73,10 @@ set(_libskeleton_sources
 )
 
 add_library(libskeleton STATIC ${_libskeleton_sources})
+
+if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
+    add_dependencies(libskeleton libskeleton_shaders)
+endif()
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${_libskeleton_sources})
 
@@ -64,7 +100,8 @@ if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
     target_compile_definitions(libskeleton
         PUBLIC
             SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN
-            SKELETON_VULKAN_ENABLE_VALIDATION=$<IF:$<CONFIG:Debug>,1,0>)
+            SKELETON_VULKAN_ENABLE_VALIDATION=$<IF:$<CONFIG:Debug>,1,0>
+            SKELETON_VULKAN_SHADER_DIR="${_vulkan_shader_dir}")
 endif()
 
 target_include_directories(libskeleton

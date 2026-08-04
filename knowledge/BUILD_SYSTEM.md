@@ -101,7 +101,8 @@ Release so the CRT still calls the app's `main()`.
 - `OpenGlRenderer::CreateContext` requests a 3.3 context, creates the window,
   makes its context current, loads the GL functions with glad, and creates the
   shader, mesh, and (for texture targets) the render target.
-- The private `VulkanInstance`/`VulkanDevice` RAII helpers live under
+- The private `VulkanInstance`/`VulkanDevice`/`VulkanSwapchain`/
+  `VulkanGraphicsPipeline` RAII helpers live under
   `libskeleton/src/renderer/vulkan/`.
 
 Vulkan validation layers are enabled only in Debug builds. In that
@@ -143,6 +144,32 @@ SKELETON_RES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/res"
 (where `CMAKE_CURRENT_SOURCE_DIR` is `libskeleton/`) so both the library and
 its consumers can locate resources at run time. `SKELETON_RES_DIR` is defined
 only when OpenGL is supported.
+
+### Vulkan shader compilation
+
+When `SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN` is set, `libskeleton` compiles
+the GLSL shaders under `libskeleton/res/shaders/` (currently
+`triangle.vert`/`triangle.frag`, shared with the OpenGL renderer) to SPIR-V at
+build time with **glslc** (searched for via `find_program`; installing the
+Vulkan SDK or adding `glslc` to `PATH` is required). The `.spv` files are
+generated into the build tree at `${CMAKE_CURRENT_BINARY_DIR}/shaders/` by the
+`libskeleton_shaders` custom target, which `libskeleton` depends on so the files
+exist before the library (or anything linking it, such as the tests) builds.
+The shaders are compiled with `-fauto-map-locations` because the shared GLSL
+uses implicit varying/attribute locations (required for OpenGL 3.3
+compatibility); glslc assigns them consistently across stages.
+
+`libskeleton` exports the `PUBLIC` compile definition
+
+```cmake
+SKELETON_VULKAN_SHADER_DIR="${CMAKE_CURRENT_BINARY_DIR}/shaders"
+```
+
+so the library and its consumers (executables and tests) can locate the
+compiled SPIR-V at run time. `VulkanGraphicsPipeline`
+(`libskeleton/src/renderer/vulkan/vulkangraphicspipeline.cc/.h`) reads those
+files, creates a `VkShaderModule` per stage, and builds the graphics pipeline
+from them.
 
 ## How to build
 

@@ -51,6 +51,7 @@ TEST(VulkanSwapchainTest, CreatesSwapchainAndImageViews) {
     EXPECT_EQ(swapchain.ImageViews().size(), swapchain.Images().size());
   }
 
+  vkDestroySurfaceKHR(instance.Instance(), surface, nullptr);
   glfwDestroyWindow(window);
   glfwTerminate();
 }

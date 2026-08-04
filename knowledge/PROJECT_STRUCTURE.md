@@ -47,6 +47,7 @@ skeleton/
 │       │   │   └── opengltexture.cc/.h        # Private: texture wrapper
 │       │   └── vulkan/
 │       │       ├── vulkandevice.cc/.h    # Private: RAII logical device + graphics queue
+│       │       ├── vulkangraphicspipeline.cc/.h # Private: RAII graphics pipeline + shader modules
 │       │       ├── vulkaninstance.cc/.h  # Private: RAII instance + physical-device enumeration
 │       │       ├── vulkanswapchain.cc/.h # Private: RAII swapchain + image views
 │       │       ├── vulkanvalidation.cc/.h  # Private: RAII debug messenger for validation layers
@@ -67,6 +68,7 @@ skeleton/
 │           ├── rendererfactory_test.cc
 │           └── vulkan/
 │               ├── vulkandevice_test.cc
+│               ├── vulkangraphicspipeline_test.cc
 │               ├── vulkaninstance_test.cc
 │               ├── vulkanrenderer_test.cc
 │               └── vulkanswapchain_test.cc
