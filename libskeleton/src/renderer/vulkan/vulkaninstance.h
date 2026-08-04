@@ -16,14 +16,17 @@ namespace skeleton {
 
 // RAII wrapper around a Vulkan instance. Construction initialises the volk
 // loader, creates the instance, and throws RendererCreationException on
-// failure; destruction destroys the instance. In builds that define
-// SKELETON_VULKAN_ENABLE_VALIDATION the instance requests the
+// failure; destruction destroys the instance. |instance_extensions| lists the
+// instance extension names to enable (e.g. the surface extensions required by
+// the windowing system). In builds that define
+// SKELETON_VULKAN_ENABLE_VALIDATION the instance additionally requests the
 // VK_LAYER_KHRONOS_validation layer and a VK_EXT_debug_utils messenger via
 // VulkanValidation, whose callback routes validation messages into the
 // project logger.
 class VulkanInstance {
  public:
-  VulkanInstance();
+  explicit VulkanInstance(
+      const std::vector<const char*>& instance_extensions = {});
   ~VulkanInstance();
 
   VulkanInstance(const VulkanInstance&) = delete;

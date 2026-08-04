@@ -20,16 +20,25 @@ void SkipIfVulkanUnavailable() {
   }
 }
 
-TEST(VulkanRendererTest, CreatesInstancePhysicalDeviceAndLogicalDevice) {
+TEST(VulkanRendererTest, CreatesInstanceSurfaceAndLogicalDevice) {
   SkipIfVulkanUnavailable();
 
-  VulkanRenderer renderer;
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+  GLFWwindow* window = glfwCreateWindow(800, 600, "test", nullptr, nullptr);
+  ASSERT_NE(window, nullptr);
+  {
+    VulkanRenderer renderer;
+    renderer.InitialiseForWindow(window);
 
-  EXPECT_NE(renderer.Instance(), VK_NULL_HANDLE);
-  EXPECT_NE(renderer.PhysicalDevice(), VK_NULL_HANDLE);
-  EXPECT_NE(renderer.Device(), VK_NULL_HANDLE);
-  EXPECT_NE(renderer.GraphicsQueue(), VK_NULL_HANDLE);
+    EXPECT_NE(renderer.Instance(), VK_NULL_HANDLE);
+    EXPECT_NE(renderer.Surface(), VK_NULL_HANDLE);
+    EXPECT_NE(renderer.PhysicalDevice(), VK_NULL_HANDLE);
+    EXPECT_NE(renderer.Device(), VK_NULL_HANDLE);
+    EXPECT_NE(renderer.GraphicsQueue(), VK_NULL_HANDLE);
+    EXPECT_NE(renderer.PresentQueue(), VK_NULL_HANDLE);
+  }
 
+  glfwDestroyWindow(window);
   glfwTerminate();
 }
 

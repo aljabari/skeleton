@@ -81,14 +81,19 @@ Release so the CRT still calls the app's `main()`.
 - The `render_target` argument is a `RenderTarget` enum
   (`RenderTarget::kRenderTargetWindow` — the default — or
   `RenderTarget::kRenderTargetTexture`).
-- `VulkanRenderer` initialises itself in its constructor: it creates a
-  `VulkanInstance` (volk loader + Vulkan instance) and a `VulkanDevice`
-  (physical device with a graphics queue family + logical device). If any step
-  fails (loader, instance, physical device, or logical device) it throws
-  `RendererCreationException`, so the factory catches it and falls back to the
-  next backend. The OpenGL creator always succeeds on supported platforms.
-  The private `VulkanInstance`/`VulkanDevice` RAII helpers live under
-  `libskeleton/src/renderer/vulkan/`.
+- `VulkanRenderer` initialises GLFW (idempotent) in its constructor and creates
+  a `VulkanInstance` (volk loader + Vulkan instance) with the surface
+  extensions returned by `glfwGetRequiredInstanceExtensions`, so
+  `glfwCreateWindowSurface` can later succeed. `InitialiseForWindow` then
+  retrieves the window's surface with `glfwCreateWindowSurface` and creates a
+  `VulkanDevice` with that surface: it picks a physical device with a graphics
+  queue family and a present queue family (the same family when possible) and
+  creates a logical device with a graphics queue and a present queue. If any
+  step fails (loader, GLFW, instance, surface, physical device, or logical
+  device) it throws `RendererCreationException`, so the factory catches it and
+  falls back to the next backend. The OpenGL creator always succeeds on
+  supported platforms. The private `VulkanInstance`/`VulkanDevice` RAII helpers
+  live under `libskeleton/src/renderer/vulkan/`.
 
 Vulkan validation layers are enabled only in Debug builds. In that
 configuration `libskeleton` defines `SKELETON_VULKAN_ENABLE_VALIDATION=1`
