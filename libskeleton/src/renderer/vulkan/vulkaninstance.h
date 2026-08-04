@@ -5,7 +5,12 @@
 
 #include <volk.h>
 
+#include <memory>
 #include <vector>
+
+#if SKELETON_VULKAN_ENABLE_VALIDATION
+#include "renderer/vulkan/vulkanvalidation.h"
+#endif  // SKELETON_VULKAN_ENABLE_VALIDATION
 
 namespace skeleton {
 
@@ -13,8 +18,9 @@ namespace skeleton {
 // loader, creates the instance, and throws RendererCreationException on
 // failure; destruction destroys the instance. In builds that define
 // SKELETON_VULKAN_ENABLE_VALIDATION the instance requests the
-// VK_LAYER_KHRONOS_validation layer and a VK_EXT_debug_utils messenger whose
-// callback routes validation messages into the project logger.
+// VK_LAYER_KHRONOS_validation layer and a VK_EXT_debug_utils messenger via
+// VulkanValidation, whose callback routes validation messages into the
+// project logger.
 class VulkanInstance {
  public:
   VulkanInstance();
@@ -36,19 +42,9 @@ class VulkanInstance {
   std::vector<VkPhysicalDevice> EnumeratePhysicalDevices() const;
 
  private:
-#if SKELETON_VULKAN_ENABLE_VALIDATION
-  // Logs a validation message through spdlog, keyed by message severity.
-  static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
-      VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-      VkDebugUtilsMessageTypeFlagsEXT type,
-      const VkDebugUtilsMessengerCallbackDataEXT* callback_data,
-      void* user_data);
-  void CreateDebugMessenger();
-#endif  // SKELETON_VULKAN_ENABLE_VALIDATION
-
   VkInstance instance_ = VK_NULL_HANDLE;
 #if SKELETON_VULKAN_ENABLE_VALIDATION
-  VkDebugUtilsMessengerEXT debug_messenger_ = VK_NULL_HANDLE;
+  std::unique_ptr<VulkanValidation> validation_;
 #endif  // SKELETON_VULKAN_ENABLE_VALIDATION
 };
 

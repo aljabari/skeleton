@@ -96,7 +96,8 @@ configuration `libskeleton` defines `SKELETON_VULKAN_ENABLE_VALIDATION=1`
 When the macro is `1` and the `VK_LAYER_KHRONOS_validation` layer is installed
 (it ships with the Vulkan SDK), `VulkanInstance` enables that layer and the
 `VK_EXT_debug_utils` extension when creating the instance, then creates a
-`VkDebugUtilsMessengerEXT`. The messenger callback routes each validation
+`VulkanValidation` (a private RAII wrapper in `vulkanvalidation.cc/.h` around
+the `VkDebugUtilsMessengerEXT`). The messenger callback routes each validation
 message into spdlog, mapping severity to logger level (error, warning, info,
 and verbose map to `SPDLOG_ERROR`, `SPDLOG_WARN`, `SPDLOG_INFO`, and
 `SPDLOG_DEBUG`), so validation output appears in the console and the `skeledit`

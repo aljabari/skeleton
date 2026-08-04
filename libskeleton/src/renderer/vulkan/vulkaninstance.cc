@@ -4,7 +4,7 @@
 
 #include <spdlog/spdlog.h>
 
-#include <cstring>
+#include <memory>
 #include <vector>
 
 #include "libskeleton/renderer.h"
@@ -16,25 +16,6 @@ namespace {
 constexpr char kApplicationName[] = "Skeleton";
 constexpr char kEngineName[] = "Skeleton";
 
-#if SKELETON_VULKAN_ENABLE_VALIDATION
-constexpr char kValidationLayerName[] = "VK_LAYER_KHRONOS_validation";
-
-bool IsValidationLayerAvailable() {
-  uint32_t layer_count = 0;
-  if (vkEnumerateInstanceLayerProperties(&layer_count, nullptr) != VK_SUCCESS) {
-    return false;
-  }
-  std::vector<VkLayerProperties> layers(layer_count);
-  vkEnumerateInstanceLayerProperties(&layer_count, layers.data());
-  for (const VkLayerProperties& layer : layers) {
-    if (std::strcmp(layer.layerName, kValidationLayerName) == 0) {
-      return true;
-    }
-  }
-  return false;
-}
-#endif  // SKELETON_VULKAN_ENABLE_VALIDATION
-
 }  // namespace
 
 VulkanInstance::VulkanInstance() {
@@ -44,9 +25,9 @@ VulkanInstance::VulkanInstance() {
   }
 
 #if SKELETON_VULKAN_ENABLE_VALIDATION
-  const char* layer_names[] = {kValidationLayerName};
+  const char* layer_names[] = {VulkanValidation::kLayerName};
   const char* extension_names[] = {VK_EXT_DEBUG_UTILS_EXTENSION_NAME};
-  const bool validation_enabled = IsValidationLayerAvailable();
+  const bool validation_enabled = VulkanValidation::IsLayerAvailable();
 #endif  // SKELETON_VULKAN_ENABLE_VALIDATION
 
   VkApplicationInfo app_info{};
@@ -69,7 +50,7 @@ VulkanInstance::VulkanInstance() {
     create_info.ppEnabledExtensionNames = extension_names;
   } else {
     SPDLOG_WARN("Vulkan validation layer {} not available.",
-                kValidationLayerName);
+                VulkanValidation::kLayerName);
   }
 #endif  // SKELETON_VULKAN_ENABLE_VALIDATION
 
@@ -80,7 +61,7 @@ VulkanInstance::VulkanInstance() {
   volkLoadInstance(instance_);
 #if SKELETON_VULKAN_ENABLE_VALIDATION
   if (validation_enabled) {
-    CreateDebugMessenger();
+    validation_ = std::make_unique<VulkanValidation>(instance_);
   }
 #endif  // SKELETON_VULKAN_ENABLE_VALIDATION
   SPDLOG_DEBUG("Created Vulkan instance.");
@@ -88,9 +69,7 @@ VulkanInstance::VulkanInstance() {
 
 VulkanInstance::~VulkanInstance() {
 #if SKELETON_VULKAN_ENABLE_VALIDATION
-  if (debug_messenger_ != VK_NULL_HANDLE) {
-    vkDestroyDebugUtilsMessengerEXT(instance_, debug_messenger_, nullptr);
-  }
+  validation_.reset();
 #endif  // SKELETON_VULKAN_ENABLE_VALIDATION
   if (instance_ != VK_NULL_HANDLE) {
     vkDestroyInstance(instance_, nullptr);
@@ -103,7 +82,7 @@ VkInstance VulkanInstance::Instance() const {
 
 #if SKELETON_VULKAN_ENABLE_VALIDATION
 VkDebugUtilsMessengerEXT VulkanInstance::DebugMessenger() const {
-  return debug_messenger_;
+  return validation_ ? validation_->Messenger() : VK_NULL_HANDLE;
 }
 #endif  // SKELETON_VULKAN_ENABLE_VALIDATION
 
@@ -120,54 +99,5 @@ std::vector<VkPhysicalDevice> VulkanInstance::EnumeratePhysicalDevices() const {
   vkEnumeratePhysicalDevices(instance_, &device_count, devices.data());
   return devices;
 }
-
-#if SKELETON_VULKAN_ENABLE_VALIDATION
-void VulkanInstance::CreateDebugMessenger() {
-  VkDebugUtilsMessengerCreateInfoEXT create_info{};
-  create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-  create_info.messageSeverity =
-      VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-      VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-      VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-      VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-  create_info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                            VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                            VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-  create_info.pfnUserCallback = &VulkanInstance::DebugCallback;
-
-  if (vkCreateDebugUtilsMessengerEXT(instance_, &create_info, nullptr,
-                                     &debug_messenger_) != VK_SUCCESS) {
-    SPDLOG_WARN("Failed to create the Vulkan debug messenger.");
-    return;
-  }
-  SPDLOG_INFO("Vulkan validation layer enabled.");
-}
-
-VKAPI_ATTR VkBool32 VKAPI_CALL VulkanInstance::DebugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-    VkDebugUtilsMessageTypeFlagsEXT type,
-    const VkDebugUtilsMessengerCallbackDataEXT* callback_data,
-    void* user_data) {
-  (void)type;
-  (void)user_data;
-  switch (severity) {
-    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-      SPDLOG_ERROR(callback_data->pMessage);
-      break;
-    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-      SPDLOG_WARN(callback_data->pMessage);
-      break;
-    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-      SPDLOG_INFO(callback_data->pMessage);
-      break;
-    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-      SPDLOG_DEBUG(callback_data->pMessage);
-      break;
-    default:
-      break;
-  }
-  return VK_FALSE;
-}
-#endif  // SKELETON_VULKAN_ENABLE_VALIDATION
 
 }  // namespace skeleton

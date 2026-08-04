@@ -48,6 +48,7 @@ skeleton/
 │       │   └── vulkan/
 │       │       ├── vulkandevice.cc/.h    # Private: RAII logical device + graphics queue
 │       │       ├── vulkaninstance.cc/.h  # Private: RAII instance + physical-device enumeration
+│       │       ├── vulkanvalidation.cc/.h  # Private: RAII debug messenger for validation layers
 │       │       └── vulkanrenderer.cc
 ├── tests/                    # Unit tests (Google Test), mirrors libskeleton/src
 │   ├── CMakeLists.txt
