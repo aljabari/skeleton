@@ -46,6 +46,8 @@ ImTextureID OpenGlImGuiBackend::GetViewportTextureId() const {
              : ImTextureID_Invalid;
 }
 
+bool OpenGlImGuiBackend::FlipsViewportTexture() const { return true; }
+
 void OpenGlImGuiBackend::Shutdown() {
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();

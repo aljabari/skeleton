@@ -94,11 +94,11 @@ skeleton/
 │   ├── CMakeLists.txt        # Fetches imgui docking branch (skeledit-only dependency)
 │   ├── include/skeledit/
 │   │   ├── editorlogsink.h   # spdlog sink + LogSink impl for the editor log window
-│   │   ├── imguibackend.h    # Abstract ImGuiBackend interface (GLFW platform + renderer backend); GetViewportTextureId supplies the scene preview texture
+│   │   ├── imguibackend.h    # Abstract ImGuiBackend interface (GLFW platform + renderer backend); GetViewportTextureId supplies the scene preview texture; FlipsViewportTexture reports whether it is bottom-up (OpenGL) and must be flipped when drawn
 │   │   ├── imguibackendfactory.h # CreateImGuiBackend: builds the backend for a Renderer
 │   │   ├── imguieditor.h     # Public header for the ImGui editor wrapper
 │   │   ├── logsink.h         # LogLevel/LogEntry/LogSink interface
-│   │   ├── opengl_imguibackend.h # GLFW + ImGui OpenGL3 backend (viewport texture = renderer GetTextureId)
+│   │   ├── opengl_imguibackend.h # GLFW + ImGui OpenGL3 backend (viewport texture = renderer GetTextureId, stored bottom-up so FlipsViewportTexture returns true)
 │   │   ├── vulkan_imguibackend.h # GLFW + ImGui Vulkan backend (own render pass/descriptor pool,
 │   │   │                          #   draws via renderer FrameSubmitCallback command buffer hook;
 │   │   │                          #   registers the render-target image view via ImGui_ImplVulkan_AddTexture)
@@ -106,7 +106,7 @@ skeleton/
 │       ├── main.cc
 │       ├── editorlogsink.cc  # Buffers newest kMaxEntries log lines (canonical format)
 │       ├── imguibackendfactory.cc # Backend factory dispatching on Renderer::GetBackend
-│       ├── imguieditor.cc    # ImGui context/backends, dockable viewport, dock layout, log window
+│       ├── imguieditor.cc    # ImGui context/backends, dockable viewport, dock layout, log window; flips the viewport texture only when the backend reports it is stored bottom-up
 │       ├── opengl_imguibackend.cc  # ImGui_ImplGlfw_InitForOpenGL + ImGui_ImplOpenGL3_*
 │       └── vulkan_imguibackend.cc  # ImGui_ImplGlfw_InitForVulkan + ImGui_ImplVulkan_* + FrameSubmitCallback
 └── build/                    # Build output (gitignored)

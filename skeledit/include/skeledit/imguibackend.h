@@ -35,6 +35,12 @@ class ImGuiBackend {
   // for example on resize), so call it once per frame while drawing.
   virtual ImTextureID GetViewportTextureId() const = 0;
 
+  // Returns true when the viewport texture from GetViewportTextureId is stored
+  // bottom-up (for example an OpenGL texture whose first row is the bottom of
+  // the image) and so must be flipped vertically when drawn. Backends whose
+  // coordinate system is already top-down, like Vulkan, return false.
+  virtual bool FlipsViewportTexture() const { return false; }
+
   // Releases the platform and renderer backend resources. Called before the
   // ImGui context is destroyed, and must still run while the renderer backend
   // is alive.

@@ -348,8 +348,11 @@ ImGui. The ImGui backend seam is the GLFW init call
 editor is split into a backend-neutral shell and per-backend implementations:
 
 - `ImGuiBackend` (`skeledit/include/skeledit/imguibackend.h`) is the abstract
-  interface: `Init`, `NewFrame`, `RenderDrawData`, `Shutdown`. Each concrete
-  backend owns the paired GLFW + renderer ImGui backends.
+  interface: `Init`, `NewFrame`, `RenderDrawData`, `GetViewportTextureId`,
+  `FlipsViewportTexture`, `Shutdown`. `FlipsViewportTexture` returns true when
+  the viewport texture is stored bottom-up (OpenGL) and the editor must flip it
+  vertically when drawing; Vulkan returns false. Each concrete backend owns the
+  paired GLFW + renderer ImGui backends.
 - `OpenGlImGuiBackend` (`opengl_imguibackend.cc/.h`) wraps
   `ImGui_ImplGlfw_InitForOpenGL` + `ImGui_ImplOpenGL3_*` and draws immediately
   from `RenderDrawData`.
@@ -384,7 +387,10 @@ editor is split into a backend-neutral shell and per-backend implementations:
   dispatches `NewFrame`/`Render` through the backend. Each frame the viewport
   draws the backend-provided texture id (`GetViewportTextureId`, an
   `ImTextureID`/`ImU64`) via `ImGui::Image`, or "No render target." when there is
-  none; the id is no longer pushed from `main.cc`.
+  none; the id is no longer pushed from `main.cc`. The UVs passed to
+  `ImGui::Image` flip the texture vertically only when
+  `FlipsViewportTexture()` returns true (OpenGL's bottom-up textures), while
+  Vulkan's top-down coordinates draw it upright without flipping.
 - `CreateImGuiBackend` (`imguibackendfactory.h`, `imguibackendfactory.cc`)
   builds the right backend from `Renderer::GetBackend()`; `skeledit/src/main.cc`
   passes it to the editor. For Vulkan the frame loop calls `editor.Render()`

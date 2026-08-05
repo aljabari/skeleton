@@ -26,6 +26,7 @@ class OpenGlImGuiBackend : public ImGuiBackend {
   void NewFrame() override;
   void RenderDrawData() override;
   ImTextureID GetViewportTextureId() const override;
+  bool FlipsViewportTexture() const override;
   void Shutdown() override;
 
  private:

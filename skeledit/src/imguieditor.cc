@@ -121,9 +121,12 @@ void ImGuiEditor::DrawViewport() {
   // already reflected in the identifier the backend returns.
   const ImTextureID viewport_texture_id = backend_->GetViewportTextureId();
   if (viewport_texture_id != 0) {
-    ImGui::Image(viewport_texture_id,
-                 ImVec2(viewport_width_, viewport_height_), ImVec2(0.0f, 1.0f),
-                 ImVec2(1.0f, 0.0f));
+    const ImVec2 uv0 = backend_->FlipsViewportTexture() ? ImVec2(0.0f, 1.0f)
+                                                        : ImVec2(0.0f, 0.0f);
+    const ImVec2 uv1 = backend_->FlipsViewportTexture() ? ImVec2(1.0f, 0.0f)
+                                                        : ImVec2(1.0f, 1.0f);
+    ImGui::Image(viewport_texture_id, ImVec2(viewport_width_, viewport_height_),
+                 uv0, uv1);
   } else {
     // The backend has no render target texture yet (for example the renderer
     // does not render to a texture).

@@ -39,7 +39,8 @@ std::shared_ptr<EditorLogSink> ConfigureLogging() {
 int Run(int argc, char* argv[]) {
   const std::shared_ptr<EditorLogSink> log_sink = ConfigureLogging();
 
-  auto renderer = CreateRenderer(RenderTarget::kRenderTargetTexture,
+  auto renderer = CreateRenderer(RendererBackend::kOpenGl,
+                                 RenderTarget::kRenderTargetTexture,
                                  WindowConfig{1280, 720, "SkelEdit"});
   if (renderer == nullptr) {
     SPDLOG_ERROR("No renderer available; exiting.");
@@ -59,16 +60,8 @@ int Run(int argc, char* argv[]) {
     window.PollEvents();
     editor.NewFrame();
     editor.Draw();
-    if (renderer_ptr->GetBackend() == RendererBackend::kVulkan) {
-      // The Vulkan renderer submits the ImGui command buffer through the frame
-      // submit hook after recording its own frame, so the draw data must be
-      // produced before the renderer records it.
-      editor.Render();
-      renderer->Render();
-    } else {
-      renderer->Render();
-      editor.Render();
-    }
+    editor.Render();
+    renderer->Render();
     window.SwapBuffers();
   }
 
