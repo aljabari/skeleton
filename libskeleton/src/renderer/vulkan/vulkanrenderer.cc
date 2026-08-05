@@ -6,6 +6,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <utility>
@@ -137,9 +138,10 @@ void VulkanRenderer::Render() {
       image_available_semaphore_->Semaphore(), VK_NULL_HANDLE, &image_index);
   if (acquire_result == VK_ERROR_OUT_OF_DATE_KHR) {
     // The swapchain no longer matches the window (for example it was
-    // resized); skip this frame. No submit was made, so the fence is left
-    // signaled and the next frame waits normally.
-    SPDLOG_DEBUG("Swapchain out of date; skipping frame.");
+    // resized); recreate it to match and skip this frame. No submit was made,
+    // so the fence is left signaled and the next frame waits normally.
+    SPDLOG_DEBUG("Swapchain out of date; recreating and skipping frame.");
+    RecreateSwapchain();
     return;
   }
   if (acquire_result != VK_SUCCESS && acquire_result != VK_SUBOPTIMAL_KHR) {
@@ -175,17 +177,25 @@ void VulkanRenderer::Render() {
   vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer, &offset);
   vkCmdDraw(command_buffer, static_cast<uint32_t>(mesh_->VertexCount()), 1, 0,
             0);
-  if (overlay_draw_callback_ != nullptr) {
-    // The overlay draws inside the same render pass, so it composites over the
-    // scene on the same swapchain image.
-    overlay_draw_callback_(command_buffer);
-  }
   vkCmdEndRenderPass(command_buffer);
 
   if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS) {
     SPDLOG_ERROR("Failed to record the Vulkan draw commands.");
     throw RendererCreationException(
         "Failed to record the Vulkan draw commands.");
+  }
+
+  // The additional command buffer renders after the scene's, so it composites
+  // over the same swapchain image through its own render pass. Both command
+  // buffers are submitted together and execute in order on the graphics queue.
+  std::vector<VkCommandBuffer> command_buffers;
+  command_buffers.push_back(command_buffer);
+  if (frame_submit_callback_ != nullptr) {
+    VkCommandBuffer additional_command_buffer =
+        frame_submit_callback_(image_index);
+    if (additional_command_buffer != VK_NULL_HANDLE) {
+      command_buffers.push_back(additional_command_buffer);
+    }
   }
 
   VkPipelineStageFlags wait_stage =
@@ -197,8 +207,9 @@ void VulkanRenderer::Render() {
   submit_info.waitSemaphoreCount = 1;
   submit_info.pWaitSemaphores = &wait_semaphore;
   submit_info.pWaitDstStageMask = &wait_stage;
-  submit_info.commandBufferCount = 1;
-  submit_info.pCommandBuffers = &command_buffer;
+  submit_info.commandBufferCount =
+      static_cast<uint32_t>(command_buffers.size());
+  submit_info.pCommandBuffers = command_buffers.data();
   submit_info.signalSemaphoreCount = 1;
   submit_info.pSignalSemaphores = &signal_semaphore;
   if (vkQueueSubmit(device_->GraphicsQueue(), 1, &submit_info,
@@ -221,8 +232,10 @@ void VulkanRenderer::Render() {
   if (present_result == VK_ERROR_OUT_OF_DATE_KHR ||
       present_result == VK_SUBOPTIMAL_KHR) {
     // The swapchain no longer matches the window; the frame was still
-    // submitted, so a subsequent frame can just continue.
-    SPDLOG_DEBUG("Swapchain present out of date or suboptimal.");
+    // submitted and presented, so recreate the swapchain to match and let a
+    // subsequent frame continue normally.
+    SPDLOG_DEBUG("Swapchain present out of date or suboptimal; recreating.");
+    RecreateSwapchain();
   } else if (present_result != VK_SUCCESS) {
     SPDLOG_ERROR("Failed to present the Vulkan swapchain image.");
     throw RendererCreationException(
@@ -271,8 +284,60 @@ uint32_t VulkanRenderer::SwapchainMinImageCount() const {
   return swapchain_ ? swapchain_->MinImageCount() : 0;
 }
 
-void VulkanRenderer::SetOverlayDrawCallback(OverlayDrawCallback callback) {
-  overlay_draw_callback_ = std::move(callback);
+VkFormat VulkanRenderer::SwapchainImageFormat() const {
+  return swapchain_ ? swapchain_->ImageFormat() : VK_FORMAT_UNDEFINED;
+}
+
+VkExtent2D VulkanRenderer::SwapchainExtent() const {
+  return swapchain_ ? swapchain_->Extent() : VkExtent2D{};
+}
+
+const std::vector<VkImageView>& VulkanRenderer::SwapchainImageViews() const {
+  static const std::vector<VkImageView> kEmpty;
+  return swapchain_ ? swapchain_->ImageViews() : kEmpty;
+}
+
+void VulkanRenderer::RecreateSwapchain() {
+  if (device_ == nullptr || window_ == nullptr || render_pass_ == nullptr) {
+    return;
+  }
+  // Wait so no in-flight command buffer (including any recorded by the frame
+  // submit hook, which uses the same swapchain images) still references the
+  // framebuffers about to be destroyed.
+  vkDeviceWaitIdle(device_->Device());
+
+  int width = 0;
+  int height = 0;
+  glfwGetFramebufferSize(window_, &width, &height);
+  const uint32_t swapchain_width = std::max(width, 1);
+  const uint32_t swapchain_height = std::max(height, 1);
+
+  // The image views are owned by the swapchain, so the framebuffers built on
+  // top of them must be destroyed before the swapchain is.
+  framebuffers_.clear();
+  swapchain_.reset();
+  swapchain_ = std::make_unique<VulkanSwapchain>(
+      *device_, surface_, swapchain_width, swapchain_height);
+
+  framebuffers_.reserve(swapchain_->ImageViews().size());
+  for (VkImageView image_view : swapchain_->ImageViews()) {
+    framebuffers_.push_back(std::make_unique<VulkanFramebuffer>(
+        *device_, render_pass_->RenderPass(), image_view,
+        swapchain_->Extent()));
+  }
+
+  if (swapchain_recreated_callback_ != nullptr) {
+    swapchain_recreated_callback_();
+  }
+}
+
+void VulkanRenderer::SetFrameSubmitCallback(FrameSubmitCallback callback) {
+  frame_submit_callback_ = std::move(callback);
+}
+
+void VulkanRenderer::SetSwapchainRecreatedCallback(
+    SwapchainRecreatedCallback callback) {
+  swapchain_recreated_callback_ = std::move(callback);
 }
 
 }  // namespace skeleton

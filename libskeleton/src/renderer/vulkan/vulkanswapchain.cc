@@ -64,7 +64,7 @@ VkSurfaceFormatKHR VulkanSwapchain::ChooseSurfaceFormat() const {
   vkGetPhysicalDeviceSurfaceFormatsKHR(device_.PhysicalDevice(), surface_,
                                        &format_count, formats.data());
   for (const VkSurfaceFormatKHR& format : formats) {
-    if (format.format == VK_FORMAT_B8G8R8A8_SRGB &&
+    if (format.format == VK_FORMAT_B8G8R8A8_UNORM &&
         format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
       return format;
     }

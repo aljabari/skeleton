@@ -340,13 +340,22 @@ editor is split into a backend-neutral shell and per-backend implementations:
   `ImGui_ImplGlfw_InitForOpenGL` + `ImGui_ImplOpenGL3_*` and draws immediately
   from `RenderDrawData`.
 - `VulkanImGuiBackend` (`vulkan_imguibackend.cc/.h`) wraps
-  `ImGui_ImplGlfw_InitForVulkan` + `ImGui_ImplVulkan_*`. `Init` fills
-  `ImGui_ImplVulkan_InitInfo` from `VulkanRenderer` (instance, physical device,
-  device, graphics queue family/queue, `DescriptorPoolSize` so the backend
-  creates its own descriptor pool, swapchain image counts, and the renderer's
-  render pass for `PipelineInfoMain.RenderPass`) and registers an overlay
-  callback on the renderer. Its `RenderDrawData` is a no-op because the UI is
-  composited by the renderer's overlay hook.
+  `ImGui_ImplGlfw_InitForVulkan` + `ImGui_ImplVulkan_*`. `Init` creates the
+  Vulkan objects the ImGui backend needs that the renderer does not provide — a
+  descriptor pool, a render pass that loads the swapchain image left by the
+  renderer's scene render pass (`loadOp` `LOAD`, `initialLayout`/`finalLayout`
+  `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR`), one framebuffer per swapchain image, and a
+  command pool + command buffer — fills `ImGui_ImplVulkan_InitInfo` from
+  `VulkanRenderer` (instance, physical device, device, graphics queue
+  family/queue, the backend's own descriptor pool and render pass, and swapchain
+  image counts), and registers a frame submit callback on the renderer. Each
+  recorded frame the renderer invokes that callback, which resets and records
+  the backend's command buffer (its render pass over the current swapchain
+  image, `ImGui_ImplVulkan_RenderDrawData`, `vkCmdEndRenderPass`) and returns
+  it; the renderer submits it after its own scene command buffer and before
+  presenting. `RenderDrawData` is a no-op because the drawing is deferred.
+  `Shutdown` drops the callback, waits for the device to go idle, shuts down the
+  ImGui backends, and destroys the backend-owned Vulkan objects.
 - `ImGuiEditor` (`imguieditor.cc/.h`) now takes a `std::unique_ptr<ImGuiBackend>`
   in its constructor, calls `Init` after creating the ImGui context, and
   dispatches `NewFrame`/`Render` through the backend. The viewport texture id is
@@ -358,18 +367,23 @@ editor is split into a backend-neutral shell and per-backend implementations:
   *before* `renderer->Render()` so the ImGui draw data exists when the renderer
   records its frame.
 
-The Vulkan renderer supports the overlay through a generic, ImGui-agnostic
-hook: `VulkanRenderer::SetOverlayDrawCallback` accepts a
-`std::function<void(VkCommandBuffer)>` invoked inside the render pass after the
-scene is drawn and before `vkCmdEndRenderPass`, so the overlay composites over
-the same swapchain image (it is skipped for frames not recorded, e.g. when the
-swapchain is out of date). To drive `ImGui_ImplVulkan_InitInfo`,
-`VulkanRenderer` also exposes `RenderPass()`, `QueueFamilyIndex()`,
-`SwapchainImageCount()`, and `SwapchainMinImageCount()` (the latter two come
-from `VulkanSwapchain`, which now records its requested `minImageCount`).
-`skeledit` additionally defines `IMGUI_IMPL_VULKAN_USE_VOLK` for its own
-compilation units so `imgui_impl_vulkan.h` resolves through volk, matching how
-the `imgui` library itself is compiled.
+The Vulkan renderer supports compositing an extra layer through a generic,
+ImGui-agnostic hook: `VulkanRenderer::SetFrameSubmitCallback` accepts a
+`std::function<VkCommandBuffer(uint32_t image_index)>` invoked once per recorded
+frame after the renderer's own command buffer is recorded (it is skipped for
+frames not recorded, e.g. when the swapchain is out of date). The callback
+records and returns an additional command buffer — for example the ImGui
+backend's, drawn through its own render pass over the acquired swapchain image —
+and the renderer submits it together with its own scene command buffer (in
+order) before presenting. Returning `VK_NULL_HANDLE` submits nothing extra. To
+drive `ImGui_ImplVulkan_InitInfo` and the backend's framebuffers, `VulkanRenderer`
+also exposes `RenderPass()`, `QueueFamilyIndex()`, `SwapchainImageCount()`,
+`SwapchainMinImageCount()`, `SwapchainImageFormat()`, `SwapchainExtent()`, and
+`SwapchainImageViews()` (the swapchain data comes from `VulkanSwapchain`, which
+records its requested `minImageCount`). `skeledit` additionally defines
+`IMGUI_IMPL_VULKAN_USE_VOLK` for its own compilation units so
+`imgui_impl_vulkan.h` resolves through volk, matching how the `imgui` library
+itself is compiled.
 
 `skeledit_tests` (see [TESTING.md](TESTING.md))
 compiles `skeledit/src/imguieditor.cc` alongside its test source so the

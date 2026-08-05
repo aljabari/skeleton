@@ -75,9 +75,13 @@ matched with `\d` escapes and no `{n}` repetition).
 
 The ImGui-backend refactor is verified at run time rather than by unit tests:
 running `skeledit` picks the Vulkan renderer first, and the Vulkan backend
-(`ImGui_ImplVulkan_Init` against the renderer's render pass, plus the overlay
-hook firing inside `VulkanRenderer::Render`) initialises and draws without
-validation-layer errors in Debug builds.
+(`ImGui_ImplVulkan_Init` against its own render pass and descriptor pool, plus
+the `FrameSubmitCallback` hook firing inside `VulkanRenderer::Render` to submit
+the backend's command buffer) initialises and draws without validation-layer
+errors in Debug builds. `VulkanRendererTest.FrameSubmitCallbackCanAddCommandBuffer`
+unit-tests the hook itself: it registers a callback that returns a
+begin/end-recorded secondary command buffer and asserts `Render()` submits it on
+every recorded frame.
 
 ## Running tests
 

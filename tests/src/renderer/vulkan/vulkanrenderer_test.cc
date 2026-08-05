@@ -59,5 +59,57 @@ TEST(VulkanRendererTest, DrawsTriangleMeshWithoutError) {
   glfwTerminate();
 }
 
+TEST(VulkanRendererTest, FrameSubmitCallbackCanAddCommandBuffer) {
+  SkipIfVulkanUnavailable();
+
+  {
+    VulkanRenderer renderer;
+    renderer.CreateContext(WindowConfig{800, 600, "test"});
+
+    VkCommandPool command_pool = VK_NULL_HANDLE;
+    VkCommandPoolCreateInfo pool_info{};
+    pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    pool_info.queueFamilyIndex = renderer.QueueFamilyIndex();
+    ASSERT_EQ(
+        vkCreateCommandPool(renderer.Device(), &pool_info, nullptr,
+                            &command_pool),
+        VK_SUCCESS);
+
+    VkCommandBuffer command_buffer = VK_NULL_HANDLE;
+    VkCommandBufferAllocateInfo allocate_info{};
+    allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocate_info.commandPool = command_pool;
+    allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocate_info.commandBufferCount = 1;
+    ASSERT_EQ(vkAllocateCommandBuffers(renderer.Device(), &allocate_info,
+                                       &command_buffer),
+              VK_SUCCESS);
+
+    uint32_t callback_invocation_count = 0;
+    renderer.SetFrameSubmitCallback(
+        [&callback_invocation_count, &command_buffer](uint32_t image_index) {
+          ++callback_invocation_count;
+          VkCommandBufferBeginInfo begin_info{};
+          begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+          begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+          EXPECT_EQ(vkBeginCommandBuffer(command_buffer, &begin_info),
+                    VK_SUCCESS);
+          EXPECT_EQ(vkEndCommandBuffer(command_buffer), VK_SUCCESS);
+          return command_buffer;
+        });
+
+    EXPECT_NO_THROW(renderer.Render());
+    EXPECT_NO_THROW(renderer.Render());
+    EXPECT_EQ(callback_invocation_count, 2);
+    EXPECT_GE(renderer.SwapchainImageCount(), 1u);
+
+    vkDeviceWaitIdle(renderer.Device());
+    vkDestroyCommandPool(renderer.Device(), command_pool, nullptr);
+  }
+
+  glfwTerminate();
+}
+
 }  // namespace
 }  // namespace skeleton

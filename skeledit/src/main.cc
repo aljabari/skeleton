@@ -61,9 +61,9 @@ int Run(int argc, char* argv[]) {
     editor.SetViewportTextureId(renderer_ptr->GetTextureId());
     editor.Draw();
     if (renderer_ptr->GetBackend() == RendererBackend::kVulkan) {
-      // The Vulkan renderer composites the ImGui UI inside its own render
-      // pass, so the draw data must be recorded before the renderer records
-      // its frame.
+      // The Vulkan renderer submits the ImGui command buffer through the frame
+      // submit hook after recording its own frame, so the draw data must be
+      // produced before the renderer records it.
       editor.Render();
       renderer->Render();
     } else {

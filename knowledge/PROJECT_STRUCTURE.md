@@ -97,14 +97,15 @@ skeleton/
 │   │   ├── imguieditor.h     # Public header for the ImGui editor wrapper
 │   │   ├── logsink.h         # LogLevel/LogEntry/LogSink interface
 │   │   ├── opengl_imguibackend.h # GLFW + ImGui OpenGL3 backend
-│   │   ├── vulkan_imguibackend.h # GLFW + ImGui Vulkan backend (draws via renderer overlay hook)
+│   │   ├── vulkan_imguibackend.h # GLFW + ImGui Vulkan backend (own render pass/descriptor pool,
+│   │   │                          #   draws via renderer FrameSubmitCallback command buffer hook)
 │   └── src/
 │       ├── main.cc
 │       ├── editorlogsink.cc  # Buffers newest kMaxEntries log lines (canonical format)
 │       ├── imguibackendfactory.cc # Backend factory dispatching on Renderer::GetBackend
 │       ├── imguieditor.cc    # ImGui context/backends, dockable viewport, dock layout, log window
 │       ├── opengl_imguibackend.cc  # ImGui_ImplGlfw_InitForOpenGL + ImGui_ImplOpenGL3_*
-│       └── vulkan_imguibackend.cc  # ImGui_ImplGlfw_InitForVulkan + ImGui_ImplVulkan_* + overlay hook
+│       └── vulkan_imguibackend.cc  # ImGui_ImplGlfw_InitForVulkan + ImGui_ImplVulkan_* + FrameSubmitCallback
 └── build/                    # Build output (gitignored)
 ```
 
