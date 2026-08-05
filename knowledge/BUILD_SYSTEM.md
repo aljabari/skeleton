@@ -368,8 +368,11 @@ editor is split into a backend-neutral shell and per-backend implementations:
   image, `ImGui_ImplVulkan_RenderDrawData`, `vkCmdEndRenderPass`) and returns
   it; the renderer submits it after its own scene command buffer and before
   presenting. `RenderDrawData` is a no-op because the drawing is deferred.
-  `Shutdown` drops the callback, waits for the device to go idle, shuts down the
-  ImGui backends, and destroys the backend-owned Vulkan objects. The backend also
+  `Shutdown` drops the callback, waits for the device to go idle, frees the
+  viewport texture's descriptor set from the pool (before `ImGui_ImplVulkan_Shutdown`,
+  which deletes the backend data `ImGui_ImplVulkan_RemoveTexture` depends on),
+  shuts down the ImGui backends, and destroys the backend-owned Vulkan objects.
+  The backend also
   owns the viewport texture: `GetViewportTextureId` lazily registers the
   renderer's `RenderTargetImageView()` with
   `ImGui_ImplVulkan_AddTexture` (which on the ImGui docking branch takes an image

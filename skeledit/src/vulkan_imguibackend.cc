@@ -222,6 +222,14 @@ void VulkanImGuiBackend::Shutdown() {
   // Wait for the last submitted frame so the backend's command buffer and
   // framebuffers are no longer in use before they are destroyed.
   vkDeviceWaitIdle(renderer_->Device());
+  // Free the viewport texture's descriptor set from the descriptor pool while
+  // the ImGui backend data still exists. ImGui_ImplVulkan_Shutdown deletes
+  // that data, so ImGui_ImplVulkan_RemoveTexture must not run after it.
+  if (viewport_descriptor_set_ != VK_NULL_HANDLE) {
+    ImGui_ImplVulkan_RemoveTexture(viewport_descriptor_set_);
+    viewport_descriptor_set_ = VK_NULL_HANDLE;
+  }
+  viewport_image_view_ = VK_NULL_HANDLE;
   ImGui_ImplVulkan_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   DestroyVulkanResources();
@@ -283,11 +291,10 @@ void VulkanImGuiBackend::DestroyVulkanResources() {
     render_pass_ = VK_NULL_HANDLE;
   }
   if (descriptor_pool_ != VK_NULL_HANDLE) {
-    if (viewport_descriptor_set_ != VK_NULL_HANDLE) {
-      ImGui_ImplVulkan_RemoveTexture(viewport_descriptor_set_);
-      viewport_descriptor_set_ = VK_NULL_HANDLE;
-    }
-    viewport_image_view_ = VK_NULL_HANDLE;
+    // The descriptor sets allocated from this pool (the font atlas and the
+    // viewport texture) are freed before the pool is: the font atlas by
+    // ImGui_ImplVulkan_Shutdown, the viewport texture by Shutdown just before
+    // that. Destroying the pool frees any remaining sets anyway.
     vkDestroyDescriptorPool(device, descriptor_pool_, nullptr);
     descriptor_pool_ = VK_NULL_HANDLE;
   }

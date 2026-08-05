@@ -49,9 +49,12 @@ class VulkanImGuiBackend : public ImGuiBackend {
 
   // Destroys the descriptor pool, render pass, framebuffers, and command pool
   // owned by the backend. Must run after ImGui_ImplVulkan_Shutdown so the
-  // ImGui pipeline (which references the render pass) and descriptor sets are
-  // released first, and after the device is idle so no recorded command buffer
-  // is still executing.
+  // ImGui pipeline (which references the render pass) and the font atlas's
+  // descriptor set are released first, and after the device is idle so no
+  // recorded command buffer is still executing. The viewport texture's
+  // descriptor set is freed from the pool by Shutdown before
+  // ImGui_ImplVulkan_Shutdown, since that call destroys the backend data
+  // ImGui_ImplVulkan_RemoveTexture depends on.
   void DestroyVulkanResources();
 
   // Destroys the existing framebuffers and creates one for every current
