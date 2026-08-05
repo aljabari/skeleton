@@ -41,7 +41,8 @@ TEST(VulkanRenderPassTest, CreatesColorRenderPass) {
             VK_SUCCESS);
   {
     VulkanDevice device(instance, surface);
-    const VulkanRenderPass render_pass(device, VK_FORMAT_B8G8R8A8_SRGB);
+    const VulkanRenderPass render_pass(device, VK_FORMAT_B8G8R8A8_SRGB,
+                                       VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     EXPECT_NE(render_pass.RenderPass(), VK_NULL_HANDLE);
   }

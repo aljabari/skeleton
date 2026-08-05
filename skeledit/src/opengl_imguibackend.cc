@@ -6,9 +6,12 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
 
+#include "libskeleton/renderer.h"
+
 namespace skeleton {
 
-OpenGlImGuiBackend::OpenGlImGuiBackend(GLFWwindow* window) : window_(window) {}
+OpenGlImGuiBackend::OpenGlImGuiBackend(GLFWwindow* window, Renderer* renderer)
+    : window_(window), renderer_(renderer) {}
 
 OpenGlImGuiBackend::~OpenGlImGuiBackend() {
   if (initialised_) {
@@ -35,6 +38,12 @@ void OpenGlImGuiBackend::NewFrame() {
 
 void OpenGlImGuiBackend::RenderDrawData() {
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+ImTextureID OpenGlImGuiBackend::GetViewportTextureId() const {
+  return renderer_ != nullptr
+             ? static_cast<ImTextureID>(renderer_->GetTextureId())
+             : ImTextureID_Invalid;
 }
 
 void OpenGlImGuiBackend::Shutdown() {

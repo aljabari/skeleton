@@ -23,18 +23,23 @@ class VulkanGraphicsPipeline;
 class VulkanInstance;
 class VulkanMesh;
 class VulkanRenderPass;
+class VulkanRenderTarget;
 class VulkanSemaphore;
 class VulkanSwapchain;
 
 class VulkanRenderer : public Renderer {
  public:
-  VulkanRenderer();
+  explicit VulkanRenderer(
+      RenderTarget render_target = RenderTarget::kRenderTargetWindow);
   ~VulkanRenderer() override;
 
   RendererBackend GetBackend() const override;
   void CreateContext(const WindowConfig& config) override;
   GLFWwindow* GetNativeWindow() const override;
   void Render() override;
+  // Recreates the off-screen render target at the given size. No-op for window
+  // rendering.
+  void ResizeRenderTarget(int width, int height) override;
 
   // CreateContext creates the window and instance, then the surface, physical
   // device, logical device, and queues, and finally the swapchain, render
@@ -63,6 +68,16 @@ class VulkanRenderer : public Renderer {
   VkExtent2D SwapchainExtent() const;
   const std::vector<VkImageView>& SwapchainImageViews() const;
 
+  // The image view of the off-screen render target the scene draws into when
+  // rendering to a texture, or VK_NULL_HANDLE when it does not. The image view
+  // stays valid until the render target is recreated (ResizeRenderTarget, or
+  // destruction), so callers (for example the editor's ImGui backend, which
+  // registers it with ImGui as the viewport texture) can use it to build a
+  // texture identifier. The scene render pass leaves the image in the
+  // shader-read-only layout, which is what ImGui samples.
+  VkImageView RenderTargetImageView() const;
+  VkExtent2D RenderTargetExtent() const;
+
   // Invoked once per recorded frame, after the swapchain image has been
   // acquired and the renderer's own command buffer has been recorded. The
   // callback records and ends an additional command buffer (for example an
@@ -89,6 +104,16 @@ class VulkanRenderer : public Renderer {
 
  private:
   void CreateSwapchainResources(const WindowConfig& config);
+  // Creates the off-screen render target, its render pass, and its framebuffer
+  // for texture rendering. Called from CreateContext when the render target is
+  // a texture.
+  void CreateRenderTarget(const WindowConfig& config);
+  // Records a render pass over |framebuffer| (a swapchain image or the
+  // off-screen render target) that clears it to the background colour and draws
+  // the triangle mesh, setting the viewport and scissor to |extent|. The render
+  // pass must be compatible with the graphics pipeline.
+  void RecordScene(VkCommandBuffer command_buffer, VkFramebuffer framebuffer,
+                   VkRenderPass render_pass, VkExtent2D extent);
   // Destroys and recreates the swapchain and its framebuffers to match the
   // current window size. Called when the swapchain is out of date; waits for
   // the device to go idle first so no in-flight command buffer references the
@@ -103,6 +128,11 @@ class VulkanRenderer : public Renderer {
   std::unique_ptr<VulkanGraphicsPipeline> graphics_pipeline_;
   std::unique_ptr<VulkanMesh> mesh_;
   std::vector<std::unique_ptr<VulkanFramebuffer>> framebuffers_;
+  std::unique_ptr<VulkanRenderTarget> vulkan_render_target_;
+  std::unique_ptr<VulkanFramebuffer> render_target_framebuffer_;
+  std::unique_ptr<VulkanRenderPass> render_target_render_pass_;
+  int render_target_width_ = 0;
+  int render_target_height_ = 0;
   std::unique_ptr<VulkanCommandBuffer> command_buffer_;
   std::unique_ptr<VulkanSemaphore> image_available_semaphore_;
   std::unique_ptr<VulkanSemaphore> render_finished_semaphore_;

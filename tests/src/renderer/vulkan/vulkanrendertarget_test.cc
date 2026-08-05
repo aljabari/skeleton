@@ -1,6 +1,6 @@
 // Copyright 2026 aljabari
 
-#include "renderer/vulkan/vulkanframebuffer.h"
+#include "renderer/vulkan/vulkanrendertarget.h"
 
 #include <GLFW/glfw3.h>
 #include <gtest/gtest.h>
@@ -9,8 +9,6 @@
 
 #include "renderer/vulkan/vulkandevice.h"
 #include "renderer/vulkan/vulkaninstance.h"
-#include "renderer/vulkan/vulkanrenderpass.h"
-#include "renderer/vulkan/vulkanswapchain.h"
 
 namespace skeleton {
 namespace {
@@ -25,7 +23,7 @@ void SkipIfVulkanUnavailable() {
   }
 }
 
-TEST(VulkanFramebufferTest, CreatesFramebufferFromSwapchainImageView) {
+TEST(VulkanRenderTargetTest, CreatesColourImageWithImageView) {
   SkipIfVulkanUnavailable();
 
   uint32_t extension_count = 0;
@@ -43,16 +41,14 @@ TEST(VulkanFramebufferTest, CreatesFramebufferFromSwapchainImageView) {
             VK_SUCCESS);
   {
     VulkanDevice device(instance, surface);
-    VulkanSwapchain swapchain(device, surface, 800, 600);
-    VulkanRenderPass render_pass(device, swapchain.ImageFormat(),
-                                 VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    const VulkanRenderTarget render_target(device, VK_FORMAT_B8G8R8A8_UNORM,
+                                           800, 600);
 
-    ASSERT_GE(swapchain.ImageViews().size(), 1u);
-    const VulkanFramebuffer framebuffer(device, render_pass.RenderPass(),
-                                        swapchain.ImageViews()[0],
-                                        swapchain.Extent());
-
-    EXPECT_NE(framebuffer.Framebuffer(), VK_NULL_HANDLE);
+    EXPECT_NE(render_target.Image(), VK_NULL_HANDLE);
+    EXPECT_NE(render_target.ImageView(), VK_NULL_HANDLE);
+    EXPECT_EQ(render_target.Format(), VK_FORMAT_B8G8R8A8_UNORM);
+    EXPECT_EQ(render_target.Extent().width, 800u);
+    EXPECT_EQ(render_target.Extent().height, 600u);
   }
 
   vkDestroySurfaceKHR(instance.Instance(), surface, nullptr);

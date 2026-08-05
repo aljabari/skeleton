@@ -41,11 +41,12 @@ location. Currently:
 |                     | `tests/src/renderer/vulkan/vulkandevice_test.cc` | `VulkanDevice` logical-device/queue creation from a `VulkanInstance` and window surface, including the present queue (skips when Vulkan is unavailable) |
 |                     | `tests/src/renderer/vulkan/vulkanfence_test.cc` | `VulkanFence` fence creation and initial-signaled state so the first `Render` wait does not block (skips when Vulkan is unavailable) |
 |                     | `tests/src/renderer/vulkan/vulkanframebuffer_test.cc` | `VulkanFramebuffer` creation from a swapchain image view, render pass, and extent (skips when Vulkan is unavailable) |
-|                     | `tests/src/renderer/vulkan/vulkangraphicspipeline_test.cc` | `VulkanGraphicsPipeline` pipeline/layout creation from the build-time compiled `triangle.vert.spv`/`triangle.frag.spv` shader modules against a render pass and swapchain (skips when Vulkan is unavailable) |
+|                     | `tests/src/renderer/vulkan/vulkangraphicspipeline_test.cc` | `VulkanGraphicsPipeline` pipeline/layout creation from the build-time compiled `triangle.vert.spv`/`triangle.frag.spv` shader modules against a hardcoded-format render pass, without a swapchain (skips when Vulkan is unavailable) |
 |                     | `tests/src/renderer/vulkan/vulkaninstance_test.cc` | `VulkanInstance` instance creation and physical-device enumeration (skips when Vulkan is unavailable); in Debug builds, debug-messenger creation for validation layers |
 |                     | `tests/src/renderer/vulkan/vulkanmesh_test.cc` | `VulkanMesh` vertex-buffer/memory creation from the same hardcoded triangle mesh the OpenGL renderer tests use (skips when Vulkan is unavailable) |
-|                     | `tests/src/renderer/vulkan/vulkanrenderer_test.cc` | `VulkanRenderer::CreateContext` instance/surface/window/physical-device/logical-device/swapchain/render-pass/pipeline/mesh/framebuffer/command-buffer/synchronisation creation and `Render` drawing the triangle without error (skips when Vulkan is unavailable) |
-|                     | `tests/src/renderer/vulkan/vulkanrenderpass_test.cc` | `VulkanRenderPass` render-pass creation with a colour attachment (skips when Vulkan is unavailable) |
+|                     | `tests/src/renderer/vulkan/vulkanrenderer_test.cc` | `VulkanRenderer::CreateContext` instance/surface/window/physical-device/logical-device/swapchain/render-pass/pipeline/mesh/framebuffer/command-buffer/synchronisation creation, `Render` drawing the triangle without error, rendering to a texture target (with the render-target image view/extent), `ResizeRenderTarget` recreating the image, and window targets having no render-target image (skips when Vulkan is unavailable) |
+|                     | `tests/src/renderer/vulkan/vulkanrenderpass_test.cc` | `VulkanRenderPass` render-pass creation with a colour attachment and the given final image layout (skips when Vulkan is unavailable) |
+|                     | `tests/src/renderer/vulkan/vulkanrendertarget_test.cc` | `VulkanRenderTarget` off-screen colour image/image-view creation with colour-attachment and sampled usage, at the requested size (skips when Vulkan is unavailable) |
 |                     | `tests/src/renderer/vulkan/vulkansemaphore_test.cc` | `VulkanSemaphore` semaphore creation (skips when Vulkan is unavailable) |
 |                     | `tests/src/renderer/vulkan/vulkanswapchain_test.cc` | `VulkanSwapchain` swapchain and image-view creation, including swapchain extent and format selection (skips when Vulkan is unavailable) |
 | `skeledit_tests`    | `tests/src/skeledit/editorlogsink_test.cc` | `EditorLogSink` buffering, canonical timestamped format (`[YYYY-MM-DD HH:MM:SS.mmm] [level] message`), `Clear`, and `kMaxEntries` bound |
@@ -78,7 +79,13 @@ running `skeledit` picks the Vulkan renderer first, and the Vulkan backend
 (`ImGui_ImplVulkan_Init` against its own render pass and descriptor pool, plus
 the `FrameSubmitCallback` hook firing inside `VulkanRenderer::Render` to submit
 the backend's command buffer) initialises and draws without validation-layer
-errors in Debug builds. `VulkanRendererTest.FrameSubmitCallbackCanAddCommandBuffer`
+errors in Debug builds. The render target is registered with ImGui through
+`ImGui_ImplVulkan_AddTexture` (the image view ends the scene pass in
+`VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`) and displayed in the viewport via
+`ImGui::Image`, so the off-screen scene previews in the editor. The backend's
+`GetViewportTextureId` re-registers the descriptor set when the renderer
+recreates the render target (for example on resize).
+`VulkanRendererTest.FrameSubmitCallbackCanAddCommandBuffer`
 unit-tests the hook itself: it registers a callback that returns a
 begin/end-recorded secondary command buffer and asserts `Render()` submits it on
 every recorded frame.

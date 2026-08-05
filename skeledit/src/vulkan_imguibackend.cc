@@ -187,6 +187,29 @@ void VulkanImGuiBackend::RenderDrawData() {
   // VulkanRenderer::Render, so there is nothing to do here.
 }
 
+ImTextureID VulkanImGuiBackend::GetViewportTextureId() const {
+  const VkImageView image_view = renderer_ != nullptr
+                                     ? renderer_->RenderTargetImageView()
+                                     : VK_NULL_HANDLE;
+  if (image_view != viewport_image_view_) {
+    // The renderer recreated its render target (or started or stopped rendering
+    // to one), so the descriptor set ImGui uses to sample it must be replaced.
+    // The renderer waits for the device to go idle before destroying the old
+    // render target, so the old descriptor set is no longer referenced by any
+    // in-flight frame here.
+    if (viewport_descriptor_set_ != VK_NULL_HANDLE) {
+      ImGui_ImplVulkan_RemoveTexture(viewport_descriptor_set_);
+      viewport_descriptor_set_ = VK_NULL_HANDLE;
+    }
+    viewport_image_view_ = image_view;
+    if (image_view != VK_NULL_HANDLE) {
+      viewport_descriptor_set_ = ImGui_ImplVulkan_AddTexture(
+          image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    }
+  }
+  return reinterpret_cast<ImTextureID>(viewport_descriptor_set_);
+}
+
 void VulkanImGuiBackend::Shutdown() {
   if (renderer_ == nullptr) {
     return;
@@ -260,6 +283,11 @@ void VulkanImGuiBackend::DestroyVulkanResources() {
     render_pass_ = VK_NULL_HANDLE;
   }
   if (descriptor_pool_ != VK_NULL_HANDLE) {
+    if (viewport_descriptor_set_ != VK_NULL_HANDLE) {
+      ImGui_ImplVulkan_RemoveTexture(viewport_descriptor_set_);
+      viewport_descriptor_set_ = VK_NULL_HANDLE;
+    }
+    viewport_image_view_ = VK_NULL_HANDLE;
     vkDestroyDescriptorPool(device, descriptor_pool_, nullptr);
     descriptor_pool_ = VK_NULL_HANDLE;
   }

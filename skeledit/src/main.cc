@@ -58,7 +58,6 @@ int Run(int argc, char* argv[]) {
   while (window.IsOpen()) {
     window.PollEvents();
     editor.NewFrame();
-    editor.SetViewportTextureId(renderer_ptr->GetTextureId());
     editor.Draw();
     if (renderer_ptr->GetBackend() == RendererBackend::kVulkan) {
       // The Vulkan renderer submits the ImGui command buffer through the frame

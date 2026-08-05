@@ -9,7 +9,8 @@
 namespace skeleton {
 
 VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device,
-                                   VkFormat color_format)
+                                   VkFormat color_format,
+                                   VkImageLayout final_layout)
     : device_(device) {
   VkAttachmentDescription attachment{};
   attachment.format = color_format;
@@ -19,7 +20,7 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device,
   attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
   attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
   attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+  attachment.finalLayout = final_layout;
 
   VkAttachmentReference color_reference{};
   color_reference.attachment = 0;

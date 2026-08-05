@@ -37,6 +37,7 @@ class VulkanImGuiBackend : public ImGuiBackend {
   bool Init() override;
   void NewFrame() override;
   void RenderDrawData() override;
+  ImTextureID GetViewportTextureId() const override;
   void Shutdown() override;
 
  private:
@@ -68,6 +69,13 @@ class VulkanImGuiBackend : public ImGuiBackend {
   VkCommandBuffer command_buffer_ = VK_NULL_HANDLE;
   std::vector<VkFramebuffer> framebuffers_;
   VkExtent2D extent_{};
+  // The render target image view registered with ImGui as the viewport texture
+  // and the descriptor set ImGui returned for it (the ImTextureID the editor
+  // draws). The descriptor set is re-registered when the renderer recreates its
+  // render target, for example on resize. They are mutated lazily from the const
+  // GetViewportTextureId, hence mutable.
+  mutable VkImageView viewport_image_view_ = VK_NULL_HANDLE;
+  mutable VkDescriptorSet viewport_descriptor_set_ = VK_NULL_HANDLE;
   bool initialised_ = false;
 };
 

@@ -21,6 +21,7 @@
 #include "renderer/vulkan/vulkaninstance.h"
 #include "renderer/vulkan/vulkanmesh.h"
 #include "renderer/vulkan/vulkanrenderpass.h"
+#include "renderer/vulkan/vulkanrendertarget.h"
 #include "renderer/vulkan/vulkansemaphore.h"
 #include "renderer/vulkan/vulkanswapchain.h"
 
@@ -44,12 +45,20 @@ const VkClearColorValue kClearColor = {{0.2f, 0.3f, 0.8f, 1.0f}};
 
 }  // namespace
 
-VulkanRenderer::VulkanRenderer() = default;
+VulkanRenderer::VulkanRenderer(RenderTarget render_target)
+    : Renderer(render_target) {}
 
 VulkanRenderer::~VulkanRenderer() {
-  // The swapchain references the surface, so it must be destroyed before the
-  // surface. The remaining frame resources only reference the device and are
-  // destroyed as members below.
+  // Wait for any in-flight frame so the fence, semaphores, command buffer, and
+  // images can be destroyed while nothing still references them.
+  if (device_ != nullptr) {
+    vkDeviceWaitIdle(device_->Device());
+  }
+  // The framebuffers reference the image views owned by the swapchain and the
+  // off-screen render target, so they must be destroyed first. The swapchain
+  // references the surface, so it must be destroyed before the surface.
+  render_target_framebuffer_.reset();
+  framebuffers_.clear();
   swapchain_.reset();
   if (instance_ != nullptr && surface_ != VK_NULL_HANDLE) {
     vkDestroySurfaceKHR(instance_->Instance(), surface_, nullptr);
@@ -88,18 +97,21 @@ void VulkanRenderer::CreateContext(const WindowConfig& config) {
   SPDLOG_INFO("Created Vulkan context for window \"{}\" ({}x{}).",
               config.title, config.width, config.height);
   CreateSwapchainResources(config);
+  if (render_target_ == RenderTarget::kRenderTargetTexture) {
+    CreateRenderTarget(config);
+  }
 }
 
 void VulkanRenderer::CreateSwapchainResources(const WindowConfig& config) {
   swapchain_ = std::make_unique<VulkanSwapchain>(
       *device_, surface_, static_cast<uint32_t>(config.width),
       static_cast<uint32_t>(config.height));
-  render_pass_ =
-      std::make_unique<VulkanRenderPass>(*device_, swapchain_->ImageFormat());
+  render_pass_ = std::make_unique<VulkanRenderPass>(
+      *device_, swapchain_->ImageFormat(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   const std::string shader_directory = SKELETON_SHADER_DIR;
   graphics_pipeline_ = std::make_unique<VulkanGraphicsPipeline>(
-      *device_, render_pass_->RenderPass(), swapchain_->Extent(),
+      *device_, render_pass_->RenderPass(),
       shader_directory + "/triangle.vert.spv",
       shader_directory + "/triangle.frag.spv");
   mesh_ = std::make_unique<VulkanMesh>(*device_, kTriangleVertices);
@@ -115,6 +127,22 @@ void VulkanRenderer::CreateSwapchainResources(const WindowConfig& config) {
   image_available_semaphore_ = std::make_unique<VulkanSemaphore>(*device_);
   render_finished_semaphore_ = std::make_unique<VulkanSemaphore>(*device_);
   in_flight_fence_ = std::make_unique<VulkanFence>(*device_);
+}
+
+void VulkanRenderer::CreateRenderTarget(const WindowConfig& config) {
+  const VkFormat image_format = swapchain_->ImageFormat();
+  render_target_render_pass_ = std::make_unique<VulkanRenderPass>(
+      *device_, image_format, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  vulkan_render_target_ = std::make_unique<VulkanRenderTarget>(
+      *device_, image_format, static_cast<uint32_t>(config.width),
+      static_cast<uint32_t>(config.height));
+  render_target_framebuffer_ = std::make_unique<VulkanFramebuffer>(
+      *device_, render_target_render_pass_->RenderPass(),
+      vulkan_render_target_->ImageView(), vulkan_render_target_->Extent());
+  render_target_width_ = config.width;
+  render_target_height_ = config.height;
+  SPDLOG_INFO("Created Vulkan render target ({}x{}).", render_target_width_,
+              render_target_height_);
 }
 
 GLFWwindow* VulkanRenderer::GetNativeWindow() const {
@@ -157,27 +185,18 @@ void VulkanRenderer::Render() {
   begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
   vkBeginCommandBuffer(command_buffer, &begin_info);
 
-  VkRenderPassBeginInfo render_pass_info{};
-  render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-  render_pass_info.renderPass = render_pass_->RenderPass();
-  render_pass_info.framebuffer = framebuffers_[image_index]->Framebuffer();
-  render_pass_info.renderArea.offset = {0, 0};
-  render_pass_info.renderArea.extent = swapchain_->Extent();
-  VkClearValue clear_value{};
-  clear_value.color = kClearColor;
-  render_pass_info.clearValueCount = 1;
-  render_pass_info.pClearValues = &clear_value;
-  vkCmdBeginRenderPass(command_buffer, &render_pass_info,
-                       VK_SUBPASS_CONTENTS_INLINE);
-
-  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    graphics_pipeline_->Pipeline());
-  VkBuffer vertex_buffer = mesh_->Buffer();
-  VkDeviceSize offset = 0;
-  vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer, &offset);
-  vkCmdDraw(command_buffer, static_cast<uint32_t>(mesh_->VertexCount()), 1, 0,
-            0);
-  vkCmdEndRenderPass(command_buffer);
+  // The scene renders either into a swapchain image (window mode) or into the
+  // off-screen render target (texture mode). In texture mode the swapchain
+  // image is still cleared (through the same render pass, with no draws) so the
+  // UI drawn over it afterwards by the frame submit hook has a defined
+  // background.
+  RecordScene(command_buffer, framebuffers_[image_index]->Framebuffer(),
+              render_pass_->RenderPass(), swapchain_->Extent());
+  if (vulkan_render_target_ != nullptr) {
+    RecordScene(command_buffer, render_target_framebuffer_->Framebuffer(),
+                render_target_render_pass_->RenderPass(),
+                vulkan_render_target_->Extent());
+  }
 
   if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS) {
     SPDLOG_ERROR("Failed to record the Vulkan draw commands.");
@@ -295,6 +314,80 @@ VkExtent2D VulkanRenderer::SwapchainExtent() const {
 const std::vector<VkImageView>& VulkanRenderer::SwapchainImageViews() const {
   static const std::vector<VkImageView> kEmpty;
   return swapchain_ ? swapchain_->ImageViews() : kEmpty;
+}
+
+VkImageView VulkanRenderer::RenderTargetImageView() const {
+  return vulkan_render_target_ != nullptr ? vulkan_render_target_->ImageView()
+                                          : VK_NULL_HANDLE;
+}
+
+VkExtent2D VulkanRenderer::RenderTargetExtent() const {
+  return vulkan_render_target_ != nullptr ? vulkan_render_target_->Extent()
+                                          : VkExtent2D{};
+}
+
+void VulkanRenderer::ResizeRenderTarget(int width, int height) {
+  if (vulkan_render_target_ == nullptr || width <= 0 || height <= 0) {
+    return;
+  }
+  if (width == render_target_width_ && height == render_target_height_) {
+    return;
+  }
+  // Wait so no in-flight frame still samples the render target before the
+  // image view its framebuffer references is destroyed.
+  vkDeviceWaitIdle(device_->Device());
+  render_target_framebuffer_.reset();
+  vulkan_render_target_.reset();
+  vulkan_render_target_ = std::make_unique<VulkanRenderTarget>(
+      *device_, swapchain_->ImageFormat(), static_cast<uint32_t>(width),
+      static_cast<uint32_t>(height));
+  render_target_framebuffer_ = std::make_unique<VulkanFramebuffer>(
+      *device_, render_target_render_pass_->RenderPass(),
+      vulkan_render_target_->ImageView(), vulkan_render_target_->Extent());
+  render_target_width_ = width;
+  render_target_height_ = height;
+  SPDLOG_INFO("Resized Vulkan render target to {}x{}.", render_target_width_,
+              render_target_height_);
+}
+
+void VulkanRenderer::RecordScene(VkCommandBuffer command_buffer,
+                                 VkFramebuffer framebuffer,
+                                 VkRenderPass render_pass,
+                                 VkExtent2D extent) {
+  VkRenderPassBeginInfo render_pass_info{};
+  render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+  render_pass_info.renderPass = render_pass;
+  render_pass_info.framebuffer = framebuffer;
+  render_pass_info.renderArea.offset = {0, 0};
+  render_pass_info.renderArea.extent = extent;
+  VkClearValue clear_value{};
+  clear_value.color = kClearColor;
+  render_pass_info.clearValueCount = 1;
+  render_pass_info.pClearValues = &clear_value;
+  vkCmdBeginRenderPass(command_buffer, &render_pass_info,
+                       VK_SUBPASS_CONTENTS_INLINE);
+
+  VkViewport viewport{};
+  viewport.x = 0.0f;
+  viewport.y = 0.0f;
+  viewport.width = static_cast<float>(extent.width);
+  viewport.height = static_cast<float>(extent.height);
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+  vkCmdSetViewport(command_buffer, 0, 1, &viewport);
+  VkRect2D scissor{};
+  scissor.offset = {0, 0};
+  scissor.extent = extent;
+  vkCmdSetScissor(command_buffer, 0, 1, &scissor);
+
+  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    graphics_pipeline_->Pipeline());
+  VkBuffer vertex_buffer = mesh_->Buffer();
+  VkDeviceSize offset = 0;
+  vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer, &offset);
+  vkCmdDraw(command_buffer, static_cast<uint32_t>(mesh_->VertexCount()), 1, 0,
+            0);
+  vkCmdEndRenderPass(command_buffer);
 }
 
 void VulkanRenderer::RecreateSwapchain() {

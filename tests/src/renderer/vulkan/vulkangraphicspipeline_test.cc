@@ -10,7 +10,6 @@
 
 #include "renderer/vulkan/vulkandevice.h"
 #include "renderer/vulkan/vulkaninstance.h"
-#include "renderer/vulkan/vulkanswapchain.h"
 
 namespace skeleton {
 namespace {
@@ -79,16 +78,14 @@ TEST(VulkanGraphicsPipelineTest, CreatesPipelineFromCompiledShaders) {
             VK_SUCCESS);
   {
     VulkanDevice device(instance, surface);
-    VulkanSwapchain swapchain(device, surface, 800, 600);
     VkRenderPass render_pass = VK_NULL_HANDLE;
-    CreateColorRenderPass(device.Device(), swapchain.ImageFormat(),
+    CreateColorRenderPass(device.Device(), VK_FORMAT_B8G8R8A8_UNORM,
                           &render_pass);
 
     const std::string shader_directory = SKELETON_SHADER_DIR;
     {
       VulkanGraphicsPipeline pipeline(
-          device, render_pass, swapchain.Extent(),
-          shader_directory + "/triangle.vert.spv",
+          device, render_pass, shader_directory + "/triangle.vert.spv",
           shader_directory + "/triangle.frag.spv");
 
       EXPECT_NE(pipeline.Pipeline(), VK_NULL_HANDLE);

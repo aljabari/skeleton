@@ -42,14 +42,14 @@ VkPipelineShaderStageCreateInfo MakeShaderStage(
 }  // namespace
 
 VulkanGraphicsPipeline::VulkanGraphicsPipeline(
-    const VulkanDevice& device, VkRenderPass render_pass, VkExtent2D extent,
+    const VulkanDevice& device, VkRenderPass render_pass,
     const std::string& vertex_path, const std::string& fragment_path)
     : device_(device) {
   vertex_shader_ = CreateShaderModule(vertex_path);
   try {
     fragment_shader_ = CreateShaderModule(fragment_path);
     CreatePipelineLayout();
-    CreatePipeline(render_pass, extent);
+    CreatePipeline(render_pass);
   } catch (...) {
     if (fragment_shader_ != VK_NULL_HANDLE) {
       vkDestroyShaderModule(device_.Device(), fragment_shader_, nullptr);
@@ -118,8 +118,7 @@ void VulkanGraphicsPipeline::CreatePipelineLayout() {
   }
 }
 
-void VulkanGraphicsPipeline::CreatePipeline(VkRenderPass render_pass,
-                                            VkExtent2D extent) {
+void VulkanGraphicsPipeline::CreatePipeline(VkRenderPass render_pass) {
   // Interleaved position (location 0) and colour (location 1) attributes,
   // matching the vertex data the mesh supplies: two vec3 floats per vertex.
   VkVertexInputBindingDescription binding{};
@@ -150,24 +149,20 @@ void VulkanGraphicsPipeline::CreatePipeline(VkRenderPass render_pass,
       VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
   input_assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
-  VkViewport viewport{};
-  viewport.x = 0.0f;
-  viewport.y = 0.0f;
-  viewport.width = static_cast<float>(extent.width);
-  viewport.height = static_cast<float>(extent.height);
-  viewport.minDepth = 0.0f;
-  viewport.maxDepth = 1.0f;
-
-  VkRect2D scissor{};
-  scissor.offset = {0, 0};
-  scissor.extent = extent;
-
+  // The viewport and scissor are dynamic state so the same pipeline can draw
+  // into framebuffers of different sizes; the renderer sets them from the
+  // target's extent before drawing.
   VkPipelineViewportStateCreateInfo viewport_state{};
   viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
   viewport_state.viewportCount = 1;
-  viewport_state.pViewports = &viewport;
   viewport_state.scissorCount = 1;
-  viewport_state.pScissors = &scissor;
+
+  VkDynamicState dynamic_states[] = {VK_DYNAMIC_STATE_VIEWPORT,
+                                     VK_DYNAMIC_STATE_SCISSOR};
+  VkPipelineDynamicStateCreateInfo dynamic_state{};
+  dynamic_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+  dynamic_state.dynamicStateCount = 2;
+  dynamic_state.pDynamicStates = dynamic_states;
 
   VkPipelineRasterizationStateCreateInfo rasterizer{};
   rasterizer.sType =
@@ -214,6 +209,7 @@ void VulkanGraphicsPipeline::CreatePipeline(VkRenderPass render_pass,
   create_info.pRasterizationState = &rasterizer;
   create_info.pMultisampleState = &multisampling;
   create_info.pColorBlendState = &color_blending;
+  create_info.pDynamicState = &dynamic_state;
   create_info.layout = layout_;
   create_info.renderPass = render_pass;
   create_info.subpass = 0;

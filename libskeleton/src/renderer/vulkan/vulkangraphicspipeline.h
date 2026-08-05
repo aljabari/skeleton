@@ -16,13 +16,14 @@ namespace skeleton {
 // at build time from the GLSL sources under libskeleton/res/shaders), a shader
 // module is created for each, and a pipeline with a single triangle-list vertex
 // layout (interleaved position and colour) is created against |render_pass|
-// with the given |extent|. Construction throws RendererCreationException on
-// failure; destruction destroys the pipeline, its layout, and the shader
-// modules.
+// with dynamic viewport and scissor state, so the same pipeline can draw into
+// framebuffers of different sizes (the swapchain and the off-screen render
+// target). Construction throws RendererCreationException on failure;
+// destruction destroys the pipeline, its layout, and the shader modules.
 class VulkanGraphicsPipeline {
  public:
   VulkanGraphicsPipeline(const VulkanDevice& device, VkRenderPass render_pass,
-                         VkExtent2D extent, const std::string& vertex_path,
+                         const std::string& vertex_path,
                          const std::string& fragment_path);
   ~VulkanGraphicsPipeline();
 
@@ -35,7 +36,7 @@ class VulkanGraphicsPipeline {
  private:
   VkShaderModule CreateShaderModule(const std::string& path);
   void CreatePipelineLayout();
-  void CreatePipeline(VkRenderPass render_pass, VkExtent2D extent);
+  void CreatePipeline(VkRenderPass render_pass);
 
   const VulkanDevice& device_;
   VkShaderModule vertex_shader_ = VK_NULL_HANDLE;

@@ -97,14 +97,26 @@ Release so the CRT still calls the app's `main()`.
   `glfwCreateWindowSurface` and creates a `VulkanDevice` with that surface: it
   picks a physical device with a graphics queue family and a present queue
   family (the same family when possible) and creates a logical device with a
-  graphics queue and a present queue.
+  graphics queue and a present queue. For texture targets it then creates the
+  off-screen `VulkanRenderTarget`, its shader-read-only render pass, and its
+  framebuffer. The destructor waits for the device to go idle and destroys the
+  render-target/swapchain framebuffers before their images, avoiding
+  in-flight-resource destruction.
 - `OpenGlRenderer::CreateContext` requests a 3.3 context, creates the window,
   makes its context current, loads the GL functions with glad, and creates the
   shader, mesh, and (for texture targets) the render target.
 - The private `VulkanInstance`/`VulkanDevice`/`VulkanSwapchain`/
   `VulkanGraphicsPipeline`/`VulkanMesh`/`VulkanRenderPass`/
-  `VulkanFramebuffer`/`VulkanCommandBuffer`/`VulkanSemaphore`/`VulkanFence`
+  `VulkanRenderTarget`/`VulkanFramebuffer`/`VulkanCommandBuffer`/`VulkanSemaphore`/`VulkanFence`
   RAII helpers live under `libskeleton/src/renderer/vulkan/`.
+  `VulkanRenderTarget` is the off-screen colour image + image view the scene
+  draws into in texture mode (created only when the render target is a texture,
+  sized from the window config); `VulkanRenderPass` takes a final image layout,
+  so the swapchain pass ends in `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR` and the render
+  target pass in `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` for ImGui sampling.
+  `VulkanGraphicsPipeline` uses dynamic viewport/scissor state, and the renderer
+  sets them from each target's extent before drawing, so the same pipeline
+  renders into the swapchain and the off-screen render target.
 
 Vulkan validation layers are enabled only in Debug builds. In that
 configuration `libskeleton` defines `SKELETON_VULKAN_ENABLE_VALIDATION=1`
@@ -132,6 +144,8 @@ operations: `IsOpen`, `PollEvents`, `SwapBuffers`, `Maximize`,
 Those APIs live on the base `Renderer` interface (`GetTextureId()`,
 `ResizeRenderTarget()`) with default no-op implementations, so both executables
 use the renderer polymorphically through `Renderer&` without downcasting.
+Both backends implement texture mode: OpenGL via `OpenGlFramebuffer`, Vulkan via
+the off-screen `VulkanRenderTarget` (whose image view ImGui samples).
 
 ## Resources
 
@@ -355,12 +369,19 @@ editor is split into a backend-neutral shell and per-backend implementations:
   it; the renderer submits it after its own scene command buffer and before
   presenting. `RenderDrawData` is a no-op because the drawing is deferred.
   `Shutdown` drops the callback, waits for the device to go idle, shuts down the
-  ImGui backends, and destroys the backend-owned Vulkan objects.
+  ImGui backends, and destroys the backend-owned Vulkan objects. The backend also
+  owns the viewport texture: `GetViewportTextureId` lazily registers the
+  renderer's `RenderTargetImageView()` with
+  `ImGui_ImplVulkan_AddTexture` (which on the ImGui docking branch takes an image
+  view + `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` and returns a
+  `VkDescriptorSet` used as `ImTextureID`) and re-registers it when the renderer
+  recreates the render target (resize), removing the old set.
 - `ImGuiEditor` (`imguieditor.cc/.h`) now takes a `std::unique_ptr<ImGuiBackend>`
   in its constructor, calls `Init` after creating the ImGui context, and
-  dispatches `NewFrame`/`Render` through the backend. The viewport texture id is
-  stored as `ImTextureID` (64-bit) so both the GL texture id and a future
-  `VkDescriptorSet` fit.
+  dispatches `NewFrame`/`Render` through the backend. Each frame the viewport
+  draws the backend-provided texture id (`GetViewportTextureId`, an
+  `ImTextureID`/`ImU64`) via `ImGui::Image`, or "No render target." when there is
+  none; the id is no longer pushed from `main.cc`.
 - `CreateImGuiBackend` (`imguibackendfactory.h`, `imguibackendfactory.cc`)
   builds the right backend from `Renderer::GetBackend()`; `skeledit/src/main.cc`
   passes it to the editor. For Vulkan the frame loop calls `editor.Render()`
@@ -380,7 +401,12 @@ drive `ImGui_ImplVulkan_InitInfo` and the backend's framebuffers, `VulkanRendere
 also exposes `RenderPass()`, `QueueFamilyIndex()`, `SwapchainImageCount()`,
 `SwapchainMinImageCount()`, `SwapchainImageFormat()`, `SwapchainExtent()`, and
 `SwapchainImageViews()` (the swapchain data comes from `VulkanSwapchain`, which
-records its requested `minImageCount`). `skeledit` additionally defines
+records its requested `minImageCount`), plus `RenderTargetImageView()` and
+`RenderTargetExtent()` for the off-screen render target. In texture mode `Render`
+records the scene pass into the off-screen render target (so `ImGui::Image` in
+the viewport samples it) and also clears the swapchain image through the same
+render pass, giving the UI drawn by the frame submit hook a defined background.
+`skeledit` additionally defines
 `IMGUI_IMPL_VULKAN_USE_VOLK` for its own compilation units so
 `imgui_impl_vulkan.h` resolves through volk, matching how the `imgui` library
 itself is compiled.

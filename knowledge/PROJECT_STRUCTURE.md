@@ -50,10 +50,11 @@ skeleton/
 │       │       ├── vulkandevice.cc/.h    # Private: RAII logical device + graphics queue
 │       │       ├── vulkanfence.cc/.h     # Private: RAII synchronisation fence
 │       │       ├── vulkanframebuffer.cc/.h # Private: RAII framebuffer over a swapchain image view
-│       │       ├── vulkangraphicspipeline.cc/.h # Private: RAII graphics pipeline + shader modules
+│       │       ├── vulkangraphicspipeline.cc/.h # Private: RAII graphics pipeline + shader modules; dynamic viewport/scissor so one pipeline draws to the swapchain and the render target
 │       │       ├── vulkaninstance.cc/.h  # Private: RAII instance + physical-device enumeration
 │       │       ├── vulkanmesh.cc/.h      # Private: RAII vertex buffer + device memory
-│       │       ├── vulkanrenderpass.cc/.h # Private: RAII render pass for the swapchain images
+│       │       ├── vulkanrenderpass.cc/.h # Private: RAII render pass over a colour attachment; final layout parameterised (present-ready for the swapchain, shader-read-only for the render target)
+│       │       ├── vulkanrendertarget.cc/.h # Private: RAII off-screen colour image + image view for texture rendering
 │       │       ├── vulkansemaphore.cc/.h # Private: RAII synchronisation semaphore
 │       │       ├── vulkanswapchain.cc/.h # Private: RAII swapchain + image views
 │       │       ├── vulkanvalidation.cc/.h  # Private: RAII debug messenger for validation layers
@@ -82,6 +83,7 @@ skeleton/
 │               ├── vulkanmesh_test.cc
 │               ├── vulkanrenderer_test.cc
 │               ├── vulkanrenderpass_test.cc
+│               ├── vulkanrendertarget_test.cc
 │               ├── vulkansemaphore_test.cc
 │               └── vulkanswapchain_test.cc
 ├── skeleton/                 # Executable target
@@ -92,13 +94,14 @@ skeleton/
 │   ├── CMakeLists.txt        # Fetches imgui docking branch (skeledit-only dependency)
 │   ├── include/skeledit/
 │   │   ├── editorlogsink.h   # spdlog sink + LogSink impl for the editor log window
-│   │   ├── imguibackend.h    # Abstract ImGuiBackend interface (GLFW platform + renderer backend)
+│   │   ├── imguibackend.h    # Abstract ImGuiBackend interface (GLFW platform + renderer backend); GetViewportTextureId supplies the scene preview texture
 │   │   ├── imguibackendfactory.h # CreateImGuiBackend: builds the backend for a Renderer
 │   │   ├── imguieditor.h     # Public header for the ImGui editor wrapper
 │   │   ├── logsink.h         # LogLevel/LogEntry/LogSink interface
-│   │   ├── opengl_imguibackend.h # GLFW + ImGui OpenGL3 backend
+│   │   ├── opengl_imguibackend.h # GLFW + ImGui OpenGL3 backend (viewport texture = renderer GetTextureId)
 │   │   ├── vulkan_imguibackend.h # GLFW + ImGui Vulkan backend (own render pass/descriptor pool,
-│   │   │                          #   draws via renderer FrameSubmitCallback command buffer hook)
+│   │   │                          #   draws via renderer FrameSubmitCallback command buffer hook;
+│   │   │                          #   registers the render-target image view via ImGui_ImplVulkan_AddTexture)
 │   └── src/
 │       ├── main.cc
 │       ├── editorlogsink.cc  # Buffers newest kMaxEntries log lines (canonical format)

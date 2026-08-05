@@ -111,5 +111,57 @@ TEST(VulkanRendererTest, FrameSubmitCallbackCanAddCommandBuffer) {
   glfwTerminate();
 }
 
+TEST(VulkanRendererTest, RendersToRenderTargetWithoutError) {
+  SkipIfVulkanUnavailable();
+
+  {
+    VulkanRenderer renderer(RenderTarget::kRenderTargetTexture);
+    renderer.CreateContext(WindowConfig{800, 600, "test"});
+
+    EXPECT_NE(renderer.RenderTargetImageView(), VK_NULL_HANDLE);
+    EXPECT_EQ(renderer.RenderTargetExtent().width, 800u);
+    EXPECT_EQ(renderer.RenderTargetExtent().height, 600u);
+    EXPECT_NO_THROW(renderer.Render());
+    EXPECT_NO_THROW(renderer.Render());
+  }
+
+  glfwTerminate();
+}
+
+TEST(VulkanRendererTest, ResizeRenderTargetRecreatesImage) {
+  SkipIfVulkanUnavailable();
+
+  {
+    VulkanRenderer renderer(RenderTarget::kRenderTargetTexture);
+    renderer.CreateContext(WindowConfig{800, 600, "test"});
+    const VkImageView original_image_view = renderer.RenderTargetImageView();
+
+    renderer.ResizeRenderTarget(640, 480);
+
+    EXPECT_NE(renderer.RenderTargetImageView(), VK_NULL_HANDLE);
+    EXPECT_NE(renderer.RenderTargetImageView(), original_image_view);
+    EXPECT_EQ(renderer.RenderTargetExtent().width, 640u);
+    EXPECT_EQ(renderer.RenderTargetExtent().height, 480u);
+    EXPECT_NO_THROW(renderer.Render());
+  }
+
+  glfwTerminate();
+}
+
+TEST(VulkanRendererTest, WindowTargetHasNoRenderTargetImage) {
+  SkipIfVulkanUnavailable();
+
+  {
+    VulkanRenderer renderer;
+    renderer.CreateContext(WindowConfig{800, 600, "test"});
+
+    EXPECT_EQ(renderer.RenderTargetImageView(), VK_NULL_HANDLE);
+    EXPECT_EQ(renderer.RenderTargetExtent().width, 0u);
+    EXPECT_EQ(renderer.RenderTargetExtent().height, 0u);
+  }
+
+  glfwTerminate();
+}
+
 }  // namespace
 }  // namespace skeleton

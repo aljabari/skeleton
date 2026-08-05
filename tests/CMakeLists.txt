@@ -15,6 +15,7 @@ add_executable(libskeleton_tests
     src/renderer/vulkan/vulkanmesh_test.cc
     src/renderer/vulkan/vulkanrenderer_test.cc
     src/renderer/vulkan/vulkanrenderpass_test.cc
+    src/renderer/vulkan/vulkanrendertarget_test.cc
     src/renderer/vulkan/vulkansemaphore_test.cc
     src/renderer/vulkan/vulkanswapchain_test.cc
 )
@@ -36,6 +37,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES
     src/renderer/vulkan/vulkanmesh_test.cc
     src/renderer/vulkan/vulkanrenderer_test.cc
     src/renderer/vulkan/vulkanrenderpass_test.cc
+    src/renderer/vulkan/vulkanrendertarget_test.cc
     src/renderer/vulkan/vulkansemaphore_test.cc
     src/renderer/vulkan/vulkanswapchain_test.cc
 )

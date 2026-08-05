@@ -103,10 +103,6 @@ void ImGuiEditor::DrawDockSpace() {
   ImGui::DockSpaceOverViewport(DockspaceId(), ImGui::GetMainViewport());
 }
 
-void ImGuiEditor::SetViewportTextureId(ImTextureID viewport_texture_id) {
-  viewport_texture_id_ = viewport_texture_id;
-}
-
 void ImGuiEditor::DrawViewport() {
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
   ImGui::Begin("Viewport");
@@ -120,13 +116,17 @@ void ImGuiEditor::DrawViewport() {
     viewport_width_ = width;
     viewport_height_ = height;
   }
-  if (viewport_texture_id_ != 0) {
-    ImGui::Image(viewport_texture_id_,
+  // Query the texture after the resize callback so a render target the callback
+  // just recreated (for example the Vulkan renderer recreating its image) is
+  // already reflected in the identifier the backend returns.
+  const ImTextureID viewport_texture_id = backend_->GetViewportTextureId();
+  if (viewport_texture_id != 0) {
+    ImGui::Image(viewport_texture_id,
                  ImVec2(viewport_width_, viewport_height_), ImVec2(0.0f, 1.0f),
                  ImVec2(1.0f, 0.0f));
   } else {
-    // The backend has no render target texture yet (for example the Vulkan
-    // renderer does not render to a texture).
+    // The backend has no render target texture yet (for example the renderer
+    // does not render to a texture).
     ImGui::TextUnformatted("No render target.");
   }
   ImGui::End();

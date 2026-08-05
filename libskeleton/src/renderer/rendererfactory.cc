@@ -32,7 +32,7 @@ std::unique_ptr<Renderer> CreatePlatformRenderer(RendererBackend backend,
   switch (backend) {
     case RendererBackend::kVulkan:
 #ifdef SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN
-      return std::make_unique<VulkanRenderer>();
+      return std::make_unique<VulkanRenderer>(render_target);
 #else
       SPDLOG_WARN("Renderer backend {} is not supported on this platform.",
                    BackendName(backend));

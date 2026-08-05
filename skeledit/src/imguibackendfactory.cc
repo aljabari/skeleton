@@ -35,7 +35,7 @@ std::unique_ptr<ImGuiBackend> CreateImGuiBackend(GLFWwindow* window,
 #endif
     case RendererBackend::kOpenGl:
 #ifdef SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL
-      return std::make_unique<OpenGlImGuiBackend>(window);
+      return std::make_unique<OpenGlImGuiBackend>(window, renderer);
 #else
       return nullptr;
 #endif

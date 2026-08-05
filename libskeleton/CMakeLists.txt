@@ -31,6 +31,8 @@ if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
         src/renderer/vulkan/vulkanmesh.h
         src/renderer/vulkan/vulkanrenderpass.cc
         src/renderer/vulkan/vulkanrenderpass.h
+        src/renderer/vulkan/vulkanrendertarget.cc
+        src/renderer/vulkan/vulkanrendertarget.h
         src/renderer/vulkan/vulkansemaphore.cc
         src/renderer/vulkan/vulkansemaphore.h
         src/renderer/vulkan/vulkanswapchain.cc
