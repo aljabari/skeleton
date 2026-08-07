@@ -379,7 +379,9 @@ at `cmake/third_party/imgui/CMakeLists.txt`. `skeledit/CMakeLists.txt` populates
 `CMakeLists.txt` into the fetched source tree, and then adds it as an
 `EXCLUDE_FROM_ALL` subdirectory. The `imgui` static library target defines the
 core sources (`imgui.cpp`, `imgui_demo.cpp`, `imgui_draw.cpp`,
-`imgui_tables.cpp`, `imgui_widgets.cpp`) plus the GLFW backend
+`imgui_tables.cpp`, `imgui_widgets.cpp`) plus `misc/cpp/imgui_stdlib.cpp`
+(which provides the `std::string` overloads of `InputText`/`InputTextMultiline`
+used to edit the scene's `NameComponent`) and the GLFW backend
 (`backends/imgui_impl_glfw.cpp`), which is always built. The OpenGL3 backend
 (`backends/imgui_impl_opengl3.cpp`) is added when the
 `SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL` platform flag is set, and the Vulkan
@@ -388,8 +390,9 @@ backend (`backends/imgui_impl_vulkan.cpp`) when
 imgui's bundled runtime loader, so it needs no link-time GL dependency. The
 Vulkan backend is compiled with `IMGUI_IMPL_VULKAN_USE_VOLK` and links the
 `volk` target, so it loads Vulkan function pointers through volk instead of a
-Vulkan library. The target exposes the fetched root and `backends/` as `PUBLIC`
-include directories and links `glfw` for the GLFW backend.
+Vulkan library. The target exposes the fetched root, `backends/`, and
+`misc/cpp` as `PUBLIC` include directories and links `glfw` for the GLFW
+backend.
 
 The `imgui` dependency tracks the `docking` branch (a moving target, currently
 `1.92.9b`), which is required for the window-docking functionality in
@@ -450,9 +453,10 @@ editor is split into a backend-neutral shell and per-backend implementations:
   (`registry.view<MeshComponent>()`), labelled with the entity's
   `NameComponent` name, or "Entity <id>" (via `entt::to_integral`) when it has
   no name; each mesh entity's component is shown as a leaf (e.g. its vertex
-  count). Clicking a tree node (not its expand arrow) selects the entity. The
+  count).   Clicking a tree node (not its expand arrow) selects the entity. The
   entity panel, docked below the scene graph, shows the selected entity's
-  details: the `NameComponent` is displayed plainly, while every other component
+  details: the `NameComponent` is edited in place with `ImGui::InputText`
+  (the `imgui_stdlib` `std::string` overload), while every other component
   is a collapsible `CollapsingHeader` (e.g. `Mesh` listing the vertex data).
   Both panels fall back to "No scene loaded."/"No entity selected." placeholders.
   The dock layout splits the right column in two (scene graph on top, entity

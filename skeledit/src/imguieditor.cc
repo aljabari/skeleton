@@ -4,6 +4,7 @@
 
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <imgui_stdlib.h>
 
 #include <memory>
 #include <stdexcept>
@@ -194,11 +195,10 @@ void ImGuiEditor::DrawEntity() {
     ImGui::End();
     return;
   }
-  const entt::registry& registry = scene_->Registry();
+  entt::registry& registry = scene_->Registry();
   if (registry.all_of<NameComponent>(selected_entity_)) {
-    const std::string label =
-        "Name: " + registry.get<NameComponent>(selected_entity_).name;
-    ImGui::TextUnformatted(label.c_str());
+    NameComponent& name = registry.get<NameComponent>(selected_entity_);
+    ImGui::InputText("Name", &name.name);
   }
   if (registry.all_of<MeshComponent>(selected_entity_)) {
     if (ImGui::CollapsingHeader("Mesh")) {

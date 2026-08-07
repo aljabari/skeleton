@@ -9,6 +9,7 @@ set(_imgui_sources
     imgui_draw.cpp
     imgui_tables.cpp
     imgui_widgets.cpp
+    misc/cpp/imgui_stdlib.cpp
 )
 
 set(_imgui_backend_sources
@@ -42,6 +43,7 @@ target_include_directories(imgui
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/backends
+        ${CMAKE_CURRENT_SOURCE_DIR}/misc/cpp
 )
 
 target_link_libraries(imgui PRIVATE glfw)
