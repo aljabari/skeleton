@@ -1,0 +1,15 @@
+// Copyright 2026 aljabari
+
+// This file is a CMake template. It is expanded into the build tree as
+// include/libskeleton/version.h by cmake/scripts/generate_version.cmake, which
+// runs on every build and derives the version from the git history.
+
+#ifndef LIBSKELETON_VERSION_H_
+#define LIBSKELETON_VERSION_H_
+
+#define SKELETON_VERSION_MAJOR @SKELETON_VERSION_MAJOR@
+#define SKELETON_VERSION_MINOR @SKELETON_VERSION_MINOR@
+#define SKELETON_VERSION_PATCH @SKELETON_VERSION_PATCH@
+#define SKELETON_VERSION_STRING "@SKELETON_VERSION_STRING@"
+
+#endif  // LIBSKELETON_VERSION_H_

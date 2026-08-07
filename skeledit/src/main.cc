@@ -4,6 +4,7 @@
 #include <spdlog/spdlog.h>
 
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "skeledit/editorlogsink.h"
@@ -14,6 +15,7 @@
 #include "libskeleton/logging.h"
 #include "libskeleton/renderer.h"
 #include "libskeleton/rendererfactory.h"
+#include "libskeleton/version.h"
 #include "libskeleton/window.h"
 
 namespace skeleton {
@@ -39,13 +41,14 @@ std::shared_ptr<EditorLogSink> ConfigureLogging() {
 int Run(int argc, char* argv[]) {
   const std::shared_ptr<EditorLogSink> log_sink = ConfigureLogging();
 
+  const std::string title = std::string("SkelEdit ") + SKELETON_VERSION_STRING;
   auto renderer = CreateRenderer(RenderTarget::kRenderTargetTexture,
-                                 WindowConfig{1280, 720, "SkelEdit"});
+                                 WindowConfig{1280, 720, title.c_str()});
   if (renderer == nullptr) {
     SPDLOG_ERROR("No renderer available; exiting.");
     return 1;
   }
-  SPDLOG_INFO("SkelEdit started.");
+  SPDLOG_INFO("SkelEdit {} started.", SKELETON_VERSION_STRING);
   Renderer* renderer_ptr = renderer.get();
   Window window(*renderer);
   ImGuiEditor editor(CreateImGuiBackend(window.GetNativeWindow(), renderer_ptr),

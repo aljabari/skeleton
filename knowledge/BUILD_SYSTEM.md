@@ -60,6 +60,39 @@ log output stays visible while developing. Because the GUI subsystem makes MSVC
 expect a `WinMain` entry point, both targets add `/ENTRY:mainCRTStartup` in
 Release so the CRT still calls the app's `main()`.
 
+## Versioning
+
+The version is derived from the git history at build time. `cmake/version.cmake`
+(included from the root `CMakeLists.txt`) defines
+`skeleton_generate_version()`, which `libskeleton/CMakeLists.txt` calls after
+`add_library(libskeleton)`. It registers a `libskeleton_version` custom target
+(depended on by `libskeleton` and part of the default build) that runs
+`cmake/scripts/generate_version.cmake` via `cmake -P` **on every build**. The
+script expands the template `libskeleton/include/libskeleton/version.h.in` into
+`include/libskeleton/version.h` in the build tree, and that generated directory
+is exported as a `PUBLIC` include directory so `libskeleton` and every consumer
+(`skeleton`, `skeledit`, the tests) can `#include "libskeleton/version.h"`.
+
+Version derivation from the repo's commit history:
+
+- **Major/minor** come from the most recent tag reachable from `HEAD` that
+  matches `v<major>.<minor>` (via `git describe --tags --match v[0-9]*.[0-9]*`,
+  validated against `^v([0-9]+)\\.([0-9]+)$`).
+- **Patch** is the number of commits made since that tag
+  (`git rev-list --count <tag>..HEAD`).
+- If no matching tag exists yet, the version is `0.<commit count>`.
+- If git is unavailable (e.g. a source archive without `.git`), the root
+  project version from `project(skeleton VERSION 1.0.0 ...)` is used.
+
+The header exposes `SKELETON_VERSION_MAJOR`, `SKELETON_VERSION_MINOR`, and
+`SKELETON_VERSION_PATCH` as integer preprocessor defines plus
+`SKELETON_VERSION_STRING` as `"v<major>.<minor>.<patch>"`. The script rewrites
+the header only when its content actually changed, so an unchanged version does
+not trigger recompilation of translation units that include it. Both
+executables log the version on startup (`SPDLOG_INFO("Skeleton {} started.",
+SKELETON_VERSION_STRING)` and the same for `skeledit`) and include it in the
+window title (e.g. `"Skeleton v0.0.63"`).
+
 ## Renderer factory and fallback priority
 
 `RendererBackend` (in `renderer.h`) lists the renderer backends

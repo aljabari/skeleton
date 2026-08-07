@@ -152,3 +152,8 @@ if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
 endif()
 
 cpplint_add_target(libskeleton ROOT libskeleton/include)
+
+# Generates include/libskeleton/version.h in the build tree on every build,
+# deriving the version from the git history (most recent v<major>.<minor> tag
+# plus the number of commits since it). Must come after add_library.
+skeleton_generate_version()

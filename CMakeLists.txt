@@ -12,6 +12,7 @@ endif()
 include(CPPLint)
 include(CTest)
 include(dependencies)
+include(version)
 
 add_subdirectory(libskeleton)
 add_subdirectory(skeleton)

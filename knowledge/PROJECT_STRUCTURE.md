@@ -7,6 +7,9 @@ skeleton/
 ├── cmake/                    # CMake modules
 │   ├── CPPLint.cmake         # cpplint integration
 │   ├── dependencies.cmake    # FetchContent dependencies
+│   ├── version.cmake         # skeleton_generate_version(): wires build-time version header generation
+│   ├── scripts/
+│   │   └── generate_version.cmake # Build-time git-based version calculator (cmake -P)
 │   ├── third_party/          # Build recipes for dependencies without their own CMake
 │   │   └── imgui/CMakeLists.txt  # Dear ImGui build script, copied into the fetched source
 │   └── platform/             # Per-platform capability flags
@@ -23,6 +26,7 @@ skeleton/
 │   ├── CMakeLists.txt
 │   ├── include/libskeleton/  # Public headers
 │   │   ├── logging.h
+│   │   ├── version.h.in      # CMake template expanded to version.h in the build tree on every build
 │   │   ├── window.h
 │   │   ├── renderer.h
 │   │   ├── rendererfactory.h
