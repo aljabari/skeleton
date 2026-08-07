@@ -450,7 +450,14 @@ editor is split into a backend-neutral shell and per-backend implementations:
   (`registry.view<MeshComponent>()`), labelled with the entity's
   `NameComponent` name, or "Entity <id>" (via `entt::to_integral`) when it has
   no name; each mesh entity's component is shown as a leaf (e.g. its vertex
-  count). It falls back to "No scene loaded." when the scene pointer is null.
+  count). Clicking a tree node (not its expand arrow) selects the entity. The
+  entity panel, docked below the scene graph, shows the selected entity's
+  details: the `NameComponent` is displayed plainly, while every other component
+  is a collapsible `CollapsingHeader` (e.g. `Mesh` listing the vertex data).
+  Both panels fall back to "No scene loaded."/"No entity selected." placeholders.
+  The dock layout splits the right column in two (scene graph on top, entity
+  panel below) and the bottom row (logs); `CreateDockLayout` rebuilds it on
+  first frame.
 - `CreateImGuiBackend` (`imguibackendfactory.h`, `imguibackendfactory.cc`)
   builds the right backend from `Renderer::GetBackend()`; `skeledit/src/main.cc`
   passes it to the editor. For Vulkan the frame loop calls `editor.Render()`

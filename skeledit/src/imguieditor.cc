@@ -82,6 +82,7 @@ void ImGuiEditor::Draw() {
   DrawDockSpace();
   DrawViewport();
   DrawSceneGraph();
+  DrawEntity();
   DrawLogs();
 }
 
@@ -101,13 +102,16 @@ void ImGuiEditor::CreateDockLayout(int viewport_width, int viewport_height) {
   ImGui::DockBuilderSetNodeSize(dockspace_id,
                                 ImVec2(viewport_width, viewport_height));
   ImGuiID viewport_node = dockspace_id;
-  const ImGuiID scene_graph_node = ImGui::DockBuilderSplitNode(
+  ImGuiID scene_graph_node = ImGui::DockBuilderSplitNode(
       viewport_node, ImGuiDir_Right, 0.25f, nullptr, &viewport_node);
+  const ImGuiID entity_node = ImGui::DockBuilderSplitNode(
+      scene_graph_node, ImGuiDir_Down, 0.4f, nullptr, &scene_graph_node);
   const ImGuiID logs_node = ImGui::DockBuilderSplitNode(
       viewport_node, ImGuiDir_Down, 0.25f, nullptr, &viewport_node);
   ImGui::DockBuilderDockWindow("Viewport", viewport_node);
   ImGui::DockBuilderDockWindow("Logs", logs_node);
   ImGui::DockBuilderDockWindow("Scene Graph", scene_graph_node);
+  ImGui::DockBuilderDockWindow("Entity", entity_node);
   ImGui::DockBuilderFinish(dockspace_id);
 }
 
@@ -162,13 +166,52 @@ void ImGuiEditor::DrawSceneGraph() {
         !registry.get<NameComponent>(entity).name.empty()) {
       label = registry.get<NameComponent>(entity).name;
     }
-    if (ImGui::TreeNode(label.c_str())) {
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
+    if (entity == selected_entity_) {
+      flags |= ImGuiTreeNodeFlags_Selected;
+    }
+    const bool open = ImGui::TreeNodeEx(label.c_str(), flags);
+    if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
+      selected_entity_ = entity;
+    }
+    if (open) {
       const MeshComponent& mesh = registry.get<MeshComponent>(entity);
-      const std::string label = "Mesh: " +
-                                std::to_string(mesh.vertices.size()) +
-                                " vertices";
-      ImGui::TextUnformatted(label.c_str());
+      const std::string mesh_label = "Mesh: " +
+                                     std::to_string(mesh.vertices.size()) +
+                                     " vertices";
+      ImGui::TextUnformatted(mesh_label.c_str());
       ImGui::TreePop();
+    }
+  }
+  ImGui::End();
+}
+
+void ImGuiEditor::DrawEntity() {
+  ImGui::Begin("Entity");
+  if (scene_ == nullptr || selected_entity_ == entt::null ||
+      !scene_->Registry().valid(selected_entity_)) {
+    ImGui::TextUnformatted("No entity selected.");
+    ImGui::End();
+    return;
+  }
+  const entt::registry& registry = scene_->Registry();
+  if (registry.all_of<NameComponent>(selected_entity_)) {
+    const std::string label =
+        "Name: " + registry.get<NameComponent>(selected_entity_).name;
+    ImGui::TextUnformatted(label.c_str());
+  }
+  if (registry.all_of<MeshComponent>(selected_entity_)) {
+    if (ImGui::CollapsingHeader("Mesh")) {
+      const MeshComponent& mesh = registry.get<MeshComponent>(selected_entity_);
+      const std::string vertices_label = "Vertices: " +
+                                         std::to_string(mesh.vertices.size());
+      ImGui::TextUnformatted(vertices_label.c_str());
+      ImGui::Separator();
+      ImGui::BeginChild("MeshVertices", ImVec2(0.0f, 0.0f), true);
+      for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+        ImGui::Text("%zu: %.2f", i, mesh.vertices[i]);
+      }
+      ImGui::EndChild();
     }
   }
   ImGui::End();

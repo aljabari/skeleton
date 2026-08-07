@@ -6,6 +6,7 @@
 #include <functional>
 #include <memory>
 
+#include <entt/entity/registry.hpp>
 #include <imgui.h>
 
 #include "skeledit/logsink.h"
@@ -25,7 +26,7 @@ class ImGuiEditor {
   // |viewport_height| are the initial viewport size; |viewport_resize_callback|
   // is called when the viewport size changes, and should resize the renderer's
   // render target to match. |scene| is the non-owning scene displayed in the
-  // scene graph panel; it must outlive the editor.
+  // scene graph and entity panels; it must outlive the editor.
   ImGuiEditor(std::unique_ptr<ImGuiBackend> backend, int viewport_width,
               int viewport_height, std::shared_ptr<LogSink> log_sink,
               std::function<void(int, int)> viewport_resize_callback,
@@ -46,6 +47,7 @@ class ImGuiEditor {
   void DrawDockSpace();
   void DrawViewport();
   void DrawSceneGraph();
+  void DrawEntity();
   void DrawLogs();
 
   std::unique_ptr<ImGuiBackend> backend_;
@@ -55,6 +57,7 @@ class ImGuiEditor {
   std::shared_ptr<LogSink> log_sink_;
   std::function<void(int, int)> viewport_resize_callback_;
   Scene* scene_;
+  entt::entity selected_entity_ = entt::null;
 };
 
 }  // namespace skeleton
