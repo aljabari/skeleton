@@ -4,6 +4,7 @@
 #define LIBSKELETON_OPENGL_OPENGLRENDERER_H_
 
 #include <memory>
+#include <vector>
 
 #include "libskeleton/renderer.h"
 
@@ -24,7 +25,7 @@ class OpenGlRenderer : public Renderer {
   RendererBackend GetBackend() const override;
   void CreateContext(const WindowConfig& config) override;
   GLFWwindow* GetNativeWindow() const override;
-  void Render() override;
+  void Render(const Scene& scene) override;
   void ResizeRenderTarget(int width, int height) override;
 
   unsigned int GetTextureId() const override;
@@ -34,7 +35,10 @@ class OpenGlRenderer : public Renderer {
 
   GLFWwindow* window_ = nullptr;
   std::unique_ptr<OpenGlShader> shader_;
-  std::unique_ptr<OpenGlMesh> mesh_;
+  // One GPU mesh per scene MeshComponent, rebuilt when a component's vertices
+  // change. Kept alongside the source vertices so Render can detect changes.
+  std::vector<std::unique_ptr<OpenGlMesh>> scene_meshes_;
+  std::vector<std::vector<float>> scene_mesh_vertices_;
   std::unique_ptr<OpenGlFramebuffer> framebuffer_;
   int render_target_width_ = 0;
   int render_target_height_ = 0;

@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "libskeleton/renderer.h"
+#include "libskeleton/scene.h"
 #include "renderer/vulkan/vulkancommandbuffer.h"
 #include "renderer/vulkan/vulkandevice.h"
 #include "renderer/vulkan/vulkanfence.h"
@@ -29,17 +30,7 @@ namespace skeleton {
 
 namespace {
 
-// The same hardcoded triangle mesh the OpenGL renderer draws, authored in the
-// Vulkan coordinate system (front faces wind counter-clockwise in the
-// y-down framebuffer): three vertices of interleaved position (vec3) and
-// colour (vec3).
-const std::vector<float> kTriangleVertices = {
-    -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  //
-    0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,  //
-    0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  //
-};
-
-// The background the triangle is cleared to before each frame, matching the
+// The background the scene is cleared to before each frame, matching the
 // OpenGL renderer.
 const VkClearColorValue kClearColor = {{0.2f, 0.3f, 0.8f, 1.0f}};
 
@@ -114,7 +105,6 @@ void VulkanRenderer::CreateSwapchainResources(const WindowConfig& config) {
       *device_, render_pass_->RenderPass(),
       shader_directory + "/triangle.vert.spv",
       shader_directory + "/triangle.frag.spv");
-  mesh_ = std::make_unique<VulkanMesh>(*device_, kTriangleVertices);
 
   framebuffers_.reserve(swapchain_->ImageViews().size());
   for (VkImageView image_view : swapchain_->ImageViews()) {
@@ -149,9 +139,9 @@ GLFWwindow* VulkanRenderer::GetNativeWindow() const {
   return window_;
 }
 
-void VulkanRenderer::Render() {
+void VulkanRenderer::Render(const Scene& scene) {
   if (device_ == nullptr || swapchain_ == nullptr ||
-      graphics_pipeline_ == nullptr || mesh_ == nullptr) {
+      graphics_pipeline_ == nullptr) {
     SPDLOG_WARN("Vulkan renderer is not fully initialised; skipping frame.");
     return;
   }
@@ -178,6 +168,24 @@ void VulkanRenderer::Render() {
   }
   // Only reset the fence once this frame will actually submit work.
   vkResetFences(device, 1, &in_flight_fence);
+
+  // Build the GPU meshes for the scene's mesh components. The previous frame
+  // is idle (waited on above), so meshes that changed can be rebuilt safely;
+  // meshes whose vertices are unchanged are reused.
+  const auto mesh_view = scene.Registry().view<MeshComponent>();
+  scene_meshes_.resize(mesh_view.size());
+  scene_mesh_vertices_.resize(mesh_view.size());
+  std::size_t mesh_index = 0;
+  for (entt::entity entity : mesh_view) {
+    const MeshComponent& mesh_component = mesh_view.get<MeshComponent>(entity);
+    if (scene_meshes_[mesh_index] == nullptr ||
+        scene_mesh_vertices_[mesh_index] != mesh_component.vertices) {
+      scene_mesh_vertices_[mesh_index] = mesh_component.vertices;
+      scene_meshes_[mesh_index] =
+          std::make_unique<VulkanMesh>(*device_, mesh_component.vertices);
+    }
+    ++mesh_index;
+  }
 
   VkCommandBuffer command_buffer = command_buffer_->CommandBuffer();
   VkCommandBufferBeginInfo begin_info{};
@@ -382,11 +390,13 @@ void VulkanRenderer::RecordScene(VkCommandBuffer command_buffer,
 
   vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     graphics_pipeline_->Pipeline());
-  VkBuffer vertex_buffer = mesh_->Buffer();
-  VkDeviceSize offset = 0;
-  vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer, &offset);
-  vkCmdDraw(command_buffer, static_cast<uint32_t>(mesh_->VertexCount()), 1, 0,
-            0);
+  for (const std::unique_ptr<VulkanMesh>& mesh : scene_meshes_) {
+    VkBuffer vertex_buffer = mesh->Buffer();
+    VkDeviceSize offset = 0;
+    vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer, &offset);
+    vkCmdDraw(command_buffer, static_cast<uint32_t>(mesh->VertexCount()), 1, 0,
+              0);
+  }
   vkCmdEndRenderPass(command_buffer);
 }
 

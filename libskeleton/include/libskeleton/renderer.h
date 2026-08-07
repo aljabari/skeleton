@@ -10,6 +10,8 @@ struct GLFWwindow;
 
 namespace skeleton {
 
+class Scene;
+
 // Available renderer backends. Only backends compiled for the target platform
 // can be created; the platform fallback order is defined in
 // libskeleton/rendererfactory.h.
@@ -59,7 +61,9 @@ class Renderer {
   virtual void CreateContext(const WindowConfig& config) = 0;
   // The window owned by this renderer, or nullptr before CreateContext.
   virtual GLFWwindow* GetNativeWindow() const = 0;
-  virtual void Render() = 0;
+  // Draws the scene's entities (those with a MeshComponent) into the current
+  // render target.
+  virtual void Render(const Scene& scene) = 0;
 
   // Returns the identifier of the texture the renderer draws into when
   // rendering to a texture, or 0 when it does not.

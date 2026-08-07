@@ -80,10 +80,12 @@ endif()
 
 set(_libskeleton_sources
     src/window.cc
+    src/scene.cc
     src/renderer/renderer.cc
     src/renderer/rendererfactory.cc
     include/libskeleton/logging.h
     include/libskeleton/rendererfactory.h
+    include/libskeleton/scene.h
     include/libskeleton/window.h
     include/libskeleton/renderer.h
     ${_renderer_opengl_sources}
@@ -136,7 +138,7 @@ target_include_directories(libskeleton
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-target_link_libraries(libskeleton PUBLIC glfw spdlog)
+target_link_libraries(libskeleton PUBLIC glfw spdlog EnTT)
 
 if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
     target_link_libraries(libskeleton PUBLIC volk)

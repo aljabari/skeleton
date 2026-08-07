@@ -1,5 +1,6 @@
 add_executable(libskeleton_tests
     src/window_test.cc
+    src/scene_test.cc
     src/renderer/opengl/openglframebuffer_test.cc
     src/renderer/opengl/openglmesh_test.cc
     src/renderer/opengl/openglrenderer_test.cc
@@ -22,6 +23,7 @@ add_executable(libskeleton_tests
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES
     src/window_test.cc
+    src/scene_test.cc
     src/renderer/opengl/openglframebuffer_test.cc
     src/renderer/opengl/openglmesh_test.cc
     src/renderer/opengl/openglrenderer_test.cc

@@ -28,7 +28,7 @@ class TestRenderer : public Renderer {
       throw RendererCreationException("context creation failed");
     }
   }
-  void Render() override {}
+  void Render(const Scene&) override {}
   GLFWwindow* GetNativeWindow() const override { return nullptr; }
 
   // When set, CreateContext throws RendererCreationException.

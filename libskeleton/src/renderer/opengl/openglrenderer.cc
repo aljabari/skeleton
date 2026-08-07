@@ -12,25 +12,12 @@
 #include <string>
 #include <vector>
 
+#include "libskeleton/scene.h"
 #include "renderer/opengl/openglframebuffer.h"
 #include "renderer/opengl/openglmesh.h"
 #include "renderer/opengl/openglshader.h"
 
 namespace skeleton {
-
-namespace {
-
-// The same hardcoded triangle mesh the Vulkan renderer draws, authored in the
-// Vulkan coordinate system (front faces wind counter-clockwise in the
-// y-down framebuffer): three vertices of interleaved position (vec3) and
-// colour (vec3).
-const std::vector<float> kTriangleVertices = {
-    -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  //
-    0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,  //
-    0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  //
-};
-
-}  // namespace
 
 OpenGlRenderer::OpenGlRenderer(RenderTarget render_target)
     : Renderer(render_target) {}
@@ -42,7 +29,7 @@ OpenGlRenderer::~OpenGlRenderer() {
     glfwMakeContextCurrent(window_);
   }
   framebuffer_.reset();
-  mesh_.reset();
+  scene_meshes_.clear();
   shader_.reset();
   if (window_ != nullptr) {
     glfwDestroyWindow(window_);
@@ -67,7 +54,6 @@ void OpenGlRenderer::CreateContext(const WindowConfig& config) {
   shader_ = std::make_unique<OpenGlShader>(
       shader_directory + "/triangle.vert.spv",
       shader_directory + "/triangle.frag.spv");
-  mesh_ = std::make_unique<OpenGlMesh>(kTriangleVertices);
 
   if (render_target_ == RenderTarget::kRenderTargetTexture) {
     int width = 0;
@@ -106,7 +92,7 @@ unsigned int OpenGlRenderer::GetTextureId() const {
   return framebuffer_ != nullptr ? framebuffer_->GetTextureId() : 0;
 }
 
-void OpenGlRenderer::Render() {
+void OpenGlRenderer::Render(const Scene& scene) {
   int viewport_width = 0;
   int viewport_height = 0;
   if (render_target_ == RenderTarget::kRenderTargetTexture) {
@@ -122,11 +108,27 @@ void OpenGlRenderer::Render() {
   glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  if (shader_ != nullptr && mesh_ != nullptr) {
-    shader_->Use();
-    mesh_->Draw();
+  if (shader_ == nullptr) {
+    SPDLOG_WARN("OpenGL renderer has no shader; skipping draw.");
   } else {
-    SPDLOG_WARN("OpenGL renderer has no shader or mesh; skipping draw.");
+    shader_->Use();
+
+    const auto mesh_view = scene.Registry().view<MeshComponent>();
+    scene_meshes_.resize(mesh_view.size());
+    scene_mesh_vertices_.resize(mesh_view.size());
+    std::size_t index = 0;
+    for (entt::entity entity : mesh_view) {
+      const MeshComponent& mesh_component =
+          mesh_view.get<MeshComponent>(entity);
+      if (scene_meshes_[index] == nullptr ||
+          scene_mesh_vertices_[index] != mesh_component.vertices) {
+        scene_mesh_vertices_[index] = mesh_component.vertices;
+        scene_meshes_[index] =
+            std::make_unique<OpenGlMesh>(mesh_component.vertices);
+      }
+      scene_meshes_[index]->Draw();
+      ++index;
+    }
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -5,10 +5,30 @@
 #include <GLFW/glfw3.h>
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "libskeleton/renderer.h"
+#include "libskeleton/scene.h"
 
 namespace skeleton {
 namespace {
+
+// The same hardcoded triangle mesh the OpenGL renderer tests use, authored in
+// the Vulkan coordinate system: three vertices of interleaved position (vec3)
+// and colour (vec3).
+const std::vector<float> kTriangleVertices = {
+    -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  //
+    0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,  //
+    0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  //
+};
+
+// A scene containing a single triangle mesh entity.
+Scene CreateTriangleScene() {
+  Scene scene;
+  const entt::entity triangle = scene.Registry().create();
+  scene.Registry().emplace<MeshComponent>(triangle, kTriangleVertices);
+  return scene;
+}
 
 // Initialises GLFW and skips the test when Vulkan is not available on the
 // current system.
@@ -51,9 +71,10 @@ TEST(VulkanRendererTest, DrawsTriangleMeshWithoutError) {
   {
     VulkanRenderer renderer;
     renderer.CreateContext(WindowConfig{800, 600, "test"});
+    const Scene scene = CreateTriangleScene();
 
-    EXPECT_NO_THROW(renderer.Render());
-    EXPECT_NO_THROW(renderer.Render());
+    EXPECT_NO_THROW(renderer.Render(scene));
+    EXPECT_NO_THROW(renderer.Render(scene));
   }
 
   glfwTerminate();
@@ -99,8 +120,9 @@ TEST(VulkanRendererTest, FrameSubmitCallbackCanAddCommandBuffer) {
           return command_buffer;
         });
 
-    EXPECT_NO_THROW(renderer.Render());
-    EXPECT_NO_THROW(renderer.Render());
+    const Scene scene = CreateTriangleScene();
+    EXPECT_NO_THROW(renderer.Render(scene));
+    EXPECT_NO_THROW(renderer.Render(scene));
     EXPECT_EQ(callback_invocation_count, 2);
     EXPECT_GE(renderer.SwapchainImageCount(), 1u);
 
@@ -121,8 +143,9 @@ TEST(VulkanRendererTest, RendersToRenderTargetWithoutError) {
     EXPECT_NE(renderer.RenderTargetImageView(), VK_NULL_HANDLE);
     EXPECT_EQ(renderer.RenderTargetExtent().width, 800u);
     EXPECT_EQ(renderer.RenderTargetExtent().height, 600u);
-    EXPECT_NO_THROW(renderer.Render());
-    EXPECT_NO_THROW(renderer.Render());
+    const Scene scene = CreateTriangleScene();
+    EXPECT_NO_THROW(renderer.Render(scene));
+    EXPECT_NO_THROW(renderer.Render(scene));
   }
 
   glfwTerminate();
@@ -142,7 +165,8 @@ TEST(VulkanRendererTest, ResizeRenderTargetRecreatesImage) {
     EXPECT_NE(renderer.RenderTargetImageView(), original_image_view);
     EXPECT_EQ(renderer.RenderTargetExtent().width, 640u);
     EXPECT_EQ(renderer.RenderTargetExtent().height, 480u);
-    EXPECT_NO_THROW(renderer.Render());
+    const Scene scene = CreateTriangleScene();
+    EXPECT_NO_THROW(renderer.Render(scene));
   }
 
   glfwTerminate();

@@ -26,6 +26,7 @@ skeleton/
 │   ├── CMakeLists.txt
 │   ├── include/libskeleton/  # Public headers
 │   │   ├── logging.h
+│   │   ├── scene.h           # Scene (ECS, wraps entt::registry) + MeshComponent
 │   │   ├── version.h.in      # CMake template expanded to version.h in the build tree on every build
 │   │   ├── window.h
 │   │   ├── renderer.h
@@ -39,6 +40,7 @@ skeleton/
 │   │       ├── triangle.frag
 │   │       └── triangle.vert
 │   └── src/                  # Implementation files (private headers live here too)
+│       ├── scene.cc
 │       ├── window.cc
 │       ├── renderer/
 │       │   ├── renderer.cc
@@ -66,6 +68,7 @@ skeleton/
 ├── tests/                    # Unit tests (Google Test), mirrors libskeleton/src
 │   ├── CMakeLists.txt
 │   └── src/
+│       ├── scene_test.cc
 │       ├── window_test.cc
 │       ├── skeledit/
 │       │   ├── editorlogsink_test.cc   # EditorLogSink buffering tests (skeledit_tests)

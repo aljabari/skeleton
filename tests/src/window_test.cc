@@ -15,7 +15,7 @@ class MockRenderer : public Renderer {
  public:
   MOCK_METHOD(RendererBackend, GetBackend, (), (const, override));
   MOCK_METHOD(void, CreateContext, (const WindowConfig&), (override));
-  MOCK_METHOD(void, Render, (), (override));
+  MOCK_METHOD(void, Render, (const Scene&), (override));
 
   GLFWwindow* GetNativeWindow() const override { return native_window_; }
   void SetNativeWindow(GLFWwindow* window) { native_window_ = window; }

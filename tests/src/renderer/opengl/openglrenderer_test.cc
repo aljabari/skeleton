@@ -7,10 +7,30 @@
 #include <GLFW/glfw3.h>
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "libskeleton/renderer.h"
+#include "libskeleton/scene.h"
 
 namespace skeleton {
 namespace {
+
+// The same hardcoded triangle mesh the Vulkan renderer tests use, authored in
+// the Vulkan coordinate system: three vertices of interleaved position (vec3)
+// and colour (vec3).
+const std::vector<float> kTriangleVertices = {
+    -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  //
+    0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,  //
+    0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  //
+};
+
+// A scene containing a single triangle mesh entity.
+Scene CreateTriangleScene() {
+  Scene scene;
+  const entt::entity triangle = scene.Registry().create();
+  scene.Registry().emplace<MeshComponent>(triangle, kTriangleVertices);
+  return scene;
+}
 
 TEST(OpenGlRendererTest, CreateContextCreatesOpenGl33Window) {
   OpenGlRenderer renderer;
@@ -59,7 +79,9 @@ TEST(OpenGlRendererTest, RenderDrawsTriangleWithoutErrors) {
   renderer.CreateContext(
       WindowConfig{640, 480, "Skeleton Render Triangle Test"});
 
-  renderer.Render();
+  const Scene scene = CreateTriangleScene();
+
+  renderer.Render(scene);
 
   EXPECT_EQ(glGetError(), GL_NO_ERROR);
 }
@@ -77,7 +99,8 @@ TEST(OpenGlRendererTest, ResizeRenderTargetRecreatesRenderTarget) {
   EXPECT_NE(renderer.GetTextureId(), 0u);
   EXPECT_NE(renderer.GetTextureId(), initial_texture_id);
 
-  renderer.Render();
+  const Scene scene = CreateTriangleScene();
+  renderer.Render(scene);
 
   EXPECT_EQ(glGetError(), GL_NO_ERROR);
 }
@@ -105,7 +128,8 @@ TEST(OpenGlRendererTest, RenderSetsViewportToWindowFramebufferSize) {
   glfwGetFramebufferSize(renderer.GetNativeWindow(), &expected_width,
                          &expected_height);
 
-  renderer.Render();
+  const Scene scene = CreateTriangleScene();
+  renderer.Render(scene);
 
   GLint viewport[4] = {0, 0, 0, 0};
   glGetIntegerv(GL_VIEWPORT, viewport);
@@ -122,7 +146,8 @@ TEST(OpenGlRendererTest, RenderSetsViewportToRenderTargetSize) {
       WindowConfig{640, 480, "Skeleton Render Target Viewport Test"});
 
   renderer.ResizeRenderTarget(320, 200);
-  renderer.Render();
+  const Scene scene = CreateTriangleScene();
+  renderer.Render(scene);
 
   GLint viewport[4] = {0, 0, 0, 0};
   glGetIntegerv(GL_VIEWPORT, viewport);

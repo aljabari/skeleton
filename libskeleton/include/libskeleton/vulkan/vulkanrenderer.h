@@ -36,7 +36,7 @@ class VulkanRenderer : public Renderer {
   RendererBackend GetBackend() const override;
   void CreateContext(const WindowConfig& config) override;
   GLFWwindow* GetNativeWindow() const override;
-  void Render() override;
+  void Render(const Scene& scene) override;
   // Recreates the off-screen render target at the given size. No-op for window
   // rendering.
   void ResizeRenderTarget(int width, int height) override;
@@ -110,8 +110,8 @@ class VulkanRenderer : public Renderer {
   void CreateRenderTarget(const WindowConfig& config);
   // Records a render pass over |framebuffer| (a swapchain image or the
   // off-screen render target) that clears it to the background colour and draws
-  // the triangle mesh, setting the viewport and scissor to |extent|. The render
-  // pass must be compatible with the graphics pipeline.
+  // the cached scene meshes, setting the viewport and scissor to |extent|. The
+  // render pass must be compatible with the graphics pipeline.
   void RecordScene(VkCommandBuffer command_buffer, VkFramebuffer framebuffer,
                    VkRenderPass render_pass, VkExtent2D extent);
   // Destroys and recreates the swapchain and its framebuffers to match the
@@ -126,7 +126,10 @@ class VulkanRenderer : public Renderer {
   std::unique_ptr<VulkanSwapchain> swapchain_;
   std::unique_ptr<VulkanRenderPass> render_pass_;
   std::unique_ptr<VulkanGraphicsPipeline> graphics_pipeline_;
-  std::unique_ptr<VulkanMesh> mesh_;
+  // One GPU mesh per scene MeshComponent, rebuilt when a component's vertices
+  // change. Kept alongside the source vertices so Render can detect changes.
+  std::vector<std::unique_ptr<VulkanMesh>> scene_meshes_;
+  std::vector<std::vector<float>> scene_mesh_vertices_;
   std::vector<std::unique_ptr<VulkanFramebuffer>> framebuffers_;
   std::unique_ptr<VulkanRenderTarget> vulkan_render_target_;
   std::unique_ptr<VulkanFramebuffer> render_target_framebuffer_;

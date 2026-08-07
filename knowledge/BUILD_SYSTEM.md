@@ -140,7 +140,8 @@ the instance.
   in-flight-resource destruction.
 - `OpenGlRenderer::CreateContext` requests a 3.3 context, creates the window,
   makes its context current, loads the GL functions with glad, and creates the
-  shader, mesh, and (for texture targets) the render target.
+  shader and (for texture targets) the render target. It no longer creates a
+  mesh: geometry now comes from the scene at render time.
 - The private `VulkanInstance`/`VulkanDevice`/`VulkanSwapchain`/
   `VulkanGraphicsPipeline`/`VulkanMesh`/`VulkanRenderPass`/
   `VulkanRenderTarget`/`VulkanFramebuffer`/`VulkanCommandBuffer`/`VulkanSemaphore`/`VulkanFence`
@@ -182,6 +183,22 @@ Those APIs live on the base `Renderer` interface (`GetTextureId()`,
 use the renderer polymorphically through `Renderer&` without downcasting.
 Both backends implement texture mode: OpenGL via `OpenGlFramebuffer`, Vulkan via
 the off-screen `VulkanRenderTarget` (whose image view ImGui samples).
+
+## Scene
+
+`Scene` (`libskeleton/include/libskeleton/scene.h`) is the ECS wrapper around an
+`entt::registry` (linked through the public `EnTT` target). The registry is
+accessed through `Scene::Registry()`. Drawable geometry is an entity carrying a
+`MeshComponent`, which holds the mesh's vertices as interleaved position (vec3)
++ colour (vec3) floats authored in the Vulkan coordinate system (the same layout
+the shaders expect). Each frame the applications pass their scene to
+`Renderer::Render(const Scene&)`, which iterates
+`scene.Registry().view<MeshComponent>()` and draws every mesh entity. Both
+renderers cache one GPU mesh per scene `MeshComponent` (`OpenGlMesh`/`VulkanMesh`
+per entity), rebuilt only when a component's vertices change; Vulkan rebuilds
+safely after the in-flight fence wait, so the previous frame's buffers can be
+destroyed. `skeleton` and `skeledit` each build a demo scene with a single
+triangle mesh entity and draw it every frame.
 
 ## Resources
 
@@ -431,8 +448,8 @@ editor is split into a backend-neutral shell and per-backend implementations:
 - `CreateImGuiBackend` (`imguibackendfactory.h`, `imguibackendfactory.cc`)
   builds the right backend from `Renderer::GetBackend()`; `skeledit/src/main.cc`
   passes it to the editor. For Vulkan the frame loop calls `editor.Render()`
-  *before* `renderer->Render()` so the ImGui draw data exists when the renderer
-  records its frame.
+  *before* `renderer->Render(scene)` so the ImGui draw data exists when the
+  renderer records its frame.
 
 The Vulkan renderer supports compositing an extra layer through a generic,
 ImGui-agnostic hook: `VulkanRenderer::SetFrameSubmitCallback` accepts a
