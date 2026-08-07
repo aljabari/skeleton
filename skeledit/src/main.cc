@@ -39,8 +39,7 @@ std::shared_ptr<EditorLogSink> ConfigureLogging() {
 int Run(int argc, char* argv[]) {
   const std::shared_ptr<EditorLogSink> log_sink = ConfigureLogging();
 
-  auto renderer = CreateRenderer(RendererBackend::kOpenGl,
-                                 RenderTarget::kRenderTargetTexture,
+  auto renderer = CreateRenderer(RenderTarget::kRenderTargetTexture,
                                  WindowConfig{1280, 720, "SkelEdit"});
   if (renderer == nullptr) {
     SPDLOG_ERROR("No renderer available; exiting.");

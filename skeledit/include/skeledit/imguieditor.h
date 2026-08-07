@@ -42,6 +42,7 @@ class ImGuiEditor {
  private:
   void DrawDockSpace();
   void DrawViewport();
+  void DrawSceneGraph();
   void DrawLogs();
 
   std::unique_ptr<ImGuiBackend> backend_;

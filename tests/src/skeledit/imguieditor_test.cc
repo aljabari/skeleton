@@ -32,12 +32,18 @@ class ImGuiEditorTest : public ::testing::Test {
     ImGui::Begin("Logs");
     ImGui::End();
   }
+
+  void DrawSceneGraphWindowOnce() {
+    ImGui::Begin("Scene Graph");
+    ImGui::End();
+  }
 };
 
-TEST_F(ImGuiEditorTest, CreateDockLayoutDocksViewportAndLogsWindows) {
+TEST_F(ImGuiEditorTest, CreateDockLayoutDocksViewportLogsAndSceneGraphWindows) {
   ImGui::NewFrame();
   DrawViewportWindowOnce();
   DrawLogsWindowOnce();
+  DrawSceneGraphWindowOnce();
 
   ImGuiEditor::CreateDockLayout(800, 600);
 
@@ -48,6 +54,10 @@ TEST_F(ImGuiEditorTest, CreateDockLayoutDocksViewportAndLogsWindows) {
   ImGuiWindow* logs = ImGui::FindWindowByName("Logs");
   ASSERT_NE(logs, nullptr);
   EXPECT_NE(logs->DockId, 0);
+
+  ImGuiWindow* scene_graph = ImGui::FindWindowByName("Scene Graph");
+  ASSERT_NE(scene_graph, nullptr);
+  EXPECT_NE(scene_graph->DockId, 0);
 
   ImGuiDockNode* node = ImGui::DockBuilderGetNode(ImGuiEditor::DockspaceId());
   ASSERT_NE(node, nullptr);
@@ -58,6 +68,7 @@ TEST_F(ImGuiEditorTest, CreateDockLayoutIsIdempotent) {
   ImGui::NewFrame();
   DrawViewportWindowOnce();
   DrawLogsWindowOnce();
+  DrawSceneGraphWindowOnce();
 
   ImGuiEditor::CreateDockLayout(800, 600);
   ImGuiEditor::CreateDockLayout(800, 600);
@@ -69,6 +80,10 @@ TEST_F(ImGuiEditorTest, CreateDockLayoutIsIdempotent) {
   ImGuiWindow* logs = ImGui::FindWindowByName("Logs");
   ASSERT_NE(logs, nullptr);
   EXPECT_NE(logs->DockId, 0);
+
+  ImGuiWindow* scene_graph = ImGui::FindWindowByName("Scene Graph");
+  ASSERT_NE(scene_graph, nullptr);
+  EXPECT_NE(scene_graph->DockId, 0);
 
   ImGuiDockNode* node = ImGui::DockBuilderGetNode(ImGuiEditor::DockspaceId());
   ASSERT_NE(node, nullptr);
@@ -82,6 +97,7 @@ TEST_F(ImGuiEditorTest, WindowsDockIntoDockspaceHost) {
                                ImGui::GetMainViewport());
   DrawViewportWindowOnce();
   DrawLogsWindowOnce();
+  DrawSceneGraphWindowOnce();
   ImGui::Render();
   ImGui::EndFrame();
 
@@ -90,6 +106,7 @@ TEST_F(ImGuiEditorTest, WindowsDockIntoDockspaceHost) {
                                ImGui::GetMainViewport());
   DrawViewportWindowOnce();
   DrawLogsWindowOnce();
+  DrawSceneGraphWindowOnce();
 
   ImGuiWindow* viewport = ImGui::FindWindowByName("Viewport");
   ASSERT_NE(viewport, nullptr);

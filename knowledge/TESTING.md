@@ -50,7 +50,7 @@ location. Currently:
 |                     | `tests/src/renderer/vulkan/vulkansemaphore_test.cc` | `VulkanSemaphore` semaphore creation (skips when Vulkan is unavailable) |
 |                     | `tests/src/renderer/vulkan/vulkanswapchain_test.cc` | `VulkanSwapchain` swapchain and image-view creation, including swapchain extent and format selection (skips when Vulkan is unavailable) |
 | `skeledit_tests`    | `tests/src/skeledit/editorlogsink_test.cc` | `EditorLogSink` buffering, canonical timestamped format (`[YYYY-MM-DD HH:MM:SS.mmm] [level] message`), `Clear`, and `kMaxEntries` bound |
-|                     | `tests/src/skeledit/imguieditor_test.cc`       | `ImGuiEditor` dock-layout construction (headless, no GL context) |
+|                     | `tests/src/skeledit/imguieditor_test.cc`       | `ImGuiEditor` dock-layout construction (viewport, right-docked scene graph spanning full height, bottom logs; headless, no GL context) |
 
 Tests for the private OpenGL classes (`OpenGlShader`, `OpenGlMesh`,
 `OpenGlTexture`, `OpenGlFramebuffer`) include their headers via the

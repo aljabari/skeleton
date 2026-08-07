@@ -73,6 +73,7 @@ void ImGuiEditor::Draw() {
   }
   DrawDockSpace();
   DrawViewport();
+  DrawSceneGraph();
   DrawLogs();
 }
 
@@ -92,10 +93,13 @@ void ImGuiEditor::CreateDockLayout(int viewport_width, int viewport_height) {
   ImGui::DockBuilderSetNodeSize(dockspace_id,
                                 ImVec2(viewport_width, viewport_height));
   ImGuiID viewport_node = dockspace_id;
+  const ImGuiID scene_graph_node = ImGui::DockBuilderSplitNode(
+      viewport_node, ImGuiDir_Right, 0.25f, nullptr, &viewport_node);
   const ImGuiID logs_node = ImGui::DockBuilderSplitNode(
       viewport_node, ImGuiDir_Down, 0.25f, nullptr, &viewport_node);
   ImGui::DockBuilderDockWindow("Viewport", viewport_node);
   ImGui::DockBuilderDockWindow("Logs", logs_node);
+  ImGui::DockBuilderDockWindow("Scene Graph", scene_graph_node);
   ImGui::DockBuilderFinish(dockspace_id);
 }
 
@@ -134,6 +138,12 @@ void ImGuiEditor::DrawViewport() {
   }
   ImGui::End();
   ImGui::PopStyleVar();
+}
+
+void ImGuiEditor::DrawSceneGraph() {
+  ImGui::Begin("Scene Graph");
+  ImGui::TextUnformatted("No scene loaded.");
+  ImGui::End();
 }
 
 void ImGuiEditor::DrawLogs() {
