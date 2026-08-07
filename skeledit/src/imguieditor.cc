@@ -7,9 +7,11 @@
 
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <vector>
 
+#include "libskeleton/scene.h"
 #include "skeledit/imguibackend.h"
 
 namespace skeleton {
@@ -33,17 +35,23 @@ ImVec4 LogLevelColor(LogLevel level) {
   return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
+// The display label of an entity, e.g. "Entity 1".
+std::string EntityLabel(entt::entity entity) {
+  return "Entity " + std::to_string(entt::to_integral(entity));
+}
+
 }  // namespace
 
 ImGuiEditor::ImGuiEditor(
     std::unique_ptr<ImGuiBackend> backend, int viewport_width,
     int viewport_height, std::shared_ptr<LogSink> log_sink,
-    std::function<void(int, int)> viewport_resize_callback)
+    std::function<void(int, int)> viewport_resize_callback, Scene* scene)
     : backend_(std::move(backend)),
       viewport_width_(viewport_width),
       viewport_height_(viewport_height),
       log_sink_(std::move(log_sink)),
-      viewport_resize_callback_(std::move(viewport_resize_callback)) {
+      viewport_resize_callback_(std::move(viewport_resize_callback)),
+      scene_(scene) {
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
   io.IniFilename = nullptr;
@@ -142,7 +150,22 @@ void ImGuiEditor::DrawViewport() {
 
 void ImGuiEditor::DrawSceneGraph() {
   ImGui::Begin("Scene Graph");
-  ImGui::TextUnformatted("No scene loaded.");
+  if (scene_ == nullptr) {
+    ImGui::TextUnformatted("No scene loaded.");
+    ImGui::End();
+    return;
+  }
+  const entt::registry& registry = scene_->Registry();
+  for (const entt::entity entity : registry.view<MeshComponent>()) {
+    if (ImGui::TreeNode(EntityLabel(entity).c_str())) {
+      const MeshComponent& mesh = registry.get<MeshComponent>(entity);
+      const std::string label = "Mesh: " +
+                                std::to_string(mesh.vertices.size()) +
+                                " vertices";
+      ImGui::TextUnformatted(label.c_str());
+      ImGui::TreePop();
+    }
+  }
   ImGui::End();
 }
 

@@ -113,7 +113,7 @@ skeleton/
 │       ├── main.cc
 │       ├── editorlogsink.cc  # Buffers newest kMaxEntries log lines (canonical format)
 │       ├── imguibackendfactory.cc # Backend factory dispatching on Renderer::GetBackend
-│       ├── imguieditor.cc    # ImGui context/backends, dockable viewport, dock layout (viewport, right-docked scene graph spanning full height, bottom logs), log window; flips the viewport texture only when the backend reports it is stored bottom-up
+│       ├── imguieditor.cc    # ImGui context/backends, dockable viewport, dock layout (viewport, right-docked scene graph spanning full height, bottom logs), scene graph panel (ImGui tree node per scene entity + component leaves), log window; flips the viewport texture only when the backend reports it is stored bottom-up
 │       ├── opengl_imguibackend.cc  # ImGui_ImplGlfw_InitForOpenGL + ImGui_ImplOpenGL3_*
 │       └── vulkan_imguibackend.cc  # ImGui_ImplGlfw_InitForVulkan + ImGui_ImplVulkan_* + FrameSubmitCallback
 └── build/                    # Build output (gitignored)

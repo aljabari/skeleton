@@ -98,9 +98,8 @@ target_include_directories(skeledit_tests
 
 target_link_libraries(skeledit_tests
     PRIVATE
-        spdlog
+        libskeleton
         imgui
-        glfw
         GTest::gtest_main
         GTest::gmock
 )

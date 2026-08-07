@@ -72,7 +72,8 @@ int Run(int argc, char* argv[]) {
                      1280, 720, log_sink,
                      [renderer_ptr](int width, int height) {
                        renderer_ptr->ResizeRenderTarget(width, height);
-                     });
+                     },
+                     &scene);
   window.Maximize();
 
   while (window.IsOpen()) {

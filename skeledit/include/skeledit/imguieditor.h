@@ -13,6 +13,7 @@
 namespace skeleton {
 
 class ImGuiBackend;
+class Scene;
 
 class ImGuiEditor {
  public:
@@ -23,10 +24,12 @@ class ImGuiEditor {
   // renderer that renders to a texture is previewed there. |viewport_width| and
   // |viewport_height| are the initial viewport size; |viewport_resize_callback|
   // is called when the viewport size changes, and should resize the renderer's
-  // render target to match.
+  // render target to match. |scene| is the non-owning scene displayed in the
+  // scene graph panel; it must outlive the editor.
   ImGuiEditor(std::unique_ptr<ImGuiBackend> backend, int viewport_width,
               int viewport_height, std::shared_ptr<LogSink> log_sink,
-              std::function<void(int, int)> viewport_resize_callback);
+              std::function<void(int, int)> viewport_resize_callback,
+              Scene* scene);
   ~ImGuiEditor();
 
   ImGuiEditor(const ImGuiEditor&) = delete;
@@ -51,6 +54,7 @@ class ImGuiEditor {
   bool dock_layout_initialised_ = false;
   std::shared_ptr<LogSink> log_sink_;
   std::function<void(int, int)> viewport_resize_callback_;
+  Scene* scene_;
 };
 
 }  // namespace skeleton

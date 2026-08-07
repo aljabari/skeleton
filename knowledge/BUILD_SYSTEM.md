@@ -437,14 +437,19 @@ editor is split into a backend-neutral shell and per-backend implementations:
   `VkDescriptorSet` used as `ImTextureID`) and re-registers it when the renderer
   recreates the render target (resize), removing the old set.
 - `ImGuiEditor` (`imguieditor.cc/.h`) now takes a `std::unique_ptr<ImGuiBackend>`
-  in its constructor, calls `Init` after creating the ImGui context, and
-  dispatches `NewFrame`/`Render` through the backend. Each frame the viewport
-  draws the backend-provided texture id (`GetViewportTextureId`, an
-  `ImTextureID`/`ImU64`) via `ImGui::Image`, or "No render target." when there is
-  none; the id is no longer pushed from `main.cc`. The UVs passed to
-  `ImGui::Image` flip the texture vertically only when
+  and a non-owning `Scene*` in its constructor, calls `Init` after creating the
+  ImGui context, and dispatches `NewFrame`/`Render` through the backend. Each
+  frame the viewport draws the backend-provided texture id
+  (`GetViewportTextureId`, an `ImTextureID`/`ImU64`) via `ImGui::Image`, or "No
+  render target." when there is none; the id is no longer pushed from `main.cc`.
+  The UVs passed to `ImGui::Image` flip the texture vertically only when
   `FlipsViewportTexture()` returns true (OpenGL's bottom-up textures), while
-  Vulkan's top-down coordinates draw it upright without flipping.
+  Vulkan's top-down coordinates draw it upright without flipping. The scene
+  graph panel lists every entity as an ImGui tree node
+  (`registry.view<MeshComponent>()`, labelled "Entity <id>" via
+  `entt::to_integral`), with each mesh entity's component shown as a leaf (e.g.
+  its vertex count); it falls back to "No scene loaded." when the scene pointer
+  is null.
 - `CreateImGuiBackend` (`imguibackendfactory.h`, `imguibackendfactory.cc`)
   builds the right backend from `Renderer::GetBackend()`; `skeledit/src/main.cc`
   passes it to the editor. For Vulkan the frame loop calls `editor.Render()`
@@ -477,7 +482,8 @@ itself is compiled.
 `skeledit_tests` (see [TESTING.md](TESTING.md))
 compiles `skeledit/src/imguieditor.cc` alongside its test source so the
 headless-testable static dock-layout logic can be exercised without a GL
-context.
+context. It links `libskeleton` (and through it glfw/spdlog/EnTT) because the
+editor now reads the scene graph from a `Scene`.
 
 ## Adding a new library target
 
