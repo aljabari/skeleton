@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "libskeleton/renderer.h"
+#include "libskeleton/version.h"
 
 namespace skeleton {
 
@@ -45,7 +46,9 @@ VulkanInstance::VulkanInstance(
   app_info.pApplicationName = kApplicationName;
   app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
   app_info.pEngineName = kEngineName;
-  app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+  app_info.engineVersion =
+      VK_MAKE_VERSION(SKELETON_VERSION_MAJOR, SKELETON_VERSION_MINOR,
+                      SKELETON_VERSION_PATCH);
   app_info.apiVersion = VK_API_VERSION_1_0;
 
   VkInstanceCreateInfo create_info{};

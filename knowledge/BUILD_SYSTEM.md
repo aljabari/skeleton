@@ -91,7 +91,10 @@ the header only when its content actually changed, so an unchanged version does
 not trigger recompilation of translation units that include it. Both
 executables log the version on startup (`SPDLOG_INFO("Skeleton {} started.",
 SKELETON_VERSION_STRING)` and the same for `skeledit`) and include it in the
-window title (e.g. `"Skeleton v0.0.63"`).
+window title (e.g. `"Skeleton v0.0.63"`). The Vulkan renderer also passes
+`VK_MAKE_VERSION(SKELETON_VERSION_MAJOR, SKELETON_VERSION_MINOR,
+SKELETON_VERSION_PATCH)` to `VkApplicationInfo`'s `engineVersion` when creating
+the instance.
 
 ## Renderer factory and fallback priority
 
