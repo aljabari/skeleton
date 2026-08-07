@@ -3,11 +3,18 @@
 #ifndef LIBSKELETON_SCENE_H_
 #define LIBSKELETON_SCENE_H_
 
+#include <string>
 #include <vector>
 
 #include <entt/entity/registry.hpp>
 
 namespace skeleton {
+
+// A human-readable name for a scene entity, displayed in the scene graph
+// panel.
+struct NameComponent {
+  std::string name;
+};
 
 // A drawable mesh owned by a scene entity: interleaved position (vec3) and
 // colour (vec3) floats, authored in the Vulkan coordinate system shared by all

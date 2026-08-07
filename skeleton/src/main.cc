@@ -21,6 +21,7 @@ namespace {
 Scene CreateDemoScene() {
   Scene scene;
   const entt::entity triangle = scene.Registry().create();
+  scene.Registry().emplace<NameComponent>(triangle, "Triangle");
   scene.Registry().emplace<MeshComponent>(
       triangle, std::vector<float>{
                     -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  //

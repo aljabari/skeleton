@@ -26,7 +26,7 @@ skeleton/
 │   ├── CMakeLists.txt
 │   ├── include/libskeleton/  # Public headers
 │   │   ├── logging.h
-│   │   ├── scene.h           # Scene (ECS, wraps entt::registry) + MeshComponent
+│   │   ├── scene.h           # Scene (ECS, wraps entt::registry) + NameComponent + MeshComponent
 │   │   ├── version.h.in      # CMake template expanded to version.h in the build tree on every build
 │   │   ├── window.h
 │   │   ├── renderer.h

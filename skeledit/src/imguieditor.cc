@@ -157,7 +157,12 @@ void ImGuiEditor::DrawSceneGraph() {
   }
   const entt::registry& registry = scene_->Registry();
   for (const entt::entity entity : registry.view<MeshComponent>()) {
-    if (ImGui::TreeNode(EntityLabel(entity).c_str())) {
+    std::string label = EntityLabel(entity);
+    if (registry.all_of<NameComponent>(entity) &&
+        !registry.get<NameComponent>(entity).name.empty()) {
+      label = registry.get<NameComponent>(entity).name;
+    }
+    if (ImGui::TreeNode(label.c_str())) {
       const MeshComponent& mesh = registry.get<MeshComponent>(entity);
       const std::string label = "Mesh: " +
                                 std::to_string(mesh.vertices.size()) +

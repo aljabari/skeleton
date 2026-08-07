@@ -30,7 +30,7 @@ location. Currently:
 | Target              | Sources                                        | Covers                                           |
 |---------------------|------------------------------------------------|--------------------------------------------------|
 | `libskeleton_tests` | `tests/src/window_test.cc`                     | `Window` as a thin facade over the renderer's window (`IsOpen`, `Maximize`, `GetNativeWindow`, `PollEvents`), verified with a mock renderer |
-|                     | `tests/src/scene_test.cc`                     | `Scene` wrapping `entt::registry` (`Registry` accessor, entity/`MeshComponent` storage, empty default state) |
+|                     | `tests/src/scene_test.cc`                     | `Scene` wrapping `entt::registry` (`Registry` accessor, entity/`MeshComponent`/`NameComponent` storage, empty default state) |
 |                     | `tests/src/renderer/opengl/openglframebuffer_test.cc` | `OpenGlFramebuffer` allocation, binding, resizing, and cleanup |
 |                     | `tests/src/renderer/opengl/openglrenderer_test.cc` | `OpenGlRenderer::CreateContext` window/context creation (3.3 context, current context, glad), rendering the scene's triangle mesh, render-target resizing, and viewport configuration |
 |                     | `tests/src/renderer/opengl/openglshader_test.cc` | `OpenGlShader` loading and cross-compiling the shared SPIR-V modules (SPIRV-Cross produces `#version 330` desktop GLSL with the y-flip and clip-space fixup), compilation/linking, and program binding |

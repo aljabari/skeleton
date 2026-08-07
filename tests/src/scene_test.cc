@@ -45,5 +45,20 @@ TEST(SceneTest, MeshComponentDefaultsToEmptyVertices) {
   EXPECT_TRUE(mesh.vertices.empty());
 }
 
+TEST(SceneTest, RegistryStoresNameComponent) {
+  Scene scene;
+  const entt::entity triangle = scene.Registry().create();
+  scene.Registry().emplace<NameComponent>(triangle, "Triangle");
+
+  ASSERT_TRUE(scene.Registry().all_of<NameComponent>(triangle));
+  EXPECT_EQ(scene.Registry().get<NameComponent>(triangle).name, "Triangle");
+}
+
+TEST(SceneTest, NameComponentDefaultsToEmpty) {
+  const NameComponent name;
+
+  EXPECT_TRUE(name.name.empty());
+}
+
 }  // namespace
 }  // namespace skeleton

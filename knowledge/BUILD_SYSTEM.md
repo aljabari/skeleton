@@ -191,14 +191,15 @@ the off-screen `VulkanRenderTarget` (whose image view ImGui samples).
 accessed through `Scene::Registry()`. Drawable geometry is an entity carrying a
 `MeshComponent`, which holds the mesh's vertices as interleaved position (vec3)
 + colour (vec3) floats authored in the Vulkan coordinate system (the same layout
-the shaders expect). Each frame the applications pass their scene to
+the shaders expect). A `NameComponent` (`std::string name`) gives an entity a
+display name. Each frame the applications pass their scene to
 `Renderer::Render(const Scene&)`, which iterates
 `scene.Registry().view<MeshComponent>()` and draws every mesh entity. Both
 renderers cache one GPU mesh per scene `MeshComponent` (`OpenGlMesh`/`VulkanMesh`
 per entity), rebuilt only when a component's vertices change; Vulkan rebuilds
 safely after the in-flight fence wait, so the previous frame's buffers can be
 destroyed. `skeleton` and `skeledit` each build a demo scene with a single
-triangle mesh entity and draw it every frame.
+triangle mesh entity (named "Triangle") and draw it every frame.
 
 ## Resources
 
@@ -445,11 +446,11 @@ editor is split into a backend-neutral shell and per-backend implementations:
   The UVs passed to `ImGui::Image` flip the texture vertically only when
   `FlipsViewportTexture()` returns true (OpenGL's bottom-up textures), while
   Vulkan's top-down coordinates draw it upright without flipping. The scene
-  graph panel lists every entity as an ImGui tree node
-  (`registry.view<MeshComponent>()`, labelled "Entity <id>" via
-  `entt::to_integral`), with each mesh entity's component shown as a leaf (e.g.
-  its vertex count); it falls back to "No scene loaded." when the scene pointer
-  is null.
+  graph panel lists every mesh entity as an ImGui tree node
+  (`registry.view<MeshComponent>()`), labelled with the entity's
+  `NameComponent` name, or "Entity <id>" (via `entt::to_integral`) when it has
+  no name; each mesh entity's component is shown as a leaf (e.g. its vertex
+  count). It falls back to "No scene loaded." when the scene pointer is null.
 - `CreateImGuiBackend` (`imguibackendfactory.h`, `imguibackendfactory.cc`)
   builds the right backend from `Renderer::GetBackend()`; `skeledit/src/main.cc`
   passes it to the editor. For Vulkan the frame loop calls `editor.Render()`
