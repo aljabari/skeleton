@@ -3,7 +3,7 @@
 - **Build tool:** CMake (minimum 3.16)
 - **Generator:** Visual Studio (preferred on Windows), Ninja (alternative)
 - **C++ standard:** C++20 (required, not optional)
-- **Dependencies:** GLFW, Dear ImGui, spdlog, SPIRV-Cross (fetched automatically via `FetchContent`)
+- **Dependencies:** GLFW, Dear ImGui, EnTT, spdlog, SPIRV-Cross (fetched automatically via `FetchContent`)
 
 ## Targets
 
@@ -291,6 +291,7 @@ The project uses **CMake FetchContent** to download and build dependencies:
 | volk       | https://github.com/zeux/volk.git           | 1.4.350 |
 | spdlog     | https://github.com/gabime/spdlog.git       | v1.17.0 |
 | googletest | https://github.com/google/googletest.git   | v1.17.0 |
+| entt       | https://github.com/skypjack/entt.git       | v3.16.0 |
 | imgui      | https://github.com/ocornut/imgui.git       | docking |
 | spirv-cross | https://github.com/KhronosGroup/SPIRV-Cross.git | vulkan-sdk-1.4.350.1 |
 
