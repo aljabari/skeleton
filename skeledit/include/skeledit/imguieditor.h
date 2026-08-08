@@ -3,11 +3,12 @@
 #ifndef SKELEDIT_IMGUIEDITOR_H_
 #define SKELEDIT_IMGUIEDITOR_H_
 
+#include <imgui.h>
+
 #include <functional>
 #include <memory>
 
 #include <entt/entity/registry.hpp>
-#include <imgui.h>
 
 #include "skeledit/logsink.h"
 

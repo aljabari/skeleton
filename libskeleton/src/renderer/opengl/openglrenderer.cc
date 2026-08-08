@@ -2,6 +2,12 @@
 
 #include "libskeleton/opengl/openglrenderer.h"
 
+// Must be included before any header that can pull in <windows.h> (GLFW does
+// on Windows): <windows.h> includes the system <GL/gl.h>, whose guard
+// conflicts with the glad header. The angle-bracket form resolves through the
+// private src include path, keeping it in the C-system include group.
+#include <renderer/opengl/gl.h>
+
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 
@@ -10,7 +16,6 @@
 #include <vector>
 
 #include "libskeleton/scene.h"
-#include "renderer/opengl/gl.h"
 #include "renderer/opengl/openglframebuffer.h"
 #include "renderer/opengl/openglmesh.h"
 #include "renderer/opengl/openglshader.h"

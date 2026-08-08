@@ -22,7 +22,8 @@ namespace skeleton {
 // log window shows exactly the same timestamp/level/message layout as the
 // consoles.
 class EditorLogSink : public LogSink,
-                      public spdlog::sinks::base_sink<spdlog::details::null_mutex> {
+                      public spdlog::sinks::base_sink<
+                          spdlog::details::null_mutex> {
  public:
   static constexpr size_t kMaxEntries = 500;
 

@@ -79,6 +79,14 @@ directly, so no loader is needed. All GL usage goes through the private header
 `libskeleton/src/renderer/opengl/gl.h`, which picks the header for the target:
 `<glad/gl.h>` on native builds and `<GLES3/gl3.h>` under `__EMSCRIPTEN__`.
 
+On Windows `glad`'s header errors if the system `<GL/gl.h>` was included first
+(`<windows.h>` pulls it in), so `glad` must be included before any header that
+can pull in `<windows.h>` — in particular `<GLFW/glfw3.h>`, which does on
+Windows. `openglrenderer.cc` therefore includes `gl.h` as
+`#include <renderer/opengl/gl.h>` (resolved through the private `src` include
+path, so it stays in the C-system include group ahead of GLFW and passes
+cpplint's `build/include_order` check).
+
 On Windows, the `skeleton` and `skeledit` executables set `WIN32_EXECUTABLE` to
 `ON` in Release configurations, so release builds run as GUI applications with
 no console window. Debug (and MinSizeRel/RelWithDebInfo) keep the console so

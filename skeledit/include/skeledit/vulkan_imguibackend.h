@@ -1,7 +1,7 @@
 // Copyright 2026 aljabari
 
-#ifndef SKELEDIT_INCLUDE_SKELEDIT_VULKAN_IMGUIBACKEND_H_
-#define SKELEDIT_INCLUDE_SKELEDIT_VULKAN_IMGUIBACKEND_H_
+#ifndef SKELEDIT_VULKAN_IMGUIBACKEND_H_
+#define SKELEDIT_VULKAN_IMGUIBACKEND_H_
 
 #include <volk.h>
 
@@ -75,8 +75,8 @@ class VulkanImGuiBackend : public ImGuiBackend {
   // The render target image view registered with ImGui as the viewport texture
   // and the descriptor set ImGui returned for it (the ImTextureID the editor
   // draws). The descriptor set is re-registered when the renderer recreates its
-  // render target, for example on resize. They are mutated lazily from the const
-  // GetViewportTextureId, hence mutable.
+  // render target, for example on resize. They are mutated lazily from the
+  // const GetViewportTextureId, hence mutable.
   mutable VkImageView viewport_image_view_ = VK_NULL_HANDLE;
   mutable VkDescriptorSet viewport_descriptor_set_ = VK_NULL_HANDLE;
   bool initialised_ = false;
@@ -84,4 +84,4 @@ class VulkanImGuiBackend : public ImGuiBackend {
 
 }  // namespace skeleton
 
-#endif  // SKELEDIT_INCLUDE_SKELEDIT_VULKAN_IMGUIBACKEND_H_
+#endif  // SKELEDIT_VULKAN_IMGUIBACKEND_H_
