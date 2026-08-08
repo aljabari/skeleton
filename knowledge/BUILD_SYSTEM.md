@@ -15,12 +15,19 @@
 | `libskeleton_tests` | EXECUTABLE | Unit tests for `libskeleton`, built only when `SKELETON_BUILD_TESTS` is `ON` |
 | `skeledit_tests`    | EXECUTABLE | Unit tests for `skeledit`'s `ImGuiEditor`, built only when `SKELETON_BUILD_TESTS` is `ON` |
 
-Each target's `CMakeLists.txt` also calls
+Each target's `CMakeLists.txt` collects its sources with a recursive glob
+(`file(GLOB_RECURSE ... CONFIGURE_DEPENDS)`) over its `src/` and `include/`
+directories instead of an explicit list, so new files show up in the Visual
+Studio solution explorer and are compiled without editing the CMake file;
+`CONFIGURE_DEPENDS` re-runs the glob (and re-configures) whenever the file set
+changes. Each target's `CMakeLists.txt` also calls
 [`source_group(TREE ...)`](https://cmake.org/cmake/help/latest/command/source_group.html)
 with a `Source Files` prefix, so the directory layout of the sources is
 mirrored in the Visual Studio solution explorer. Executable targets (`skeleton`,
 `skeledit`) are near-identical duplicates that only set up `main.cc` and link
-`libskeleton`.
+`libskeleton`. The `skeledit_tests` target globs its test files the same way but
+keeps the two `skeledit/src/*.cc` files it exercises explicit: globbing all of
+`skeledit/src` would also pull in `main.cc` and the renderer backend sources.
 
 ## Platform support
 
@@ -39,10 +46,15 @@ otherwise shadow the project file on case-insensitive file systems).
 On Emscripten, OpenGL is exposed through WebGL 2 (OpenGL ES 3.0) and Vulkan is
 not available in the browser.
 
-The renderer sources in `libskeleton` are only added to the build when the
-corresponding `SKELETON_TARGET_SUPPORTS_RENDERER_*` flag is defined. In that
-case `libskeleton` also exports the same name as a `PUBLIC` compile definition,
-so client code can guard against the API with:
+The glob picks up every source regardless of platform, so the renderer sources
+in `libskeleton` and `skeledit` are filtered out when the corresponding
+`SKELETON_TARGET_SUPPORTS_RENDERER_*` flag is not defined: `libskeleton` drops
+everything under a `renderer/opengl/` or `renderer/vulkan/` directory (plus the
+public `openglrenderer.h`/`vulkanrenderer.h` headers) and `skeledit` drops its
+`opengl_imguibackend.*`/`vulkan_imguibackend.*` backend files, and the
+`imguibackendfactory.*` factory as well when no backend is available at all. In
+that case `libskeleton` also exports the same name as a `PUBLIC` compile
+definition, so client code can guard against the API with:
 
 ```cpp
 #ifdef SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL

@@ -1,47 +1,18 @@
-add_executable(libskeleton_tests
-    src/window_test.cc
-    src/scene_test.cc
-    src/renderer/opengl/openglframebuffer_test.cc
-    src/renderer/opengl/openglmesh_test.cc
-    src/renderer/opengl/openglrenderer_test.cc
-    src/renderer/opengl/openglshader_test.cc
-    src/renderer/opengl/opengltexture_test.cc
-    src/renderer/rendererfactory_test.cc
-    src/renderer/vulkan/vulkancommandbuffer_test.cc
-    src/renderer/vulkan/vulkandevice_test.cc
-    src/renderer/vulkan/vulkanfence_test.cc
-    src/renderer/vulkan/vulkanframebuffer_test.cc
-    src/renderer/vulkan/vulkangraphicspipeline_test.cc
-    src/renderer/vulkan/vulkaninstance_test.cc
-    src/renderer/vulkan/vulkanmesh_test.cc
-    src/renderer/vulkan/vulkanrenderer_test.cc
-    src/renderer/vulkan/vulkanrenderpass_test.cc
-    src/renderer/vulkan/vulkanrendertarget_test.cc
-    src/renderer/vulkan/vulkansemaphore_test.cc
-    src/renderer/vulkan/vulkanswapchain_test.cc
+# Test sources are collected with a recursive glob instead of an explicit list,
+# so new test files show up in the IDE (Visual Studio) and are compiled without
+# editing this file. CONFIGURE_DEPENDS re-runs the glob and re-configures
+# whenever the file set changes. The skeledit tests are excluded here because
+# they build into the skeledit_tests target below.
+file(GLOB_RECURSE _libskeleton_tests_sources CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*_test.cc
 )
 
+list(FILTER _libskeleton_tests_sources EXCLUDE REGEX "(^|/)skeledit(/|$)")
+
+add_executable(libskeleton_tests ${_libskeleton_tests_sources})
+
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES
-    src/window_test.cc
-    src/scene_test.cc
-    src/renderer/opengl/openglframebuffer_test.cc
-    src/renderer/opengl/openglmesh_test.cc
-    src/renderer/opengl/openglrenderer_test.cc
-    src/renderer/opengl/openglshader_test.cc
-    src/renderer/opengl/opengltexture_test.cc
-    src/renderer/rendererfactory_test.cc
-    src/renderer/vulkan/vulkancommandbuffer_test.cc
-    src/renderer/vulkan/vulkandevice_test.cc
-    src/renderer/vulkan/vulkanfence_test.cc
-    src/renderer/vulkan/vulkanframebuffer_test.cc
-    src/renderer/vulkan/vulkangraphicspipeline_test.cc
-    src/renderer/vulkan/vulkaninstance_test.cc
-    src/renderer/vulkan/vulkanmesh_test.cc
-    src/renderer/vulkan/vulkanrenderer_test.cc
-    src/renderer/vulkan/vulkanrenderpass_test.cc
-    src/renderer/vulkan/vulkanrendertarget_test.cc
-    src/renderer/vulkan/vulkansemaphore_test.cc
-    src/renderer/vulkan/vulkanswapchain_test.cc
+    ${_libskeleton_tests_sources}
 )
 
 target_compile_features(libskeleton_tests PRIVATE cxx_std_20)
@@ -68,20 +39,26 @@ gtest_discover_tests(libskeleton_tests)
 
 cpplint_add_target(libskeleton_tests ROOT ${CMAKE_SOURCE_DIR})
 
-add_executable(skeledit_tests
-    src/skeledit/editorlogsink_test.cc
-    src/skeledit/imguieditor_test.cc
+file(GLOB_RECURSE _skeledit_tests_sources CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/skeledit/*_test.cc
+)
+
+# skeledit_tests compiles the skeledit sources it exercises directly, so the
+# headless-testable logic can be tested without a GL context (see
+# knowledge/BUILD_SYSTEM.md). These stay explicit: globbing all of
+# ../skeledit/src would also pick up main.cc and the renderer backend sources.
+set(_skeledit_tests_skeledit_sources
     ../skeledit/src/editorlogsink.cc
     ../skeledit/src/imguieditor.cc
 )
 
+add_executable(skeledit_tests ${_skeledit_tests_sources} ${_skeledit_tests_skeledit_sources})
+
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES
-    src/skeledit/editorlogsink_test.cc
-    src/skeledit/imguieditor_test.cc
+    ${_skeledit_tests_sources}
 )
 source_group("Source Files\\skeledit" FILES
-    ../skeledit/src/editorlogsink.cc
-    ../skeledit/src/imguieditor.cc
+    ${_skeledit_tests_skeledit_sources}
 )
 
 target_compile_features(skeledit_tests PRIVATE cxx_std_20)

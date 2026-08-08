@@ -1,47 +1,20 @@
-if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
-    set(_renderer_opengl_sources
-        src/renderer/opengl/openglframebuffer.cc
-        src/renderer/opengl/openglframebuffer.h
-        src/renderer/opengl/openglmesh.cc
-        src/renderer/opengl/openglmesh.h
-        src/renderer/opengl/openglrenderer.cc
-        include/libskeleton/opengl/openglrenderer.h
-        src/renderer/opengl/openglshader.cc
-        src/renderer/opengl/openglshader.h
-        src/renderer/opengl/opengltexture.cc
-        src/renderer/opengl/opengltexture.h
-    )
+# Sources are collected with a recursive glob instead of an explicit list, so
+# new files under src/ and include/ show up in the IDE (Visual Studio) and are
+# compiled without editing this file. CONFIGURE_DEPENDS re-runs the glob and
+# re-configures whenever the file set changes. Sources for a renderer backend
+# the target platform does not support are filtered out below.
+file(GLOB_RECURSE _libskeleton_sources CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
+)
+
+if (NOT SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
+    list(FILTER _libskeleton_sources EXCLUDE REGEX "(^|/)opengl(_|/|$)")
 endif()
 
-if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
-    set(_renderer_vulkan_sources
-        src/renderer/vulkan/vulkancommandbuffer.cc
-        src/renderer/vulkan/vulkancommandbuffer.h
-        src/renderer/vulkan/vulkandevice.cc
-        src/renderer/vulkan/vulkandevice.h
-        src/renderer/vulkan/vulkanfence.cc
-        src/renderer/vulkan/vulkanfence.h
-        src/renderer/vulkan/vulkanframebuffer.cc
-        src/renderer/vulkan/vulkanframebuffer.h
-        src/renderer/vulkan/vulkangraphicspipeline.cc
-        src/renderer/vulkan/vulkangraphicspipeline.h
-        src/renderer/vulkan/vulkaninstance.cc
-        src/renderer/vulkan/vulkaninstance.h
-        src/renderer/vulkan/vulkanmesh.cc
-        src/renderer/vulkan/vulkanmesh.h
-        src/renderer/vulkan/vulkanrenderpass.cc
-        src/renderer/vulkan/vulkanrenderpass.h
-        src/renderer/vulkan/vulkanrendertarget.cc
-        src/renderer/vulkan/vulkanrendertarget.h
-        src/renderer/vulkan/vulkansemaphore.cc
-        src/renderer/vulkan/vulkansemaphore.h
-        src/renderer/vulkan/vulkanswapchain.cc
-        src/renderer/vulkan/vulkanswapchain.h
-        src/renderer/vulkan/vulkanvalidation.cc
-        src/renderer/vulkan/vulkanvalidation.h
-        src/renderer/vulkan/vulkanrenderer.cc
-        include/libskeleton/vulkan/vulkanrenderer.h
-    )
+if (NOT SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
+    list(FILTER _libskeleton_sources EXCLUDE REGEX "(^|/)vulkan(_|/|$)")
 endif()
 
 if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL OR
@@ -77,20 +50,6 @@ if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL OR
     endforeach()
     add_custom_target(libskeleton_shaders DEPENDS ${_spv_outputs})
 endif()
-
-set(_libskeleton_sources
-    src/window.cc
-    src/scene.cc
-    src/renderer/renderer.cc
-    src/renderer/rendererfactory.cc
-    include/libskeleton/logging.h
-    include/libskeleton/rendererfactory.h
-    include/libskeleton/scene.h
-    include/libskeleton/window.h
-    include/libskeleton/renderer.h
-    ${_renderer_opengl_sources}
-    ${_renderer_vulkan_sources}
-)
 
 add_library(libskeleton STATIC ${_libskeleton_sources})
 

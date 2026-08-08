@@ -1,8 +1,11 @@
-add_executable(skeleton
-    src/main.cc
+file(GLOB_RECURSE _skeleton_sources CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
 )
 
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES src/main.cc)
+add_executable(skeleton ${_skeleton_sources})
+
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${_skeleton_sources})
 
 target_compile_features(skeleton PRIVATE cxx_std_20)
 

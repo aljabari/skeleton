@@ -13,23 +13,29 @@ if(NOT imgui_POPULATED)
     add_subdirectory(${imgui_SOURCE_DIR} ${imgui_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
-set(_skeledit_sources
-    src/main.cc
-    src/imguieditor.cc
-    src/editorlogsink.cc
+# Sources are collected with a recursive glob instead of an explicit list, so
+# new files under src/ and include/ show up in the IDE (Visual Studio) and are
+# compiled without editing this file. CONFIGURE_DEPENDS re-runs the glob and
+# re-configures whenever the file set changes. Files for a renderer backend the
+# target platform does not support are filtered out below, as is the backend
+# factory when no backend is available at all.
+file(GLOB_RECURSE _skeledit_sources CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
 )
 
-if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
-    list(APPEND _skeledit_sources src/opengl_imguibackend.cc)
+if (NOT SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
+    list(FILTER _skeledit_sources EXCLUDE REGEX "(^|/)opengl(_|/|$)")
 endif()
 
-if (SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
-    list(APPEND _skeledit_sources src/vulkan_imguibackend.cc)
+if (NOT SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
+    list(FILTER _skeledit_sources EXCLUDE REGEX "(^|/)vulkan(_|/|$)")
 endif()
 
-if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL OR
-    SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
-    list(APPEND _skeledit_sources src/imguibackendfactory.cc)
+if (NOT (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL OR
+         SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN))
+    list(FILTER _skeledit_sources EXCLUDE REGEX "(^|/)imguibackendfactory\\.(cc|h)$")
 endif()
 
 add_executable(skeledit ${_skeledit_sources})
