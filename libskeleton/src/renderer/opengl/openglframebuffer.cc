@@ -2,10 +2,9 @@
 
 #include "renderer/opengl/openglframebuffer.h"
 
-#include <glad/gl.h>
-
 #include <memory>
 
+#include "renderer/opengl/gl.h"
 #include "renderer/opengl/opengltexture.h"
 
 namespace skeleton {

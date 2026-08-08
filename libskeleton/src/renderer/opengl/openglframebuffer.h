@@ -3,9 +3,9 @@
 #ifndef LIBSKELETON_SRC_RENDERER_OPENGL_OPENGLFRAMEBUFFER_H_
 #define LIBSKELETON_SRC_RENDERER_OPENGL_OPENGLFRAMEBUFFER_H_
 
-#include <glad/gl.h>
-
 #include <memory>
+
+#include "renderer/opengl/gl.h"
 
 namespace skeleton {
 

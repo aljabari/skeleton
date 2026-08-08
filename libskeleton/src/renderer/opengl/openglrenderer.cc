@@ -2,17 +2,15 @@
 
 #include "libskeleton/opengl/openglrenderer.h"
 
-#include <glad/gl.h>
-
-#include <spdlog/spdlog.h>
-
 #include <GLFW/glfw3.h>
+#include <spdlog/spdlog.h>
 
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "libskeleton/scene.h"
+#include "renderer/opengl/gl.h"
 #include "renderer/opengl/openglframebuffer.h"
 #include "renderer/opengl/openglmesh.h"
 #include "renderer/opengl/openglshader.h"
@@ -42,12 +40,21 @@ RendererBackend OpenGlRenderer::GetBackend() const {
 
 void OpenGlRenderer::CreateContext(const WindowConfig& config) {
   InitGlfw();
+#if defined(__EMSCRIPTEN__)
+  // Emscripten targets WebGL 2, which exposes OpenGL ES 3.0.
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#else
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#endif
   window_ = CreateGlfwWindow(config);
 
   glfwMakeContextCurrent(window_);
+#if !defined(__EMSCRIPTEN__)
   gladLoadGL(glfwGetProcAddress);
+#endif
   SPDLOG_INFO("Initialised OpenGL renderer.");
 
   const std::string shader_directory = SKELETON_SHADER_DIR;

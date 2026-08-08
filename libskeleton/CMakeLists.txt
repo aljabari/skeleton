@@ -118,6 +118,13 @@ endif()
 
 if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL OR
     SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN)
+    if (EMSCRIPTEN)
+        # There is no native filesystem in the browser. The skeleton target
+        # embeds the compiled .spv files into the module at /shaders
+        # (--embed-file), so SKELETON_SHADER_DIR points at that virtual
+        # directory instead of the host build tree.
+        set(_shader_dir "/shaders")
+    endif()
     target_compile_definitions(libskeleton
         PUBLIC
             SKELETON_SHADER_DIR="${_shader_dir}")
@@ -146,11 +153,13 @@ endif()
 
 if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
     target_link_libraries(libskeleton PUBLIC spirv-cross-glsl)
-    glad_add_library(glad STATIC API gl:core=3.3 LOCATION ${CMAKE_CURRENT_BINARY_DIR}/glad)
-    if (MSVC)
-        target_compile_options(glad PRIVATE $<$<CONFIG:Debug>:/MDd>$<$<NOT:$<CONFIG:Debug>>:/MD>)
+    if (NOT EMSCRIPTEN)
+        glad_add_library(glad STATIC API gl:core=3.3 LOCATION ${CMAKE_CURRENT_BINARY_DIR}/glad)
+        if (MSVC)
+            target_compile_options(glad PRIVATE $<$<CONFIG:Debug>:/MDd>$<$<NOT:$<CONFIG:Debug>>:/MD>)
+        endif()
+        target_link_libraries(libskeleton PUBLIC glad)
     endif()
-    target_link_libraries(libskeleton PUBLIC glad)
 endif()
 
 cpplint_add_target(libskeleton ROOT libskeleton/include)

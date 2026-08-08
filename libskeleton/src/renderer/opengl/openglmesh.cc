@@ -2,10 +2,10 @@
 
 #include "renderer/opengl/openglmesh.h"
 
-#include <glad/gl.h>
-
 #include <cstddef>
 #include <vector>
+
+#include "renderer/opengl/gl.h"
 
 namespace skeleton {
 

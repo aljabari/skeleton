@@ -3,7 +3,7 @@
 #ifndef LIBSKELETON_SRC_RENDERER_OPENGL_OPENGLTEXTURE_H_
 #define LIBSKELETON_SRC_RENDERER_OPENGL_OPENGLTEXTURE_H_
 
-#include <glad/gl.h>
+#include "renderer/opengl/gl.h"
 
 namespace skeleton {
 

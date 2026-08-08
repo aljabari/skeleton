@@ -3,9 +3,9 @@
 #ifndef LIBSKELETON_SRC_RENDERER_OPENGL_OPENGLSHADER_H_
 #define LIBSKELETON_SRC_RENDERER_OPENGL_OPENGLSHADER_H_
 
-#include <glad/gl.h>
-
 #include <string>
+
+#include "renderer/opengl/gl.h"
 
 namespace skeleton {
 

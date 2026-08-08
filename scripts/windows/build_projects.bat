@@ -3,11 +3,12 @@
 setlocal
 
 set REPO_ROOT=%~dp0..\..
+set BUILD_DIR=%REPO_ROOT%\build\windows
 
-if not exist "%REPO_ROOT%\build" (
+if not exist "%BUILD_DIR%" (
     pushd "%REPO_ROOT%"
-    cmake -B build -G "Visual Studio 18" || exit /b 1
+    cmake -B build\windows -G "Visual Studio 18" || exit /b 1
     popd
 )
 
-start "" "%REPO_ROOT%\build\skeleton.slnx"
+start "" "%BUILD_DIR%\skeleton.slnx"

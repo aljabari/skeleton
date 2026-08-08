@@ -24,14 +24,20 @@ mirrored in the Visual Studio solution explorer. Executable targets (`skeleton`,
 
 ## Platform support
 
-`cmake/platform/windows.cmake` is included at the top of the root
-`CMakeLists.txt` when `WIN32` is true and defines capability flags for the
-target platform:
+The root `CMakeLists.txt` includes a platform module from `cmake/platform/` that
+defines capability flags for the target platform: `windows.cmake` when `WIN32`
+is true, and `emscripten.cmake` when the target is Emscripten (included by
+absolute path, because the Emscripten toolchain puts its own
+`Modules/Platform/Emscripten.cmake` on `CMAKE_MODULE_PATH`, which would
+otherwise shadow the project file on case-insensitive file systems).
 
-| Flag                                       | Meaning                          |
-|--------------------------------------------|----------------------------------|
-| `SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL` | Target platform supports OpenGL  |
-| `SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN` | Target platform supports Vulkan  |
+| Flag                                       | Windows | Emscripten (WebGL 2) |
+|--------------------------------------------|---------|----------------------|
+| `SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL` | Yes     | Yes                  |
+| `SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN` | Yes     | No                   |
+
+On Emscripten, OpenGL is exposed through WebGL 2 (OpenGL ES 3.0) and Vulkan is
+not available in the browser.
 
 The renderer sources in `libskeleton` are only added to the build when the
 corresponding `SKELETON_TARGET_SUPPORTS_RENDERER_*` flag is defined. In that
@@ -48,10 +54,18 @@ so client code can guard against the API with:
 #endif
 ```
 
+`rendererfactory.cc` guards its renderer includes with the same macros, so the
+Vulkan header (which includes `<volk.h>`) is only compiled when volk is in the
+build.
+
 `glad` is fetched and generated only when
-`SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL` is set. The OpenGL renderer links
+`SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL` is set **and** the target is not
+Emscripten. The OpenGL renderer links
 the generated `glad` target (OpenGL 3.3 core) to load GL function pointers via
-`gladLoadGL`.
+`gladLoadGL`; Emscripten links the WebGL 2 / OpenGL ES 3.0 entry points
+directly, so no loader is needed. All GL usage goes through the private header
+`libskeleton/src/renderer/opengl/gl.h`, which picks the header for the target:
+`<glad/gl.h>` on native builds and `<GLES3/gl3.h>` under `__EMSCRIPTEN__`.
 
 On Windows, the `skeleton` and `skeledit` executables set `WIN32_EXECUTABLE` to
 `ON` in Release configurations, so release builds run as GUI applications with
@@ -138,8 +152,10 @@ the instance.
   framebuffer. The destructor waits for the device to go idle and destroys the
   render-target/swapchain framebuffers before their images, avoiding
   in-flight-resource destruction.
-- `OpenGlRenderer::CreateContext` requests a 3.3 context, creates the window,
-  makes its context current, loads the GL functions with glad, and creates the
+- `OpenGlRenderer::CreateContext` requests a 3.3 context (3.0 with
+  `GLFW_OPENGL_ES_API` on Emscripten/WebGL 2), creates the window,
+  makes its context current, loads the GL functions with glad (skipped on
+  Emscripten, whose entry points are linked into the module), and creates the
   shader and (for texture targets) the render target. It no longer creates a
   mesh: geometry now comes from the scene at render time.
 - The private `VulkanInstance`/`VulkanDevice`/`VulkanSwapchain`/
@@ -183,6 +199,19 @@ Those APIs live on the base `Renderer` interface (`GetTextureId()`,
 use the renderer polymorphically through `Renderer&` without downcasting.
 Both backends implement texture mode: OpenGL via `OpenGlFramebuffer`, Vulkan via
 the off-screen `VulkanRenderTarget` (whose image view ImGui samples).
+
+On Emscripten the `skeleton` app cannot spin a blocking `while (IsOpen())`
+frame loop: that would stall the browser's event loop (the page becomes
+unresponsive and presented frames are never composited). Instead `main.cc`
+registers `emscripten_set_main_loop(EmscriptenFrameIteration, 0, 1)` — fps 0 so
+the runtime drives frames from `requestAnimationFrame` — and returns. The `1`
+asks the runtime to emulate an infinite loop by throwing a sentinel exception
+(`throw "unwind"` in Emscripten's `setMainLoop`) that unwinds `main()`'s stack,
+so the loop state (`g_loop_renderer`, `g_loop_window`, `g_loop_scene`) lives in
+file-scope statics in `skeleton/src/main.cc` under `#if defined(__EMSCRIPTEN__)`.
+`EmscriptenFrameIteration` polls input, renders, swaps, and calls
+`emscripten_cancel_main_loop` once the window closes. The native `while` loop is
+unchanged under `#else`.
 
 ## Scene
 
@@ -234,14 +263,23 @@ compiled SPIR-V at run time. `VulkanGraphicsPipeline`
 files, creates a `VkShaderModule` per stage, and builds the graphics pipeline
 from them.
 
+On Emscripten there is no host filesystem, so `SKELETON_SHADER_DIR` is
+redefined to the virtual path `/shaders` and the `skeleton` target embeds the
+compiled `.spv` files there at link time
+(`--embed-file=<build dir>/libskeleton/shaders@/shaders` in
+`skeleton/CMakeLists.txt`). The files are baked into `skeleton.wasm` at build
+time, so `std::ifstream` can read them at run time with no network fetch or
+`--preload-file` data file.
+
 ### OpenGL shader cross-compilation
 
 The OpenGL renderer loads the same SPIR-V modules and cross-compiles them to
 desktop GLSL at run time with **SPIRV-Cross** (`spirv_cross::CompilerGLSL`,
 `spirv-cross-glsl` target, linked `PUBLIC` when OpenGL is supported).
 `OpenGlShader` (`libskeleton/src/renderer/opengl/openglshader.cc/.h`) targets
-GLSL 3.30 (desktop, not ES) and sets two vertex-stage options so the
-Vulkan-authored shaders render correctly in OpenGL's y-up framebuffer:
+GLSL 3.30 on desktop builds and, on Emscripten (WebGL 2), OpenGL ES 3.0 GLSL
+(`options.version = 300; options.es = true`), and sets two vertex-stage options
+so the Vulkan-authored shaders render correctly in OpenGL's y-up framebuffer:
 `flip_vert_y` (emits `gl_Position.y = -gl_Position.y;`) and
 `fixup_clipspace` (converts the `[0, w]` clip depth to OpenGL's `[-w, w]`,
 emitting `gl_Position.z = 2.0 * gl_Position.z - gl_Position.w;`). The
@@ -257,23 +295,81 @@ shader makes the same vertices face the OpenGL camera.
 
 ## How to build
 
+Native builds (Windows):
+
 ```sh
-cmake -B build -G "Visual Studio 18"
-cmake --build build --config Release
+cmake -B build\windows -G "Visual Studio 18"
+cmake --build build\windows --config Release
 ```
+
+HTML5 (Emscripten) builds use the helper script
+`scripts\html5\build_emscripten.bat` (optionally passing a `BUILD_TYPE`,
+default `Release`), which requires the Emscripten SDK activated (`emsdk
+activate latest; emsdk_env.bat`) with `emcmake` and `ninja` on `PATH`:
+
+```sh
+scripts\html5\build_emscripten.bat
+```
+
+This configures a Ninja build in `build\html5` (with `SKELETON_BUILD_TESTS=OFF`
+— the browser target builds only the `skeleton` runtime) and links it. On
+Emscripten the `skeleton` target's output is named `skeleton.html` (via
+`set_target_properties(... SUFFIX ".html")`) so emcc also emits a self-contained
+HTML shell alongside `skeleton.js` and `skeleton.wasm` that runs the app in a
+browser. Like the native build, CMake places the executable in its target
+subdirectory, so the runtime files are under `build\html5\skeleton\`. Serve
+that directory over HTTP (the WebGL module is not loaded from `file://`).
+
+To build **and** run the page, use `scripts\html5\run_emscripten.bat`, which
+delegates to `build_emscripten.bat` and then serves the runtime directory with
+**emrun** (`emrun --serve_root build\html5\skeleton ...skeleton.html`), opening
+the default browser. The `skeleton` target is linked with emscripten's `--emrun`
+flag (in the Emscripten branch of `skeleton/CMakeLists.txt`) so the page can
+forward stdout/stderr back to emrun and signal when the app exits, letting the
+server shut down. That same Emscripten branch also adds
+`-sDISABLE_EXCEPTION_CATCHING=0` (Emscripten disables C++ exception catching by
+default; a matching global compile option in `cmake/platform/emscripten.cmake`
+keeps it enabled because the renderer factory catches
+`RendererCreationException` to fall back between backends), the
+`--embed-file` rule that embeds the SPIR-V shaders at `/shaders` (see
+"Shader compilation to SPIR-V" above), and `-sMIN_WEBGL_VERSION=2
+-sMAX_WEBGL_VERSION=2`. The WebGL version pin is required: emscripten defaults
+both settings to 1, so the GLFW Emscripten port (whose `glfwCreateWindow`
+ignores the GLFW version hints and only passes antialias/depth/stencil/alpha to
+`Browser.createContext`) would create a **WebGL 1** context that rejects the
+ES 3.0 shaders with `unsupported shader version 300`, leaving the program
+unlinked and the triangle invisible. The version settings are link-time, so
+they live in `skeleton`'s link options only (passing them via
+`add_compile_options` makes em++ warn that a linker setting was ignored during
+compilation). `run_emscripten.bat` passes its own arguments
+straight through to the build script, so the optional `BUILD_TYPE` argument
+still works
+(`run_emscripten.bat Debug`).
+
+The Emscripten toolchain needs a reasonably recent Node (18+) to run its
+compiler tooling, and emscripten 5.x needs Python 3.10+ for its own tooling
+(`emcmake`/`emcc`; emrun also needs 3.10+). The emsdk's `.emscripten` config at
+the emsdk root pins the versions used (`NODE_JS`, `PYTHON`); on this machine
+node 22.16.0 and python 3.13.3 are active (run `emsdk activate
+python-3.13.3-64bit` to regenerate the config if a stale Python gets pinned).
+Note that the emsdk's `emsdk_env.bat` only prints the environment instead of
+setting it; the html5 helper scripts call `scripts\html5\emsdk_env.bat`, which
+locates the emsdk itself (via `where emcmake.bat`) and points `EMSDK_PYTHON` at
+the emsdk's Python so `emcc`/`emcmake`/`emrun` always run under a compatible
+interpreter.
 
 **cpplint** runs automatically before each target is built. If linting finds
 any issues, the build fails. You can also run linting standalone:
 
 ```sh
-cmake --build build --target libskeleton_cpplint
-cmake --build build --target skeleton_cpplint
+cmake --build build\windows --target libskeleton_cpplint
+cmake --build build\windows --target skeleton_cpplint
 ```
 
 or all at once:
 
 ```sh
-cmake --build build --target skeleton  # triggers both targets
+cmake --build build\windows --target skeleton  # triggers both targets
 ```
 
 ## How to test
@@ -282,8 +378,8 @@ Unit tests use **Google Test** and are built when `SKELETON_BUILD_TESTS` is
 `ON` (the default). See [TESTING.md](TESTING.md) for details.
 
 ```sh
-cmake --build build --config Release --target libskeleton_tests
-ctest --test-dir build -C Release --output-on-failure
+cmake --build build\windows --config Release --target libskeleton_tests
+ctest --test-dir build\windows -C Release --output-on-failure
 ```
 
 ## How to open in Visual Studio
@@ -292,11 +388,12 @@ ctest --test-dir build -C Release --output-on-failure
 scripts\windows\build_projects.bat
 ```
 
-This configures the project (if needed) and opens `skeleton.slnx`.
+This configures the project (if needed) and opens `skeleton.slnx` from
+`build\windows`.
 
 Once inside Visual Studio, build and run via `F5` or `Ctrl+F5`. The executable
-will be at `build\skeleton\Release\skeleton.exe` (or `Debug` depending on
-configuration).
+will be at `build\windows\skeleton\Release\skeleton.exe` (or `Debug` depending
+on configuration).
 
 ## Dependencies
 
@@ -314,7 +411,8 @@ The project uses **CMake FetchContent** to download and build dependencies:
 | spirv-cross | https://github.com/KhronosGroup/SPIRV-Cross.git | vulkan-sdk-1.4.350.1 |
 
 `glad` requires a Python interpreter with `jinja2` installed; it is only
-declared when OpenGL is supported on the target platform. `volk` is only
+declared when OpenGL is supported on the target platform and the target is not
+Emscripten. `volk` is only
 declared when `SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN` is set; it is the
 runtime meta-loader for Vulkan and links no Vulkan library, since function
 pointers are loaded at run time via `volkInitialize()`. volk's
@@ -326,6 +424,22 @@ supported; it has no release tags, so it tracks the `vulkan-sdk-1.4.350.1`
 tag, and the CLI, tests, and the MSL/HLSL/CPP/REFLECT/C-API/util subprojects
 are disabled so only the GLSL backend (`spirv-cross-glsl`, which links
 `spirv-cross-core`) is built.
+
+On Emscripten the dependency handling differs:
+- **GLFW** cannot be built from source (no supported platform backend), so
+  `cmake/dependencies.cmake` exposes the GLFW port shipped with the Emscripten
+  SDK (`-sUSE_GLFW=3`, a JavaScript implementation of the GLFW 3 API) as an
+  `INTERFACE` target with the same `glfw` name that the rest of the build links.
+  Its include directory points at the Emscripten sysroot and it carries the
+  `-sUSE_GLFW=3` link option.
+- **Threads:** dependencies such as spdlog call `find_package(Threads
+  REQUIRED)`, but the pthread probes never pass under Emscripten. The build
+  pre-seeds `CMAKE_HAVE_LIBC_PTHREAD TRUE` so FindThreads returns its cached
+  value without re-running the probe, which marks Threads found with an empty
+  `CMAKE_THREAD_LIBS_INIT` (a no-op `Threads::Threads`, so the web build does
+  not require SharedArrayBuffer / cross-origin isolation).
+- **glad** is skipped (entry points are linked into the module) and **volk** is
+  skipped (no Vulkan).
 
 `spdlog` is a logging dependency of `libskeleton`, linked `PUBLIC` so consumers
 (executables and tests) can use it transitively. Its bundled fmt is used, and

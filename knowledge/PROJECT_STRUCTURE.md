@@ -13,6 +13,7 @@ skeleton/
 │   ├── third_party/          # Build recipes for dependencies without their own CMake
 │   │   └── imgui/CMakeLists.txt  # Dear ImGui build script, copied into the fetched source
 │   └── platform/             # Per-platform capability flags
+│       ├── emscripten.cmake  # WebGL 2 / ES 3.0 OpenGL, no Vulkan; keeps C++ exception catching enabled (WebGL version pinned at link in skeleton/CMakeLists.txt)
 │       └── windows.cmake     # Defines SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL
 ├── knowledge/                # Detailed project documentation
 │   ├── README.md
@@ -21,7 +22,12 @@ skeleton/
 │   ├── PROJECT_STRUCTURE.md
 │   └── TESTING.md
 ├── scripts/                  # Build & run scripts
-│   └── build_and_run.bat
+│   ├── html5/
+│   │   ├── emsdk_env.bat       # Points EMSDK_PYTHON at the emsdk's Python (emcc/emrun need 3.10+)
+│   │   ├── build_emscripten.bat # Configures and builds the Emscripten HTML5 runtime in build\html5
+│   │   └── run_emscripten.bat # Builds (via build_emscripten.bat), then serves the page with emrun in the default browser
+│   └── windows/
+│       └── build_projects.bat
 ├── libskeleton/              # Static library target
 │   ├── CMakeLists.txt
 │   ├── include/libskeleton/  # Public headers
@@ -46,6 +52,7 @@ skeleton/
 │       │   ├── renderer.cc
 │       │   ├── rendererfactory.cc
 │       │   ├── opengl/
+│       │   │   ├── gl.h                  # Private: GL header abstraction (glad on native, <GLES3/gl3.h> under Emscripten)
 │       │   │   ├── openglframebuffer.cc/.h    # Private: framebuffer + colour texture wrapper
 │       │   │   ├── openglmesh.cc/.h           # Private: VAO/VBO wrapper
 │       │   │   ├── openglrenderer.cc
@@ -96,7 +103,7 @@ skeleton/
 ├── skeleton/                 # Executable target
 │   ├── CMakeLists.txt
 │   └── src/
-│       └── main.cc
+│       └── main.cc          # Native: while(IsOpen()) loop; Emscripten: static state + emscripten_set_main_loop
 ├── skeledit/                 # Editor executable target, links libskeleton and imgui
 │   ├── CMakeLists.txt        # Fetches imgui docking branch (skeledit-only dependency)
 │   ├── include/skeledit/
@@ -116,7 +123,7 @@ skeleton/
 │       ├── imguieditor.cc    # ImGui context/backends, dockable viewport, dock layout (viewport, right-docked scene graph with the entity panel below it, bottom logs), scene graph panel (ImGui tree node per scene entity + component leaves, click to select), entity panel (selected entity's components, editable Name via imgui_stdlib InputText, other components collapsible), log window; flips the viewport texture only when the backend reports it is stored bottom-up
 │       ├── opengl_imguibackend.cc  # ImGui_ImplGlfw_InitForOpenGL + ImGui_ImplOpenGL3_*
 │       └── vulkan_imguibackend.cc  # ImGui_ImplGlfw_InitForVulkan + ImGui_ImplVulkan_* + FrameSubmitCallback
-└── build/                    # Build output (gitignored)
+└── build/                    # Build output (gitignored): build\windows (VS), build\html5 (Emscripten)
 ```
 
 ## Target dependency graph

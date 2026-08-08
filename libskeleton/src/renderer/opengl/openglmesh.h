@@ -3,10 +3,10 @@
 #ifndef LIBSKELETON_SRC_RENDERER_OPENGL_OPENGLMESH_H_
 #define LIBSKELETON_SRC_RENDERER_OPENGL_OPENGLMESH_H_
 
-#include <glad/gl.h>
-
 #include <cstddef>
 #include <vector>
+
+#include "renderer/opengl/gl.h"
 
 namespace skeleton {
 

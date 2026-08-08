@@ -1,17 +1,42 @@
 include(FetchContent)
 
-FetchContent_Declare(
-    glfw
-    GIT_REPOSITORY https://github.com/glfw/glfw.git
-    GIT_TAG 3.4
-)
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(glfw)
+if (EMSCRIPTEN)
+    # Dependencies such as spdlog call find_package(Threads REQUIRED), but the
+    # pthread probes never pass under Emscripten (there is no pthread library
+    # and -pthread is not accepted by emcc by default). FindThreads resets
+    # Threads_FOUND before probing, so pre-seed the libc probe result instead:
+    # its cached value is returned without re-running the probe, which marks
+    # Threads found with an empty CMAKE_THREAD_LIBS_INIT (a no-op
+    # Threads::Threads, so the web build does not require SharedArrayBuffer /
+    # cross-origin isolation).
+    set(CMAKE_HAVE_LIBC_PTHREAD TRUE CACHE INTERNAL "" FORCE)
+endif()
 
-if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL)
+if (EMSCRIPTEN)
+    # GLFW cannot be built from source for Emscripten (no supported platform
+    # backend), so expose the GLFW port shipped with the Emscripten SDK
+    # (-sUSE_GLFW=3, a JavaScript implementation of the GLFW 3 API) as an
+    # INTERFACE target with the same name that the rest of the build links.
+    add_library(glfw INTERFACE)
+    target_include_directories(glfw INTERFACE "${EMSCRIPTEN_SYSROOT}/include")
+    target_link_options(glfw INTERFACE "-sUSE_GLFW=3")
+else()
+    FetchContent_Declare(
+        glfw
+        GIT_REPOSITORY https://github.com/glfw/glfw.git
+        GIT_TAG 3.4
+    )
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(glfw)
+endif()
+
+if (SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL AND NOT EMSCRIPTEN)
+    # glad loads desktop GL function pointers on native platforms. Emscripten
+    # links the WebGL 2 / OpenGL ES 3.0 entry points directly, so it is skipped
+    # there.
     FetchContent_Declare(
         glad
         GIT_REPOSITORY https://github.com/Dav1dde/glad.git

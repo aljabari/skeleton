@@ -2,8 +2,14 @@
 
 #include <spdlog/spdlog.h>
 
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
+
+#if defined(__EMSCRIPTEN__)
+#include <emscripten/emscripten.h>
+#endif
 
 #include "libskeleton/logging.h"
 #include "libskeleton/rendererfactory.h"
@@ -31,6 +37,26 @@ Scene CreateDemoScene() {
   return scene;
 }
 
+#if defined(__EMSCRIPTEN__)
+// Emscripten drives the frame loop from the browser's event loop via
+// emscripten_set_main_loop, which unwinds main()'s stack (it throws a
+// sentinel exception the runtime catches). The loop state must therefore
+// outlive Run() in static storage.
+std::unique_ptr<Renderer> g_loop_renderer;
+std::unique_ptr<Window> g_loop_window;
+Scene g_loop_scene;
+
+void EmscriptenFrameIteration() {
+  if (!g_loop_window->IsOpen()) {
+    emscripten_cancel_main_loop();
+    return;
+  }
+  g_loop_window->PollEvents();
+  g_loop_renderer->Render(g_loop_scene);
+  g_loop_window->SwapBuffers();
+}
+#endif
+
 }  // namespace
 
 int Run(int argc, char* argv[]) {
@@ -44,6 +70,17 @@ int Run(int argc, char* argv[]) {
   }
   SPDLOG_INFO("Skeleton {} started.", SKELETON_VERSION_STRING);
   Scene scene = CreateDemoScene();
+#if defined(__EMSCRIPTEN__)
+  // A blocking render loop would stall the browser's event loop (the page
+  // becomes unresponsive and frames are never presented). Hand the frame loop
+  // to emscripten_set_main_loop (requestAnimationFrame-driven) and let main()
+  // return; the loop state lives in static storage above.
+  g_loop_renderer = std::move(renderer);
+  g_loop_window = std::make_unique<Window>(*g_loop_renderer);
+  g_loop_scene = std::move(scene);
+  emscripten_set_main_loop(EmscriptenFrameIteration, 0, 1);
+  return 0;
+#else
   Window window(*renderer);
   while (window.IsOpen()) {
     window.PollEvents();
@@ -51,6 +88,7 @@ int Run(int argc, char* argv[]) {
     window.SwapBuffers();
   }
   return 0;
+#endif
 }
 
 }  // namespace skeleton

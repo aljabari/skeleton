@@ -6,8 +6,13 @@
 
 #include <memory>
 
+#ifdef SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL
 #include "libskeleton/opengl/openglrenderer.h"
+#endif  // SKELETON_TARGET_SUPPORTS_RENDERER_OPENGL
+
+#ifdef SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN
 #include "libskeleton/vulkan/vulkanrenderer.h"
+#endif  // SKELETON_TARGET_SUPPORTS_RENDERER_VULKAN
 
 namespace skeleton {
 

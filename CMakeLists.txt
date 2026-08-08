@@ -8,6 +8,11 @@ option(SKELETON_ENABLE_LOGGING_IN_RELEASE
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 if (WIN32)
     include(platform/windows)
+elseif (EMSCRIPTEN)
+    # Included by absolute path: the Emscripten toolchain puts its own
+    # Modules/Platform/Emscripten.cmake on the CMAKE_MODULE_PATH, which would
+    # otherwise shadow this file on case-insensitive file systems.
+    include(${CMAKE_CURRENT_LIST_DIR}/cmake/platform/emscripten.cmake)
 endif()
 include(CPPLint)
 include(CTest)

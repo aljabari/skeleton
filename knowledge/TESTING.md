@@ -12,13 +12,13 @@ This project uses **Google Test** (with **Google Mock**) for unit tests.
 Tests are built only when the `SKELETON_BUILD_TESTS` CMake option is enabled:
 
 ```sh
-cmake -B build -DSKELETON_BUILD_TESTS=ON
+cmake -B build\windows -DSKELETON_BUILD_TESTS=ON
 ```
 
 The option **defaults to `ON`**. Set it to `OFF` to compile without tests:
 
 ```sh
-cmake -B build -DSKELETON_BUILD_TESTS=OFF
+cmake -B build\windows -DSKELETON_BUILD_TESTS=OFF
 ```
 
 ## Layout
@@ -96,14 +96,14 @@ every recorded frame.
 Build and run through CTest:
 
 ```sh
-cmake --build build --config Release
-ctest --test-dir build -C Release --output-on-failure
+cmake --build build\windows --config Release
+ctest --test-dir build\windows -C Release --output-on-failure
 ```
 
 or run the test executable directly:
 
 ```sh
-build\tests\Release\libskeleton_tests.exe
+build\windows\tests\Release\libskeleton_tests.exe
 ```
 
 ## Policy

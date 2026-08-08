@@ -2,7 +2,6 @@
 
 #include "renderer/opengl/openglshader.h"
 
-#include <glad/gl.h>
 #include <spdlog/spdlog.h>
 
 #include <cstdint>
@@ -17,6 +16,7 @@
 #include <spirv_glsl.hpp>
 
 #include "libskeleton/renderer.h"
+#include "renderer/opengl/gl.h"
 
 namespace skeleton {
 
@@ -42,14 +42,20 @@ std::vector<uint32_t> LoadSpirV(const std::string& path) {
   return words;
 }
 
-// Cross-compiles the SPIR-V module at path to desktop GLSL with spirv-cross,
+// Cross-compiles the SPIR-V module at path to GLSL with spirv-cross,
 // converting it from the Vulkan coordinate system (clip space y pointing down,
-// z in [0, w]) to the OpenGL one (y up, z in [-w, w]).
+// z in [0, w]) to the OpenGL one (y up, z in [-w, w]). Desktop builds target
+// GLSL 3.30; Emscripten builds target OpenGL ES 3.0 GLSL (WebGL 2).
 std::string CrossCompileToGlsl(const std::string& path) {
   spirv_cross::CompilerGLSL compiler(LoadSpirV(path));
   spirv_cross::CompilerGLSL::Options options = compiler.get_common_options();
+#if defined(__EMSCRIPTEN__)
+  options.version = 300;
+  options.es = true;
+#else
   options.version = 330;
   options.es = false;
+#endif
   options.vertex.fixup_clipspace = true;
   options.vertex.flip_vert_y = true;
   compiler.set_common_options(options);

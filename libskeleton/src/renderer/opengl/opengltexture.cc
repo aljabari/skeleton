@@ -2,7 +2,7 @@
 
 #include "renderer/opengl/opengltexture.h"
 
-#include <glad/gl.h>
+#include "renderer/opengl/gl.h"
 
 namespace skeleton {
 
