@@ -93,8 +93,13 @@ VkExtent2D VulkanSwapchain::ChooseExtent(uint32_t width,
   VkSurfaceCapabilitiesKHR capabilities{};
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device_.PhysicalDevice(), surface_,
                                             &capabilities);
-  if (capabilities.currentExtent.width !=
-      std::numeric_limits<uint32_t>::max()) {
+  // A current extent of zero (minimized window) or the sentinel maximum means
+  // the surface size is not usable; fall back to clamping the requested size so
+  // the swapchain is never created with a zero-sized extent.
+  if (capabilities.currentExtent.width != 0 &&
+      capabilities.currentExtent.height != 0 &&
+      capabilities.currentExtent.width !=
+          std::numeric_limits<uint32_t>::max()) {
     return capabilities.currentExtent;
   }
   VkExtent2D extent{};

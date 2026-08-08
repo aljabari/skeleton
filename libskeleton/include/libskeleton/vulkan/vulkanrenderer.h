@@ -117,7 +117,9 @@ class VulkanRenderer : public Renderer {
   // Destroys and recreates the swapchain and its framebuffers to match the
   // current window size. Called when the swapchain is out of date; waits for
   // the device to go idle first so no in-flight command buffer references the
-  // destroyed framebuffers.
+  // destroyed framebuffers. When the window is minimized (framebuffer size 0)
+  // the current swapchain is kept; it is recreated after the window is
+  // restored, when the next acquire is out of date.
   void RecreateSwapchain();
 
   GLFWwindow* window_ = nullptr;

@@ -45,7 +45,7 @@ location. Currently:
 |                     | `tests/src/renderer/vulkan/vulkangraphicspipeline_test.cc` | `VulkanGraphicsPipeline` pipeline/layout creation from the build-time compiled `triangle.vert.spv`/`triangle.frag.spv` shader modules against a hardcoded-format render pass, without a swapchain (skips when Vulkan is unavailable) |
 |                     | `tests/src/renderer/vulkan/vulkaninstance_test.cc` | `VulkanInstance` instance creation and physical-device enumeration (skips when Vulkan is unavailable); in Debug builds, debug-messenger creation for validation layers |
 |                     | `tests/src/renderer/vulkan/vulkanmesh_test.cc` | `VulkanMesh` vertex-buffer/memory creation from the same hardcoded triangle mesh the OpenGL renderer tests use (skips when Vulkan is unavailable) |
-|                     | `tests/src/renderer/vulkan/vulkanrenderer_test.cc` | `VulkanRenderer::CreateContext` instance/surface/window/physical-device/logical-device/swapchain/render-pass/pipeline/mesh/framebuffer/command-buffer/synchronisation creation, `Render` drawing the scene's triangle mesh without error, rendering to a texture target (with the render-target image view/extent), `ResizeRenderTarget` recreating the image, and window targets having no render-target image (skips when Vulkan is unavailable) |
+|                     | `tests/src/renderer/vulkan/vulkanrenderer_test.cc` | `VulkanRenderer::CreateContext` instance/surface/window/physical-device/logical-device/swapchain/render-pass/pipeline/mesh/framebuffer/command-buffer/synchronisation creation, `Render` drawing the scene's triangle mesh without error, rendering to a texture target (with the render-target image view/extent), `ResizeRenderTarget` recreating the image, window targets having no render-target image, and minimized windows skipping frames instead of creating a zero-sized swapchain (skips when Vulkan is unavailable) |
 |                     | `tests/src/renderer/vulkan/vulkanrenderpass_test.cc` | `VulkanRenderPass` render-pass creation with a colour attachment and the given final image layout (skips when Vulkan is unavailable) |
 |                     | `tests/src/renderer/vulkan/vulkanrendertarget_test.cc` | `VulkanRenderTarget` off-screen colour image/image-view creation with colour-attachment and sampled usage, at the requested size (skips when Vulkan is unavailable) |
 |                     | `tests/src/renderer/vulkan/vulkansemaphore_test.cc` | `VulkanSemaphore` semaphore creation (skips when Vulkan is unavailable) |
@@ -90,6 +90,18 @@ recreates the render target (for example on resize).
 unit-tests the hook itself: it registers a callback that returns a
 begin/end-recorded secondary command buffer and asserts `Render()` submits it on
 every recorded frame.
+
+When the window is minimized the Vulkan renderer skips frames instead of
+creating an invalid swapchain: `VulkanRenderer::Render` returns early while the
+window framebuffer size is zero, and `VulkanRenderer::RecreateSwapchain` keeps
+the current swapchain rather than recreating a zero-sized one (it is recreated
+once the window is restored and the next acquire is out of date).
+`VulkanSwapchain::ChooseExtent` also falls back to the clamped requested size
+when the surface reports a zero current extent, so a zero-sized swapchain can
+never be created. `VulkanRendererTest.MinimizedWindowSkipsFrameWithoutInvalidSwapchain`
+covers this by iconifying the window, rendering without error, and verifying the
+swapchain extent stays non-zero (on platforms where an iconified window reports
+a zero-sized surface).
 
 ## Running tests
 

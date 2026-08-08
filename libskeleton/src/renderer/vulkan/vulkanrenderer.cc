@@ -6,7 +6,6 @@
 
 #include <spdlog/spdlog.h>
 
-#include <algorithm>
 #include <memory>
 #include <string>
 #include <utility>
@@ -143,6 +142,16 @@ void VulkanRenderer::Render(const Scene& scene) {
   if (device_ == nullptr || swapchain_ == nullptr ||
       graphics_pipeline_ == nullptr) {
     SPDLOG_WARN("Vulkan renderer is not fully initialised; skipping frame.");
+    return;
+  }
+
+  // While the window is minimized its surface has no size (a zero-sized
+  // swapchain would be invalid), so skip the frame and let the swapchain be
+  // recreated when the window is restored.
+  int width = 0;
+  int height = 0;
+  glfwGetFramebufferSize(window_, &width, &height);
+  if (width == 0 || height == 0) {
     return;
   }
 
@@ -404,16 +413,22 @@ void VulkanRenderer::RecreateSwapchain() {
   if (device_ == nullptr || window_ == nullptr || render_pass_ == nullptr) {
     return;
   }
+  int width = 0;
+  int height = 0;
+  glfwGetFramebufferSize(window_, &width, &height);
+  if (width == 0 || height == 0) {
+    // The window is minimized, so the surface has no size and a zero-sized
+    // swapchain would be invalid. Keep the current swapchain; it is recreated
+    // when the window is restored and the next acquire is out of date.
+    return;
+  }
   // Wait so no in-flight command buffer (including any recorded by the frame
   // submit hook, which uses the same swapchain images) still references the
   // framebuffers about to be destroyed.
   vkDeviceWaitIdle(device_->Device());
 
-  int width = 0;
-  int height = 0;
-  glfwGetFramebufferSize(window_, &width, &height);
-  const uint32_t swapchain_width = std::max(width, 1);
-  const uint32_t swapchain_height = std::max(height, 1);
+  const uint32_t swapchain_width = static_cast<uint32_t>(width);
+  const uint32_t swapchain_height = static_cast<uint32_t>(height);
 
   // The image views are owned by the swapchain, so the framebuffers built on
   // top of them must be destroyed before the swapchain is.

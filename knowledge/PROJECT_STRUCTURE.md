@@ -69,9 +69,9 @@ skeleton/
 │       │       ├── vulkanrenderpass.cc/.h # Private: RAII render pass over a colour attachment; final layout parameterised (present-ready for the swapchain, shader-read-only for the render target)
 │       │       ├── vulkanrendertarget.cc/.h # Private: RAII off-screen colour image + image view for texture rendering
 │       │       ├── vulkansemaphore.cc/.h # Private: RAII synchronisation semaphore
-│       │       ├── vulkanswapchain.cc/.h # Private: RAII swapchain + image views
+│       │       ├── vulkanswapchain.cc/.h # Private: RAII swapchain + image views; extent selection falls back to the clamped requested size when the surface reports a zero current extent (minimized window)
 │       │       ├── vulkanvalidation.cc/.h  # Private: RAII debug messenger for validation layers
-│       │       └── vulkanrenderer.cc
+│       │       └── vulkanrenderer.cc # Skips frames while the window is minimized and never recreates a zero-sized swapchain
 ├── tests/                    # Unit tests (Google Test), mirrors libskeleton/src
 │   ├── CMakeLists.txt
 │   └── src/

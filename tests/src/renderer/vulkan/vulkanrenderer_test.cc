@@ -187,5 +187,36 @@ TEST(VulkanRendererTest, WindowTargetHasNoRenderTargetImage) {
   glfwTerminate();
 }
 
+TEST(VulkanRendererTest, MinimizedWindowSkipsFrameWithoutInvalidSwapchain) {
+  SkipIfVulkanUnavailable();
+
+  {
+    VulkanRenderer renderer;
+    renderer.CreateContext(WindowConfig{800, 600, "test"});
+    const Scene scene = CreateTriangleScene();
+    EXPECT_NO_THROW(renderer.Render(scene));
+
+    glfwIconifyWindow(renderer.GetNativeWindow());
+    glfwPollEvents();
+
+    int width = 0;
+    int height = 0;
+    glfwGetFramebufferSize(renderer.GetNativeWindow(), &width, &height);
+    if (width == 0 && height == 0) {
+      // On platforms where an iconified window reports a zero-sized surface,
+      // the frame must be skipped rather than creating a zero-sized swapchain.
+      EXPECT_NO_THROW(renderer.Render(scene));
+      EXPECT_NE(renderer.SwapchainExtent().width, 0u);
+      EXPECT_NE(renderer.SwapchainExtent().height, 0u);
+    }
+
+    glfwRestoreWindow(renderer.GetNativeWindow());
+    glfwPollEvents();
+    EXPECT_NO_THROW(renderer.Render(scene));
+  }
+
+  glfwTerminate();
+}
+
 }  // namespace
 }  // namespace skeleton
